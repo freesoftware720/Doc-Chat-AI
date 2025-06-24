@@ -3,6 +3,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
+// Helper function to dynamically import and use pdf-parse
+async function getPdfContent(fileBuffer: Buffer): Promise<string> {
+  const pdf = (await import('pdf-parse')).default;
+  const data = await pdf(fileBuffer);
+  return data.text;
+}
+
 export async function processDocument(
   fileName: string,
   storagePath: string
@@ -23,10 +30,8 @@ export async function processDocument(
     throw new Error('Failed to download document for processing.');
   }
 
-  const pdf = (await import('pdf-parse')).default;
   const buffer = Buffer.from(await blob.arrayBuffer());
-  const pdfData = await pdf(buffer);
-  const content = pdfData.text;
+  const content = await getPdfContent(buffer);
 
   // Insert document metadata and content into the database
   const { data: document, error: insertError } = await supabase
