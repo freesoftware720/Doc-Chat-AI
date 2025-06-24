@@ -1,6 +1,6 @@
 "use client"
 
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useState, Suspense } from "react";
 import { resetPassword } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AuthCardContent } from "./auth-card";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader } from "lucide-react";
 
@@ -27,7 +26,7 @@ function ResetPasswordFormComponent() {
   const searchParams = useSearchParams();
   const code = searchParams.get('code') || '';
 
-  const [state, formAction] = useFormState(resetPassword, undefined);
+  const [state, formAction] = useActionState(resetPassword, undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();

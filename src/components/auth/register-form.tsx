@@ -1,6 +1,6 @@
 "use client"
 
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useState } from "react";
 import { register } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthCardContent } from "./auth-card";
 import { OAuthButtons } from "./oauth-buttons";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader } from "lucide-react";
 
 const formSchema = z.object({
@@ -23,7 +22,7 @@ const formSchema = z.object({
 })
 
 export function RegisterForm() {
-  const [state, formAction] = useFormState(register, undefined);
+  const [state, formAction] = useActionState(register, undefined);
   const [showPassword, setShowPassword] = useState(false)
   const { toast } = useToast();
 
@@ -44,11 +43,11 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form
-        action={formAction}
-      >
-        <AuthCardContent className="space-y-4">
-          <div className="space-y-4">
+      <AuthCardContent className="space-y-4">
+        <form
+          action={formAction}
+          className="space-y-4"
+        >
              <FormField
               control={form.control}
               name="fullName"
@@ -125,13 +124,12 @@ export function RegisterForm() {
                 </FormItem>
               )}
             />
-          </div>
           <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
              {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Create Account"}
           </Button>
-          <OAuthButtons isSubmitting={form.formState.isSubmitting}/>
-        </AuthCardContent>
-      </form>
+        </form>
+        <OAuthButtons isSubmitting={form.formState.isSubmitting}/>
+      </AuthCardContent>
     </Form>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useFormState } from "react-dom"
+import { useActionState, useEffect, useState } from "react"
 import { login } from "@/app/actions/auth"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form"
 import { AuthCardContent } from "./auth-card"
 import { OAuthButtons } from "./oauth-buttons"
-import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff, Loader } from "lucide-react"
 
@@ -27,7 +26,7 @@ const formSchema = z.object({
 })
 
 export function LoginForm() {
-  const [state, formAction] = useFormState(login, undefined)
+  const [state, formAction] = useActionState(login, undefined)
   const [showPassword, setShowPassword] = useState(false)
   const { toast } = useToast()
   
@@ -48,11 +47,11 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form
-        action={formAction}
-      >
-        <AuthCardContent className="space-y-4">
-          <div className="space-y-4">
+      <AuthCardContent className="space-y-4">
+        <form
+          action={formAction}
+          className="space-y-4"
+        >
             <FormField
               control={form.control}
               name="email"
@@ -105,13 +104,12 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-          </div>
           <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Sign In"}
           </Button>
-          <OAuthButtons isSubmitting={form.formState.isSubmitting} />
-        </AuthCardContent>
-      </form>
+        </form>
+        <OAuthButtons isSubmitting={form.formState.isSubmitting} />
+      </AuthCardContent>
     </Form>
   )
 }

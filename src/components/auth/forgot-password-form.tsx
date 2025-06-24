@@ -1,6 +1,6 @@
 "use client"
 
-import { useFormState } from "react-dom";
+import { useActionState, useEffect } from "react";
 import { sendPasswordResetEmail } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AuthCardContent } from "./auth-card";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 import { Loader } from "lucide-react";
 
 const formSchema = z.object({
@@ -18,7 +17,7 @@ const formSchema = z.object({
 })
 
 export function ForgotPasswordForm() {
-  const [state, formAction] = useFormState(sendPasswordResetEmail, undefined);
+  const [state, formAction] = useActionState(sendPasswordResetEmail, undefined);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
