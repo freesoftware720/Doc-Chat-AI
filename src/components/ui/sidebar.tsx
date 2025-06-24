@@ -512,12 +512,12 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "hover:border-primary/40 hover:bg-primary/20 hover:text-primary-foreground hover:[text-shadow:0_0_10px_hsl(var(--primary))] data-[state=open]:hover:border-primary/40 data-[state=open]:hover:bg-primary/20 data-[state=open]:hover:text-primary-foreground data-[state=open]:hover:[text-shadow:0_0_10px_hsl(var(--primary))]",
+          "data-[active=true]:font-medium data-[active=true]:border-primary/40 data-[active=true]:bg-primary/20 data-[active=true]:text-primary dark:data-[active=true]:text-white data-[active=true]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[active=true]:[text-shadow:0_0_8px_white] hover:border-primary/40 hover:bg-primary/20 hover:text-primary dark:hover:text-white hover:[text-shadow:0_0_8px_hsl(var(--primary))] dark:hover:[text-shadow:0_0_8px_white] data-[state=open]:border-primary/40 data-[state=open]:bg-primary/20 data-[state=open]:text-primary dark:data-[state=open]:text-white data-[state=open]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[state=open]:[text-shadow:0_0_8px_white]",
         outline:
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
