@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { analyzePdf, AnalyzePdfInput } from '@/ai/flows/pdf-analyzer';
+import type { TablesInsert } from '@/lib/supabase/database.types';
 
 export async function getChatSession(documentId: string) {
     const supabase = createClient();
@@ -17,7 +18,7 @@ export async function getChatSession(documentId: string) {
     const { data: session, error } = await supabase
         .from('chat_sessions')
         .upsert(
-            { document_id: documentId, user_id: user.id },
+            { document_id: documentId, user_id: user.id } as TablesInsert<'chat_sessions'>,
             { onConflict: 'user_id,document_id', ignoreDuplicates: false }
         )
         .select()
@@ -25,7 +26,7 @@ export async function getChatSession(documentId: string) {
 
     if (error || !session) {
         console.error('Error getting or creating chat session:', error);
-        throw new Error('Could not get or create a chat session.');
+        throw new Error(`Could not get or create a chat session. DB Error: ${error?.message}`);
     }
 
     return session;
