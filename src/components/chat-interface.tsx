@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Bot, Loader, XCircle, FileText } from "lucide-react";
+import { Send, User, Bot, Loader, XCircle, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -49,13 +50,14 @@ export default function ChatInterface({
   return (
     <div className="flex flex-col h-full bg-card/60 backdrop-blur-md border-white/10 shadow-lg rounded-2xl overflow-hidden">
       <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-lg">
+         <Button variant="ghost" size="icon" onClick={onReset} aria-label="Back to dashboard" className="mr-2">
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
         <div className="flex items-center gap-3 overflow-hidden">
           <FileText className="h-6 w-6 text-primary flex-shrink-0" />
           <h2 className="font-semibold text-lg font-headline truncate" title={documentName}>{documentName}</h2>
         </div>
-        <Button variant="ghost" size="icon" onClick={onReset} aria-label="Close chat">
-          <XCircle className="h-6 w-6 text-muted-foreground hover:text-foreground" />
-        </Button>
+        <div className="w-10"></div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-8">

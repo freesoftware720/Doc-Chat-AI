@@ -1,3 +1,4 @@
+
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
@@ -52,6 +53,7 @@ export async function processDocument(
   }
 
   revalidatePath('/app');
+  revalidatePath('/app/uploads');
   return document;
 }
 
@@ -75,7 +77,9 @@ export async function getDocuments() {
     return data || [];
 }
 
-export async function deleteDocument(documentId: string) {
+export async function deleteDocument(formData: FormData) {
+    const documentId = formData.get('documentId') as string;
+    
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
      if (!user) {
@@ -104,7 +108,7 @@ export async function deleteDocument(documentId: string) {
         console.error("Storage deletion failed, but proceeding to delete from DB", storageError);
     }
 
-    // Delete from database
+    // Delete from database (cascading delete will handle chat_sessions and messages)
     const { error: dbError } = await supabase
         .from('documents')
         .delete()
@@ -115,4 +119,5 @@ export async function deleteDocument(documentId: string) {
     }
 
     revalidatePath('/app');
+    revalidatePath('/app/uploads');
 }

@@ -1,25 +1,29 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDashboardStats } from "@/app/actions/profile";
 import { FileText, MessageSquare, Star } from "lucide-react";
 
-const stats = [
-  {
-    icon: <FileText className="h-6 w-6 text-primary" />,
-    title: "Total PDFs",
-    value: "12",
-  },
-  {
-    icon: <MessageSquare className="h-6 w-6 text-primary" />,
-    title: "Chats Used",
-    value: "24/50",
-  },
-  {
-    icon: <Star className="h-6 w-6 text-primary" />,
-    title: "Subscription",
-    value: "Free Plan",
-  },
-];
+export async function DashboardStats() {
+  const { documents, chats, plan } = await getDashboardStats();
 
-export function DashboardStats() {
+  const stats = [
+    {
+      icon: <FileText className="h-6 w-6 text-primary" />,
+      title: "Total PDFs",
+      value: documents,
+    },
+    {
+      icon: <MessageSquare className="h-6 w-6 text-primary" />,
+      title: "Conversations",
+      value: chats,
+    },
+    {
+      icon: <Star className="h-6 w-6 text-primary" />,
+      title: "Subscription",
+      value: plan,
+    },
+  ];
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {stats.map((stat) => (

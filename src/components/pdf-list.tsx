@@ -1,3 +1,4 @@
+
 import { FileText, MoreVertical, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
-import type { Document } from '@/app/app/page';
+import type { Tables } from '@/lib/supabase/database.types';
+
+type Document = Tables<'documents'>;
 
 interface PdfListProps {
   files: Document[];
