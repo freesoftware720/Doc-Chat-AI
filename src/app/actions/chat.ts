@@ -13,27 +13,19 @@ export async function getChatSession(documentId: string) {
         throw new Error('User not authenticated');
     }
 
-    // Check for an existing session
-    let { data: session } = await supabase
+    // Upsert ensures a session exists, and returns it.
+    const { data: session, error } = await supabase
         .from('chat_sessions')
-        .select('*')
-        .eq('document_id', documentId)
-        .eq('user_id', user.id)
+        .upsert(
+            { document_id: documentId, user_id: user.id },
+            { onConflict: 'user_id,document_id', ignoreDuplicates: false }
+        )
+        .select()
         .single();
 
-    // If no session, create one
-    if (!session) {
-        const { data: newSession, error } = await supabase
-            .from('chat_sessions')
-            .insert({ document_id: documentId, user_id: user.id })
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error creating chat session:', error);
-            throw new Error('Could not create a chat session.');
-        }
-        session = newSession;
+    if (error || !session) {
+        console.error('Error getting or creating chat session:', error);
+        throw new Error('Could not get or create a chat session.');
     }
 
     return session;
@@ -62,7 +54,8 @@ async function addMessage(sessionId: string, userId: string, role: 'user' | 'ass
 
     if (error) {
         console.error(`Error saving ${role} message:`, error);
-        throw new Error(`Failed to save ${role} message.`);
+        // Propagate the actual database error message for better debugging
+        throw new Error(`Failed to save ${role} message. DB error: ${error.message}`);
     }
 }
 
@@ -84,24 +77,35 @@ export async function sendMessage(documentId: string, content: string) {
         throw new Error('Document content not found.');
     }
 
-    const session = await getChatSession(documentId);
+    try {
+        const session = await getChatSession(documentId);
 
-    // 1. Save user's message
-    await addMessage(session.id, user.id, 'user', content);
+        // 1. Save user's message
+        await addMessage(session.id, user.id, 'user', content);
 
-    // 2. Call AI flow
-    const aiInput: AnalyzePdfInput = {
-        documentContent: document.content,
-        query: content,
-    };
-    const result = await analyzePdf(aiInput);
+        // 2. Call AI flow
+        const aiInput: AnalyzePdfInput = {
+            documentContent: document.content,
+            query: content,
+        };
+        const result = await analyzePdf(aiInput);
+        
+        if (!result || !result.answer) {
+             throw new Error('AI analysis failed to produce an answer.');
+        }
 
-    // 3. Save assistant's message
-    await addMessage(session.id, user.id, 'assistant', result.answer);
+        // 3. Save assistant's message
+        await addMessage(session.id, user.id, 'assistant', result.answer);
 
-    revalidatePath(`/app/chat/${documentId}`);
-    
-    return result;
+        revalidatePath(`/app/chat/${documentId}`);
+        
+        return result;
+
+    } catch (error: any) {
+        console.error("Error in sendMessage flow:", error);
+        // Re-throw with a more specific message for the client
+        throw new Error(error.message);
+    }
 }
 
 export async function getChatHistory() {

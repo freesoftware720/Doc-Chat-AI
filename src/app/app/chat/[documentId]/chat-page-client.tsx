@@ -39,18 +39,22 @@ export function ChatPageClient({ documentId, documentName, initialMessages, send
 
         try {
             const result = await sendMessageAction(documentId, content);
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: "assistant",
-                content: result.answer,
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
-        } catch (error) {
+            if (result && result.answer) {
+                const assistantMessage: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: "assistant",
+                    content: result.answer,
+                };
+                setMessages((prev) => [...prev, assistantMessage]);
+            } else {
+                 throw new Error("Received an empty response from the assistant.");
+            }
+        } catch (error: any) {
             console.error("Error sending message:", error);
             toast({
                 variant: "destructive",
-                title: "Analysis Error",
-                description: "An error occurred while sending your message. Please try again.",
+                title: "Message Error",
+                description: error.message || "An unknown error occurred. Please try again.",
             });
             // remove the user message if the call failed
             setMessages(prev => prev.slice(0, -1));
