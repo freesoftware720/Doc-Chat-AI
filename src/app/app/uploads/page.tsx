@@ -1,13 +1,13 @@
 
 import Link from 'next/link';
-import { getDocuments, deleteDocument } from '@/app/actions/documents';
+import { getDocuments } from '@/app/actions/documents';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileText, MessageSquare, PlusCircle, Trash2 } from 'lucide-react';
+import { FileText, MessageSquare, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import PdfUploader from '@/components/pdf-uploader';
 import { UploadHandler } from './upload-handler';
+import { DeleteDocumentButton } from './delete-document-button';
 
 export default async function UploadsPage() {
     const documents = await getDocuments();
@@ -59,13 +59,7 @@ export default async function UploadsPage() {
                                                         Chat
                                                     </Link>
                                                 </Button>
-                                                <form action={deleteDocument}>
-                                                    <input type="hidden" name="documentId" value={doc.id} />
-                                                    <Button variant="destructive" size="sm">
-                                                        <Trash2 className="h-4 w-4 mr-2" />
-                                                        Delete
-                                                    </Button>
-                                                </form>
+                                                <DeleteDocumentButton documentId={doc.id} />
                                             </div>
                                         </TableCell>
                                     </TableRow>

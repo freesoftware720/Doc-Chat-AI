@@ -77,25 +77,25 @@ export async function getDocuments() {
     return data || [];
 }
 
-export async function deleteDocument(formData: FormData) {
+export async function deleteDocument(prevState: any, formData: FormData) {
     const documentId = formData.get('documentId') as string;
     
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
      if (!user) {
-        throw new Error('You must be logged in to delete a document.');
+        return { error: 'You must be logged in to delete a document.' };
     }
 
     // First, get the document to find its storage path
     const { data: doc, error: fetchError } = await supabase
         .from('documents')
-        .select('storage_path')
+        .select('storage_path, name')
         .eq('id', documentId)
         .eq('user_id', user.id)
         .single();
 
     if (fetchError || !doc) {
-        throw new Error('Document not found or you do not have permission to delete it.');
+        return { error: 'Document not found or you do not have permission to delete it.' };
     }
 
     // Delete from storage
@@ -115,9 +115,10 @@ export async function deleteDocument(formData: FormData) {
         .eq('id', documentId);
     
     if (dbError) {
-        throw new Error('Failed to delete document from database.');
+        return { error: 'Failed to delete document from database.' };
     }
 
     revalidatePath('/app');
     revalidatePath('/app/uploads');
+    return { success: `Document "${doc.name}" deleted successfully.` };
 }
