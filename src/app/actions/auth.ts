@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function login(formData: FormData) {
+export async function login(prevState: any, formData: FormData) {
   const supabase = createClient()
 
   // type-safe access to form data
@@ -24,7 +24,7 @@ export async function login(formData: FormData) {
   redirect('/app')
 }
 
-export async function register(formData: FormData) {
+export async function register(prevState: any, formData: FormData) {
   const supabase = createClient()
 
   const data = {
@@ -58,7 +58,7 @@ export async function logout() {
 }
 
 
-export async function sendPasswordResetEmail(formData: FormData) {
+export async function sendPasswordResetEmail(prevState: any, formData: FormData) {
   const supabase = createClient()
   const email = formData.get('email') as string
 
@@ -73,7 +73,7 @@ export async function sendPasswordResetEmail(formData: FormData) {
   return { success: 'Password reset link sent. Check your email.' };
 }
 
-export async function resetPassword(formData: FormData) {
+export async function resetPassword(prevState: any, formData: FormData) {
   const supabase = createClient()
   const password = formData.get('password') as string
   const code = formData.get('code') as string
