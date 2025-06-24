@@ -48,10 +48,10 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)] bg-background">
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-3">
-          <FileText className="h-6 w-6 text-primary" />
+    <div className="flex flex-col h-[calc(100vh-65px)] bg-transparent">
+      <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <FileText className="h-6 w-6 text-primary flex-shrink-0" />
           <h2 className="font-semibold text-lg font-headline truncate" title={pdfName}>{pdfName}</h2>
         </div>
         <Button variant="ghost" size="icon" onClick={onReset} aria-label="Close chat">
@@ -73,26 +73,26 @@ export default function ChatInterface({
                 })}
               >
                 {message.role === "assistant" && (
-                  <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
-                    <AvatarFallback>
+                  <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
+                    <AvatarFallback className="bg-transparent">
                         <Bot className="h-5 w-5"/>
                     </AvatarFallback>
                   </Avatar>
                 )}
                 <div
                   className={cn(
-                    "max-w-xl rounded-lg px-4 py-3 shadow-md",
+                    "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
                     {
-                      "bg-primary text-primary-foreground": message.role === "user",
-                      "bg-card border": message.role === "assistant",
+                      "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
+                      "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
                     },
-                    "prose dark:prose-invert prose-p:my-2 prose-headings:my-3"
+                    "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-base whitespace-pre-wrap">{message.content}</p>
                 </div>
                 {message.role === "user" && (
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-9 w-9">
                      <AvatarFallback>
                         <User className="h-5 w-5"/>
                     </AvatarFallback>
@@ -107,11 +107,11 @@ export default function ChatInterface({
               animate={{ opacity: 1, y: 0 }}
               className="flex items-start gap-4"
             >
-              <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
-                <AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback>
+              <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
+                <AvatarFallback className="bg-transparent"><Bot className="h-5 w-5"/></AvatarFallback>
               </Avatar>
-              <div className="bg-card border rounded-lg px-4 py-3 shadow-md flex items-center">
-                <Loader className="h-5 w-5 animate-spin mr-2 text-primary" />
+              <div className="bg-card/60 backdrop-blur-md border border-white/10 rounded-2xl rounded-bl-lg px-4 py-3 shadow-lg flex items-center">
+                <Loader className="h-5 w-5 animate-spin mr-3 text-primary" />
                 <span className="text-sm text-muted-foreground">Thinking...</span>
               </div>
             </motion.div>
@@ -119,17 +119,17 @@ export default function ChatInterface({
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="border-t p-4 bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60">
+      <div className="border-t p-4 bg-background/80 backdrop-blur-lg">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex items-center gap-4">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question about your document..."
-            className="flex-1 bg-card/50"
+            placeholder="Ask anything about your document..."
+            className="flex-1 bg-card/80 rounded-full px-5 h-12 text-base border-border/50 focus:border-primary focus:ring-primary/50"
             disabled={isLoading}
           />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-            {isLoading ? <Loader className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          <Button type="submit" className="rounded-full h-12 w-12" size="icon" disabled={isLoading || !input.trim()}>
+            {isLoading ? <Loader className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             <span className="sr-only">Send</span>
           </Button>
         </form>

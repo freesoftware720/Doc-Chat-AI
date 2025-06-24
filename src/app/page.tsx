@@ -25,7 +25,7 @@ export default function Home() {
         {
           id: "1",
           role: "assistant",
-          content: `I've analyzed the document "${file.name}". What would you like to know?`,
+          content: `I've finished analyzing "${file.name}". What would you like to ask?`,
         },
       ]);
     };
@@ -51,15 +51,9 @@ export default function Home() {
       console.error("Error analyzing PDF:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Sorry, I encountered an error while analyzing the PDF. Please try again.",
+        title: "Analysis Error",
+        description: "An error occurred while analyzing the PDF. Please try again.",
       });
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please refresh and try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +67,12 @@ export default function Home() {
 
   return (
     <>
-      <main className="flex-1">
+      <main className="flex-1 relative">
+        <div className="absolute inset-0 -z-10 h-full w-full bg-background">
+          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] dark:opacity-20"></div>
+          <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_15%_50%,hsl(var(--primary)/0.1),transparent_30%),radial-gradient(circle_at_85%_30%,hsl(var(--accent)/0.1),transparent_30%)]"></div>
+        </div>
+
         {pdfFile ? (
           <ChatInterface
             messages={messages}

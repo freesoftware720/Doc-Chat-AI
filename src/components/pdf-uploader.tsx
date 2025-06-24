@@ -2,7 +2,7 @@
 
 import { useState, useRef, type DragEvent } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud, FileText } from "lucide-react";
+import { UploadCloud, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 interface PdfUploaderProps {
@@ -20,7 +20,7 @@ export default function PdfUploader({ onPdfUpload }: PdfUploaderProps) {
         setError(null);
         onPdfUpload(file);
       } else {
-        setError("Only PDF files are accepted.");
+        setError("Please upload a PDF file.");
       }
     }
   };
@@ -56,39 +56,43 @@ export default function PdfUploader({ onPdfUpload }: PdfUploaderProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-lg"
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-xl"
       >
-        <Card className="shadow-2xl bg-card/50 backdrop-blur-xl border-border/30">
-          <CardHeader className="text-center">
+        <Card className="rounded-2xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/20 transition-all duration-300 hover:shadow-primary/20 hover:scale-[1.02]">
+          <CardHeader className="text-center p-8">
             <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
-              <FileText className="h-10 w-10 text-primary" />
+              <Sparkles className="h-10 w-10 text-primary" />
             </div>
-            <CardTitle className="text-3xl font-headline">Upload your PDF</CardTitle>
-            <CardDescription>Drag and drop your document here to start chatting with it.</CardDescription>
+            <CardTitle className="text-3xl font-headline tracking-tight">Chat with any Document</CardTitle>
+            <CardDescription className="text-lg text-muted-foreground pt-2">Upload a PDF to start a conversation with our intelligent AI assistant.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-0">
             <div
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
               onClick={() => inputRef.current?.click()}
-              className={`relative flex flex-col items-center justify-center w-full p-10 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-300
-                ${isDragActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-muted/50"}`}
+              className={`relative flex flex-col items-center justify-center w-full p-10 border-2 border-dashed rounded-xl cursor-pointer transition-colors duration-300
+                ${isDragActive ? "border-primary bg-primary/10" : "border-border/50 hover:border-primary/50 hover:bg-muted/50"}`}
             >
               <input ref={inputRef} type="file" className="hidden" accept="application/pdf" onChange={handleChange} />
-              <div className="text-center">
+              <motion.div 
+                className="text-center"
+                animate={{ scale: isDragActive ? 1.1 : 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20}}
+              >
                 <UploadCloud className={`h-12 w-12 mx-auto mb-4 transition-colors ${isDragActive ? "text-primary": "text-muted-foreground"}`} />
                 {isDragActive ? (
-                  <p className="font-semibold text-primary">Drop the file here...</p>
+                  <p className="font-semibold text-lg text-primary">Drop it like it's hot!</p>
                 ) : (
                   <>
-                    <p className="font-semibold text-foreground">Drag & drop or <span className="text-primary font-bold">browse</span></p>
-                    <p className="text-sm text-muted-foreground mt-1">Supports: PDF</p>
+                    <p className="font-semibold text-foreground">Drag & drop or <span className="text-primary font-bold">browse files</span></p>
+                    <p className="text-sm text-muted-foreground mt-1">Supports: PDF only</p>
                   </>
                 )}
-              </div>
+              </motion.div>
             </div>
             {error && <p className="mt-4 text-sm text-center text-destructive">{error}</p>}
           </CardContent>
