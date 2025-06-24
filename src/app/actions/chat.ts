@@ -25,7 +25,7 @@ export async function getChatSession(documentId: string) {
         .single();
 
     if (error || !session) {
-        console.error('Error getting or creating chat session:', error);
+        console.error('Error getting or creating chat session:', error?.message);
         throw new Error(`Could not get or create a chat session. DB Error: ${error?.message}`);
     }
 
@@ -41,7 +41,7 @@ export async function getMessages(sessionId: string) {
         .order('created_at', { ascending: true });
 
     if (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error fetching messages:', error.message);
         return [];
     }
     return data;
@@ -51,10 +51,10 @@ async function addMessage(sessionId: string, userId: string, role: 'user' | 'ass
     const supabase = createClient();
     const { error } = await supabase
         .from('messages')
-        .insert({ session_id: sessionId, user_id: userId, role, content });
+        .insert({ session_id: sessionId, user_id: userId, role, content } as TablesInsert<'messages'>);
 
     if (error) {
-        console.error(`Error saving ${role} message:`, error);
+        console.error(`Error saving ${role} message:`, error.message);
         // Propagate the actual database error message for better debugging
         throw new Error(`Failed to save ${role} message. DB error: ${error.message}`);
     }
@@ -103,7 +103,7 @@ export async function sendMessage(documentId: string, content: string) {
         return result;
 
     } catch (error: any) {
-        console.error("Error in sendMessage flow:", error);
+        console.error("Error in sendMessage flow:", error.message);
         // Re-throw with a more specific message for the client
         throw new Error(error.message);
     }
@@ -125,7 +125,7 @@ export async function getChatHistory() {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error fetching chat history:', error);
+        console.error('Error fetching chat history:', error.message);
         return [];
     }
     
