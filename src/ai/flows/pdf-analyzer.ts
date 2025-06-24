@@ -34,15 +34,13 @@ const prompt = ai.definePrompt({
   name: 'analyzePdfPrompt',
   input: {schema: AnalyzePdfInputSchema},
   output: {schema: AnalyzePdfOutputSchema},
-  prompt: `You are an expert AI assistant specializing in PDF document analysis. Your task is to answer questions about the content of a PDF document based on the user's query.
+  prompt: `You are an expert AI assistant. Answer this question based on the provided document context.
 
-  Use the following PDF document content as the primary source of information to answer the question.
+Document Context: {{media url=pdfDataUri}}
 
-  PDF Content: {{media url=pdfDataUri}}
+User Question: {{{query}}}
 
-  User Query: {{{query}}}
-
-  Please provide a concise and accurate answer to the user's question based solely on the provided PDF content. If the PDF does not contain information relevant to the query, please respond with "I am sorry, but this document does not contain information relevant to your query."`,
+Provide a concise and accurate answer based solely on the document. If the document does not contain information relevant to the question, state that the information is not available in the document.`,
 });
 
 const analyzePdfFlow = ai.defineFlow(
