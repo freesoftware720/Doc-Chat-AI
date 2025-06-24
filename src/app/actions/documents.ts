@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import pdf from 'pdf-parse';
 
 export async function processDocument(
   fileName: string,
@@ -24,6 +23,7 @@ export async function processDocument(
     throw new Error('Failed to download document for processing.');
   }
 
+  const pdf = (await import('pdf-parse')).default;
   const buffer = Buffer.from(await blob.arrayBuffer());
   const pdfData = await pdf(buffer);
   const content = pdfData.text;

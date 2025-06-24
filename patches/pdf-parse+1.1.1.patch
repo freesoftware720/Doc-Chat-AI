@@ -1,0 +1,21 @@
+patch-package
+--- a/node_modules/pdf-parse/index.js
++++ b/node_modules/pdf-parse/index.js
+@@ -1,17 +1,7 @@
+ const fs = require('fs');
+ const path = require('path');
+ const PDFJS = require('./lib/pdf.js/v1.10.100/build/pdf.js');
+-
+-if (fs.existsSync('./test/data/05-versions-space.pdf')) {
+-	let PDF_PARSE_TEST_MODE = true;
+-	let TEST_MODE_REPLACEMENT = './test/data/';
+-	let PDF_JS_BIN = path.join(process.cwd(), 'node_modules', 'pdfjs-dist', 'build', 'pdf.worker.js');
+-	PDFJS.GlobalWorkerOptions.workerSrc = PDF_JS_BIN;
+-	module.exports = require(path.join(process.cwd(), 'lib', 'pdf-parse.js'));
+-	return;
+-}
+ 
+ let PDF_JS_BIN = path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'build', 'pdf.worker.js');
+ PDFJS.GlobalWorkerOptions.workerSrc = PDF_JS_BIN;
+ 
+ module.exports = require('./lib/pdf-parse-async.js')(PDFJS);
