@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import type { User } from "@supabase/supabase-js";
 
-export function Header() {
+export function Header({ user }: { user: User | null }) {
   const pathname = usePathname();
   const isLandingPage = pathname === "/";
 
@@ -27,7 +28,11 @@ export function Header() {
         )}
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          {isLandingPage ? (
+          {user ? (
+             <Button asChild>
+                <Link href="/app">Go to Dashboard</Link>
+              </Button>
+          ) : (
              <div className="hidden sm:flex items-center space-x-2">
               <Button variant="ghost" asChild>
                 <Link href="/auth/login">Sign In</Link>
@@ -36,10 +41,6 @@ export function Header() {
                 <Link href="/auth/register">Get Started Free</Link>
               </Button>
             </div>
-          ) : (
-             <Button asChild>
-                <Link href="/app">Go to Dashboard</Link>
-              </Button>
           )}
           <ThemeToggle />
         </div>

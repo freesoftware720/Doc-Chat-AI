@@ -49,12 +49,11 @@ export async function middleware(request: NextRequest) {
 
   const isAuthPage = pathname.startsWith('/auth')
   const isAppPage = pathname.startsWith('/app')
-  const isLandingPage = pathname === '/'
 
   // Redirect logic
   if (user) {
-    // If user is logged in, redirect from auth pages or landing page to the app dashboard
-    if (isAuthPage || isLandingPage) {
+    // If user is logged in, redirect from auth pages to the app dashboard
+    if (isAuthPage) {
       return NextResponse.redirect(new URL('/app', request.url))
     }
   } else {
