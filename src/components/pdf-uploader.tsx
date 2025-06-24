@@ -2,24 +2,27 @@
 
 import { useState, useRef, type DragEvent } from "react";
 import { motion } from "framer-motion";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Loader } from "lucide-react";
+import { Progress } from "./ui/progress";
 
 interface PdfUploaderProps {
   onPdfUpload: (file: File) => void;
+  isUploading: boolean;
+  error: string | null;
 }
 
-export default function PdfUploader({ onPdfUpload }: PdfUploaderProps) {
-  const [error, setError] = useState<string | null>(null);
+export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUploaderProps) {
+  const [internalError, setInternalError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File | null | undefined) => {
     if (file) {
       if (file.type === "application/pdf") {
-        setError(null);
+        setInternalError(null);
         onPdfUpload(file);
       } else {
-        setError("Please upload a PDF file.");
+        setInternalError("Please upload a PDF file.");
       }
     }
   };
@@ -52,13 +55,14 @@ export default function PdfUploader({ onPdfUpload }: PdfUploaderProps) {
 
   return (
     <div
+      onClick={() => !isUploading && inputRef.current?.click()}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
       onDragOver={handleDrag}
       onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
-      className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-colors duration-300
+      className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-2xl transition-colors duration-300
         bg-card/60 backdrop-blur-md border-white/10 shadow-lg
+        ${isUploading ? 'cursor-not-allowed' : 'cursor-pointer'}
         ${
           isDragActive
             ? "border-primary bg-primary/10"
@@ -71,32 +75,43 @@ export default function PdfUploader({ onPdfUpload }: PdfUploaderProps) {
         className="hidden"
         accept="application/pdf"
         onChange={handleChange}
+        disabled={isUploading}
       />
-      <motion.div
-        className="text-center"
-        animate={{ scale: isDragActive ? 1.1 : 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      >
-        <UploadCloud
-          className={`h-10 w-10 mx-auto mb-3 transition-colors ${
-            isDragActive ? "text-primary" : "text-muted-foreground"
-          }`}
-        />
-        {isDragActive ? (
-          <p className="font-semibold text-primary">Drop to upload!</p>
-        ) : (
-          <>
-            <p className="font-semibold text-foreground">
-              Drag & drop or <span className="text-primary font-bold">browse</span>
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              PDF documents up to 32MB
-            </p>
-          </>
-        )}
-      </motion.div>
-      {error && (
-        <p className="mt-2 text-sm text-center text-destructive">{error}</p>
+
+      {isUploading ? (
+        <div className="text-center">
+            <Loader className="h-10 w-10 mx-auto mb-3 animate-spin text-primary" />
+            <p className="font-semibold text-foreground">Processing Document</p>
+            <p className="text-xs text-muted-foreground mt-1">This may take a moment...</p>
+        </div>
+      ) : (
+        <motion.div
+            className="text-center"
+            animate={{ scale: isDragActive ? 1.1 : 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+            <UploadCloud
+            className={`h-10 w-10 mx-auto mb-3 transition-colors ${
+                isDragActive ? "text-primary" : "text-muted-foreground"
+            }`}
+            />
+            {isDragActive ? (
+            <p className="font-semibold text-primary">Drop to upload!</p>
+            ) : (
+            <>
+                <p className="font-semibold text-foreground">
+                Drag & drop or <span className="text-primary font-bold">browse</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                PDF documents up to 32MB
+                </p>
+            </>
+            )}
+        </motion.div>
+      )}
+
+      {(error || internalError) && !isUploading && (
+        <p className="mt-2 text-sm text-center text-destructive">{error || internalError}</p>
       )}
     </div>
   );

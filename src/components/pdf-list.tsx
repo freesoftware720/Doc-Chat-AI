@@ -9,12 +9,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
+import type { Document } from '@/app/app/page';
 
 interface PdfListProps {
-  files: File[];
-  selectedFile: File | null;
-  onSelectFile: (file: File) => void;
-  onDeleteFile: (fileName: string) => void;
+  files: Document[];
+  selectedFile: Document | null;
+  onSelectFile: (file: Document) => void;
+  onDeleteFile: (documentId: string) => void;
 }
 
 export function PdfList({ files, selectedFile, onSelectFile, onDeleteFile }: PdfListProps) {
@@ -31,10 +32,10 @@ export function PdfList({ files, selectedFile, onSelectFile, onDeleteFile }: Pdf
             <ul className="space-y-2 pr-4">
               {files.map((file) => (
                 <li
-                  key={file.name}
+                  key={file.id}
                   className={cn(
                     'flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors',
-                    selectedFile?.name === file.name
+                    selectedFile?.id === file.id
                       ? 'bg-primary/20'
                       : 'hover:bg-muted/50'
                   )}
@@ -54,7 +55,7 @@ export function PdfList({ files, selectedFile, onSelectFile, onDeleteFile }: Pdf
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => onDeleteFile(file.name)}
+                        onClick={() => onDeleteFile(file.id)}
                         className="text-destructive focus:text-destructive focus:bg-destructive/10"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />

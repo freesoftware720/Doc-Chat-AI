@@ -18,7 +18,7 @@ interface ChatInterfaceProps {
   messages: Message[];
   onSendMessage: (content: string) => void;
   isLoading: boolean;
-  pdfName: string;
+  documentName: string;
   onReset: () => void;
 }
 
@@ -26,7 +26,7 @@ export default function ChatInterface({
   messages,
   onSendMessage,
   isLoading,
-  pdfName,
+  documentName,
   onReset,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
@@ -51,7 +51,7 @@ export default function ChatInterface({
       <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-lg">
         <div className="flex items-center gap-3 overflow-hidden">
           <FileText className="h-6 w-6 text-primary flex-shrink-0" />
-          <h2 className="font-semibold text-lg font-headline truncate" title={pdfName}>{pdfName}</h2>
+          <h2 className="font-semibold text-lg font-headline truncate" title={documentName}>{documentName}</h2>
         </div>
         <Button variant="ghost" size="icon" onClick={onReset} aria-label="Close chat">
           <XCircle className="h-6 w-6 text-muted-foreground hover:text-foreground" />
