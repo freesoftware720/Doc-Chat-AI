@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Toaster } from "./ui/toaster";
 
 export interface Message {
   id: string;
@@ -48,7 +47,7 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] bg-transparent">
+    <div className="flex flex-col h-full bg-card/60 backdrop-blur-md border-white/10 shadow-lg rounded-2xl overflow-hidden">
       <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-lg">
         <div className="flex items-center gap-3 overflow-hidden">
           <FileText className="h-6 w-6 text-primary flex-shrink-0" />
@@ -134,7 +133,6 @@ export default function ChatInterface({
           </Button>
         </form>
       </div>
-      <Toaster />
     </div>
   );
 }

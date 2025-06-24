@@ -5,19 +5,30 @@ import PdfUploader from "@/components/pdf-uploader";
 import ChatInterface from "@/components/chat-interface";
 import type { Message } from "@/components/chat-interface";
 import { analyzePdf } from "@/ai/flows/pdf-analyzer";
-import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-
+import { DashboardStats } from "@/components/dashboard-stats";
+import { PdfList } from "@/components/pdf-list";
+import { AnimatePresence, motion } from "framer-motion";
+import { FileText } from "lucide-react";
 
 export default function AppPage() {
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [uploadedPdfs, setUploadedPdfs] = useState<File[]>([]);
+  const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
   const [pdfDataUri, setPdfDataUri] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handlePdfUpload = (file: File) => {
-    setPdfFile(file);
+  const resetChatState = () => {
+    setMessages([]);
+    setPdfDataUri(null);
+  }
+
+  const selectPdf = (file: File) => {
+    if (selectedPdf?.name === file.name) return;
+
+    setSelectedPdf(file);
+    resetChatState();
     const reader = new FileReader();
     reader.onload = (e) => {
       setPdfDataUri(e.target?.result as string);
@@ -30,7 +41,23 @@ export default function AppPage() {
       ]);
     };
     reader.readAsDataURL(file);
+  }
+
+  const handlePdfUpload = (file: File) => {
+    // Prevent duplicates
+    if (!uploadedPdfs.some(f => f.name === file.name)) {
+      setUploadedPdfs(prev => [...prev, file]);
+    }
+    selectPdf(file);
   };
+
+  const handleDeletePdf = (fileName: string) => {
+    setUploadedPdfs(prev => prev.filter(f => f.name !== fileName));
+    if (selectedPdf?.name === fileName) {
+      setSelectedPdf(null);
+      resetChatState();
+    }
+  }
 
   const handleSendMessage = async (content: string) => {
     if (!pdfDataUri) return;
@@ -59,33 +86,62 @@ export default function AppPage() {
     }
   };
 
-  const handleReset = () => {
-    setPdfFile(null);
-    setPdfDataUri(null);
-    setMessages([]);
+  const handleDeselect = () => {
+    setSelectedPdf(null);
+    resetChatState();
   };
 
   return (
-    <>
-      <main className="flex-1 relative">
-        <div className="absolute inset-0 -z-10 h-full w-full bg-background">
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] dark:opacity-20"></div>
-          <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_15%_50%,hsl(var(--primary)/0.1),transparent_30%),radial-gradient(circle_at_85%_30%,hsl(var(--accent)/0.1),transparent_30%)]"></div>
-        </div>
-
-        {pdfFile ? (
-          <ChatInterface
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            pdfName={pdfFile.name}
-            onReset={handleReset}
-          />
-        ) : (
+    <div className="p-4 md:p-6 space-y-6 h-full flex flex-col">
+      <DashboardStats />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+        <div className="lg:col-span-1 space-y-6 flex flex-col">
           <PdfUploader onPdfUpload={handlePdfUpload} />
-        )}
-      </main>
-      <Toaster />
-    </>
+          <div className="flex-1 min-h-0">
+             <PdfList
+                files={uploadedPdfs}
+                selectedFile={selectedPdf}
+                onSelectFile={selectPdf}
+                onDeleteFile={handleDeletePdf}
+              />
+          </div>
+        </div>
+        <div className="lg:col-span-2 h-full min-h-0">
+          <AnimatePresence mode="wait">
+            {selectedPdf ? (
+              <motion.div
+                key={selectedPdf.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="h-full"
+              >
+                <ChatInterface
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  pdfName={selectedPdf.name}
+                  onReset={handleDeselect}
+                />
+              </motion.div>
+            ) : (
+               <motion.div
+                key="no-pdf-selected"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="h-full flex flex-col items-center justify-center bg-card/60 backdrop-blur-md border-white/10 shadow-lg rounded-2xl p-8 text-center"
+              >
+                <FileText size={48} className="text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Document Selected</h3>
+                <p className="text-muted-foreground">Upload or select a document to begin chatting.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
   );
 }
