@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons";
 import { ThemeToggle } from "./theme-toggle";
-import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
+import { logout } from "@/app/actions/auth";
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null }) {
   const pathname = usePathname();
 
   const menuItems = [
@@ -73,19 +74,23 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" asChild tooltip="Logout">
-              <Link href="#">
-                <LogOut />
-                <span>Logout</span>
-              </Link>
-            </SidebarMenuButton>
+             <form action={logout}>
+                <SidebarMenuButton type="submit" asChild tooltip="Logout">
+                    <button className="w-full">
+                        <LogOut />
+                        <span>Logout</span>
+                    </button>
+                </SidebarMenuButton>
+             </form>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex items-center justify-center gap-2 p-2 border-t border-border/40">
-           <div className="group-data-[collapsible=icon]:hidden">
-             <ThemeToggle />
+        <div className="flex items-center justify-between gap-2 p-2 border-t border-border/40">
+           <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
+             <p className="text-sm font-semibold truncate">{user?.user_metadata.full_name || user?.email}</p>
+             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
            </div>
            <Avatar className="h-9 w-9">
+            <AvatarImage src={user?.user_metadata.avatar_url} alt={user?.user_metadata.full_name || 'User avatar'}/>
             <AvatarFallback>
               <User className="h-5 w-5" />
             </AvatarFallback>

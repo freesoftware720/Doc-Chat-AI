@@ -27,15 +27,19 @@ export function Header() {
         )}
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          {isLandingPage && (
+          {isLandingPage ? (
              <div className="hidden sm:flex items-center space-x-2">
               <Button variant="ghost" asChild>
-                <Link href="/app">Sign In</Link>
+                <Link href="/auth/login">Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href="/app">Get Started Free</Link>
+                <Link href="/auth/register">Get Started Free</Link>
               </Button>
             </div>
+          ) : (
+             <Button asChild>
+                <Link href="/app">Go to Dashboard</Link>
+              </Button>
           )}
           <ThemeToggle />
         </div>
