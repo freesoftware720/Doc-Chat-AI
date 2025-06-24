@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'YOUR_SUPABASE_URL') {
-    return response;
+    return response
   }
 
   const supabase = createServerClient(
@@ -45,18 +45,23 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // if user is not signed in and the current path is not an auth page, redirect the user to /auth/login
-  if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
+  const { pathname } = request.nextUrl
 
-  // if user is signed in and the current path is an auth page, redirect the user to /app
-  if (user && request.nextUrl.pathname.startsWith('/auth')) {
-     const url = request.nextUrl.clone()
-     url.pathname = '/app'
-     return NextResponse.redirect(url)
+  const isAuthPage = pathname.startsWith('/auth')
+  const isAppPage = pathname.startsWith('/app')
+  const isLandingPage = pathname === '/'
+
+  // Redirect logic
+  if (user) {
+    // If user is logged in, redirect from auth pages or landing page to the app dashboard
+    if (isAuthPage || isLandingPage) {
+      return NextResponse.redirect(new URL('/app', request.url))
+    }
+  } else {
+    // If user is not logged in, protect the app pages
+    if (isAppPage) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
   }
 
   return response
@@ -69,8 +74,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - / (the landing page)
      */
-    '/((?!_next/static|_next/image|favicon.ico|/).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
