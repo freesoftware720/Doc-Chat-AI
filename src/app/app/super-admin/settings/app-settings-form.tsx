@@ -21,11 +21,10 @@ import { Separator } from "@/components/ui/separator";
 // --- Zod Schemas for Landing Page Content ---
 
 const heroContentSchema = z.object({
-    headline_static_1: z.string().min(1, "Headline is required."),
-    headline_animated: z.array(z.object({ value: z.string().min(1, "Animated text cannot be empty.") })),
+    headline: z.string().min(1, "Headline is required."),
     subheadline: z.string().min(1, "Subheadline is required."),
-    image_url: z.string().url("Must be a valid URL.").or(z.literal("")),
-    image_hint: z.string(),
+    cta_button: z.string().min(1, "Button text is required"),
+    cta_secondary: z.string(),
 });
 
 const featureItemSchema = z.object({
@@ -102,10 +101,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   // Prepare default values, converting feature arrays to newline-separated strings
   const preparedLpContent = {
       ...defaultLpContent,
-      hero: {
-        ...defaultLpContent.hero,
-        headline_animated: (defaultLpContent.hero?.headline_animated || []).map((v: string) => ({ value: v }))
-      },
       pricing: {
           ...defaultLpContent.pricing,
           plans: (defaultLpContent.pricing?.plans || []).map((plan: any) => ({
@@ -127,7 +122,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
     },
   });
 
-  const { fields: heroAnimatedFields, append: appendHeroAnimated, remove: removeHeroAnimated } = useFieldArray({ control: form.control, name: "landing_page_content.hero.headline_animated" });
   const { fields: featureFields, append: appendFeature, remove: removeFeature } = useFieldArray({ control: form.control, name: "landing_page_content.features.items" });
   const { fields: planFields, append: appendPlan, remove: removePlan } = useFieldArray({ control: form.control, name: "landing_page_content.pricing.plans" });
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control: form.control, name: "landing_page_content.faq.items" });
@@ -174,18 +168,10 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                 <AccordionContent className="space-y-6 pt-6">
                     {/* Hero Section */}
                     <Card><CardHeader><h3 className="text-lg font-medium">Hero Section</h3></CardHeader><CardContent className="space-y-4">
-                        <FormField control={form.control} name="landing_page_content.hero.headline_static_1" render={({ field }) => (<FormItem><FormLabel>Headline (Static Part)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <div><FormLabel>Headline (Animated Part)</FormLabel>
-                        {heroAnimatedFields.map((field, index) => (
-                            <div key={field.id} className="flex items-center gap-2 mt-2">
-                                <FormField control={form.control} name={`landing_page_content.hero.headline_animated.${index}.value`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                                <Button type="button" variant="destructive" size="icon" onClick={() => removeHeroAnimated(index)}><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                        ))}
-                        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendHeroAnimated({value: ''})}><PlusCircle className="mr-2 h-4 w-4"/>Add Animated Text</Button></div>
+                        <FormField control={form.control} name="landing_page_content.hero.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormDescription>Use line breaks to create multiple lines.</FormDescription><FormMessage /></FormItem>)}/>
                         <FormField control={form.control} name="landing_page_content.hero.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.hero.image_url" render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.hero.image_hint" render={({ field }) => (<FormItem><FormLabel>Image AI Hint</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>One or two keywords for AI image search.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.cta_button" render={({ field }) => (<FormItem><FormLabel>Button Text</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.cta_secondary" render={({ field }) => (<FormItem><FormLabel>Secondary CTA Text</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>e.g., "No credit card required"</FormDescription><FormMessage /></FormItem>)}/>
                     </CardContent></Card>
                     <Separator />
                     {/* Features Section */}

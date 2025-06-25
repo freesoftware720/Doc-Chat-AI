@@ -1,46 +1,58 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { File } from "lucide-react";
 
 const defaultContent = {
-  headline_static_1: "Unlock Instant Insights From Your",
-  headline_animated: [
-    "Documents.",
-    "PDFs.",
-    "Reports.",
-    "Manuals.",
-  ],
-  subheadline: "Doc-Chat AI lets you chat with your PDFs, get instant answers, and summarize complex information with the power of AI.",
-  image_url: "https://placehold.co/600x400.png",
-  image_hint: "dashboard chat",
+  headline: "Chat with your\ndocuments\nusing AI",
+  subheadline: "Upload a PDF and get instant answers to your questions with the power of AI.",
+  cta_button: "Upload PDF",
+  cta_secondary: "No credit card required",
 };
 
-export function HeroSection({ content = defaultContent }: { content?: typeof defaultContent }) {
-  const [index, setIndex] = useState(0);
+const UiMockup = () => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.8, y: 50 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+    className="relative"
+  >
+    <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
 
-  const animatedTextArray = content?.headline_animated || defaultContent.headline_animated;
+    <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto">
+      <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
+        <span>example.pdf</span>
+      </div>
+      
+      <div className="border-dashed border-2 border-border/50 rounded-xl mt-3 p-6 flex flex-col items-center justify-center text-center">
+        <File className="w-8 h-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
+      </div>
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % (animatedTextArray.length || 1));
-    }, 2500); // Change text every 2.5 seconds
-    return () => clearInterval(interval);
-  }, [animatedTextArray]);
+      <div className="mt-4 space-y-2 flex flex-col">
+        <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
+          <p>What are the main findings from the report?</p>
+        </div>
+        <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
+          <p>The main findings from the report are that the company achieved a 20% increase in revenue compared to the previous year, with significant growth in the European and Asian markets.</p>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
+
+export function HeroSection({ content: rawContent }: { content?: any }) {
+  const content = { ...defaultContent, ...rawContent };
   
-  if (!content || !animatedTextArray || animatedTextArray.length === 0) {
-    // Fallback for when content is not loaded or structured incorrectly
-    content = defaultContent;
-  }
-
-  const currentTextItem = animatedTextArray[index];
-  const textToRender = typeof currentTextItem === 'object' && currentTextItem !== null && typeof (currentTextItem as any).value === 'string'
-    ? (currentTextItem as any).value
-    : currentTextItem;
+  const heroContent = {
+    ...defaultContent,
+    ...rawContent,
+    headline: rawContent?.headline || defaultContent.headline,
+  };
 
 
   return (
@@ -52,49 +64,20 @@ export function HeroSection({ content = defaultContent }: { content?: typeof def
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="text-center md:text-left"
         >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight">
-            {content.headline_static_1}{' '}
-            <span className="relative inline-block h-[1.2em] overflow-hidden align-bottom">
-                <AnimatePresence mode="wait">
-                    <motion.span
-                        key={index}
-                        initial={{ y: "100%" }}
-                        animate={{ y: "0%" }}
-                        exit={{ y: "-100%" }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="inline-block text-primary"
-                    >
-                        {textToRender}
-                    </motion.span>
-                </AnimatePresence>
-            </span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight whitespace-pre-wrap">
+            {heroContent.headline}
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
-            {content.subheadline}
+            {heroContent.subheadline}
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <Button size="lg" asChild className="text-lg h-14 px-8">
-              <Link href="/app">Get Started for Free</Link>
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
+            <Button size="lg" asChild className="text-lg h-14 px-8 w-full sm:w-auto">
+              <Link href="/app">{heroContent.cta_button}</Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg h-14 px-8">
-              View Demo
-            </Button>
+            <p className="text-sm text-muted-foreground">{heroContent.cta_secondary}</p>
           </div>
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-        >
-          <Image
-            src={content.image_url}
-            alt="App Dashboard and AI Chat Interface"
-            width={600}
-            height={400}
-            data-ai-hint={content.image_hint}
-            className="rounded-2xl shadow-2xl shadow-primary/20"
-          />
-        </motion.div>
+        <UiMockup />
       </div>
     </section>
   );

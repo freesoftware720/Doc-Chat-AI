@@ -11,16 +11,10 @@ export type AppSettings = Tables<'app_settings'>;
 
 const defaultLandingPageContent: Json = {
     hero: {
-        headline_static_1: "Unlock Instant Insights From Your",
-        headline_animated: [
-            "Documents.",
-            "PDFs.",
-            "Reports.",
-            "Manuals."
-        ],
-        subheadline: "Doc-Chat AI lets you chat with your PDFs, get instant answers, and summarize complex information with the power of AI.",
-        image_url: "https://placehold.co/600x400.png",
-        image_hint: "dashboard chat"
+        headline: "Chat with your\ndocuments\nusing AI",
+        subheadline: "Upload a PDF and get instant answers to your questions with the power of AI.",
+        cta_button: "Upload PDF",
+        cta_secondary: "No credit card required"
     },
     features: {
         headline: "A Smarter Way to Work With Documents",
@@ -100,11 +94,6 @@ export async function updateAppSettings(prevState: any, data: any) {
                     plan.features = (plan.features as string).split('\n').filter(f => f.trim() !== '');
                 }
             });
-        }
-        
-        // The form sends animated headlines as an array of objects { value: '...' }, convert back to strings.
-        if (landingPageContent?.hero?.headline_animated) {
-            landingPageContent.hero.headline_animated = landingPageContent.hero.headline_animated.map((item: { value: string }) => item.value);
         }
         
         const dataToUpdate: TablesUpdate<'app_settings'> = {

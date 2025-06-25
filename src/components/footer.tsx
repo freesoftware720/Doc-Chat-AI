@@ -10,7 +10,7 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <Logo className="h-8 w-8" />
-              <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
+              <span className="font-bold font-headline text-xl">DocuChat AI</span>
             </Link>
             <p className="max-w-xs text-muted-foreground text-sm">
               Unlock insights from your documents with the power of AI.
@@ -36,7 +36,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-border/40 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Doc-Chat AI. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} DocuChat AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

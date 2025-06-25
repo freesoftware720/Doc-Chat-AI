@@ -64,7 +64,7 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
         <SidebarHeader>
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-7 h-7" />
-            <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
+            <span className="font-bold font-headline text-xl">DocuChat AI</span>
           </Link>
         </SidebarHeader>
         <SidebarMenu>
