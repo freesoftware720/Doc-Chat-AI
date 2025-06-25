@@ -20,17 +20,30 @@ async function createAndSetActiveWorkspace(userId: string) {
         .single();
     
     if (createError) {
-        console.error('Error creating workspace:', createError.message);
-        throw new Error('Could not create a personal workspace for user.');
+        console.error('Error creating workspace:', createError);
+        throw new Error(`Could not create a personal workspace for user. Original error: ${createError.message}`);
     }
 
-    await supabase.from('workspace_members').insert({
+    const { error: memberError } = await supabase.from('workspace_members').insert({
         workspace_id: newWorkspace.id,
         user_id: userId,
         role: 'admin',
     });
 
-    await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
+    if (memberError) {
+        console.error('Error adding user to workspace members:', memberError);
+        // Attempt to clean up the created workspace if membership fails
+        await supabase.from('workspaces').delete().eq('id', newWorkspace.id);
+        throw new Error(`Could not add user to workspace members. Original error: ${memberError.message}`);
+    }
+
+    const { error: profileError } = await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
+
+    if (profileError) {
+        console.error('Error updating profile with active workspace:', profileError);
+        // This is less critical, so we might just log it and continue, but for now we throw.
+        throw new Error(`Could not update profile with active workspace. Original error: ${profileError.message}`);
+    }
 
     return newWorkspace;
 }
@@ -60,7 +73,9 @@ export async function getActiveWorkspace() {
 
         if (error) {
             console.error('Error fetching active workspace:', error.message);
-            throw new Error('Could not fetch active workspace.');
+            // This could happen if the workspace was deleted but the profile wasn't updated.
+            // Let's try to recover by creating a new one.
+            return createAndSetActiveWorkspace(user.id);
         }
 
         if (workspace) {
@@ -68,6 +83,7 @@ export async function getActiveWorkspace() {
         }
     }
 
+    // If profile exists but has no active workspace, create one.
     return createAndSetActiveWorkspace(user.id);
 }
 
@@ -98,11 +114,15 @@ export async function getUserRole() {
     // Fallback: If the user is the owner, they should be an admin.
     if (workspace.owner_id === user.id) {
       // Upsert ensures that if the member exists, their role is set to admin.
-      await supabase.from('workspace_members').upsert({
+      const { error: upsertError } = await supabase.from('workspace_members').upsert({
         workspace_id: workspace.id,
         user_id: user.id,
         role: 'admin',
       });
+      if (upsertError) {
+          console.error("Failed to upsert owner as admin:", upsertError.message);
+          return null;
+      }
       return 'admin';
     }
 
