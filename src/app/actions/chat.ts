@@ -4,7 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { analyzePdf, AnalyzePdfInput, Persona } from '@/ai/flows/pdf-analyzer';
-import type { TablesInsert } from '@/lib/supabase/database.types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/database.types';
 import { getAppSettings } from './settings';
 
 export async function getMessages(documentId: string) {
@@ -56,7 +56,7 @@ export async function sendMessage(documentId: string, content: string, persona: 
     // Check user's chat limit if they are on the free plan
     const { data: profile } = await supabase
         .from('profiles')
-        .select('subscription_plan, chat_credits_used')
+        .select('subscription_plan, chat_credits_used, chat_credits_last_reset')
         .eq('id', user.id)
         .single();
 
@@ -65,7 +65,16 @@ export async function sendMessage(documentId: string, content: string, persona: 
     if (isFreePlan) {
         const appSettings = await getAppSettings();
         const limit = appSettings.chat_limit_free_user;
-        const used = profile?.chat_credits_used || 0;
+        let used = profile?.chat_credits_used || 0;
+        
+        const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
+        const now = new Date();
+        const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSinceReset >= 24) {
+            // It's been a day, so we can treat their usage as 0 for this check.
+            used = 0;
+        }
 
         if (used >= limit) {
             throw new Error(`You have reached your daily message limit of ${limit}. Please upgrade or try again tomorrow.`);
@@ -101,12 +110,35 @@ export async function sendMessage(documentId: string, content: string, persona: 
         // 3. Save assistant's message
         await addMessage(documentId, user.id, 'assistant', result.answer);
 
-        // 4. Increment usage credit for free users
+        // 4. Update usage credit for free users
         if (isFreePlan) {
-            const { error: creditError } = await supabase.rpc('increment_chat_credits', { user_id_param: user.id });
+            const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
+            const now = new Date();
+            const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
+            
+            let dataToUpdate: TablesUpdate<'profiles'>;
+
+            if (hoursSinceReset >= 24) {
+                // If it's time to reset, set credits to 1 and update the reset date.
+                dataToUpdate = {
+                    chat_credits_used: 1,
+                    chat_credits_last_reset: now.toISOString(),
+                };
+            } else {
+                // Otherwise, just increment the existing count.
+                dataToUpdate = {
+                    chat_credits_used: (profile?.chat_credits_used || 0) + 1,
+                };
+            }
+
+            const { error: creditError } = await supabase
+                .from('profiles')
+                .update(dataToUpdate)
+                .eq('id', user.id);
+
             if (creditError) {
                 // Log the error but don't fail the whole operation
-                console.error("Failed to increment chat credits:", creditError.message);
+                console.error("Failed to update chat credits:", creditError.message);
             }
         }
         
