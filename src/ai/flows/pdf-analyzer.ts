@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A PDF analysis AI agent.
+ * @fileOverview A PDF analysis AI agent that chunks documents to handle large files.
  *
  * - analyzePdf - A function that handles the PDF analysis process.
  * - AnalyzePdfInput - The input type for the analyzePdf function.
@@ -19,35 +19,103 @@ const AnalyzePdfInputSchema = z.object({
 export type AnalyzePdfInput = z.infer<typeof AnalyzePdfInputSchema>;
 
 const AnalyzePdfOutputSchema = z.object({
-  answer: z.string().describe('The answer to the question about the document content.'),
+  answer: z
+    .string()
+    .describe('The answer to the question about the document content.'),
 });
 export type AnalyzePdfOutput = z.infer<typeof AnalyzePdfOutputSchema>;
 
-export async function analyzePdf(input: AnalyzePdfInput): Promise<AnalyzePdfOutput> {
+export async function analyzePdf(
+  input: AnalyzePdfInput
+): Promise<AnalyzePdfOutput> {
   return analyzePdfFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'analyzePdfPrompt',
-  input: {schema: AnalyzePdfInputSchema},
-  output: {schema: AnalyzePdfOutputSchema},
-  prompt: `You are an expert AI assistant. Answer the user's question based on the provided document context.
+// Prompt to check if a text chunk is relevant to a query.
+const relevanceCheckPrompt = ai.definePrompt({
+  name: 'relevanceCheckPrompt',
+  input: {schema: z.object({chunk: z.string(), query: z.string()})},
+  output: {schema: z.object({isRelevant: z.boolean()})},
+  prompt: `You are a text relevance evaluator. Your task is to determine if the given text chunk is relevant to the user's question.
+Respond with a JSON object containing a single boolean field: "isRelevant".
 
-Document Context: {{{documentContent}}}
+User Question:
+"{{{query}}}"
+
+Text Chunk:
+"{{{chunk}}}"
+`,
+  config: {
+    temperature: 0.0, // Low temperature for deterministic relevance check
+  },
+});
+
+// Prompt to generate an answer based on a context of relevant snippets.
+const answerWithContextPrompt = ai.definePrompt({
+  name: 'answerWithContextPrompt',
+  input: {schema: z.object({context: z.string(), query: z.string()})},
+  output: {schema: AnalyzePdfOutputSchema},
+  prompt: `You are an expert AI assistant. Your task is to answer the user's question based on the provided context, which consists of relevant snippets from a larger document.
+
+Synthesize a concise and accurate answer based solely on the information in the context. If the context does not contain enough information to answer the question, state that clearly.
+
+Context:
+---
+{{{context}}}
+---
 
 User Question: {{{query}}}
 
-Provide a concise and accurate answer based solely on the document. If the document does not contain information relevant to the question, state that the information is not available in the document.`,
+Answer:`,
 });
 
+// The main flow for analyzing the PDF
 const analyzePdfFlow = ai.defineFlow(
   {
     name: 'analyzePdfFlow',
     inputSchema: AnalyzePdfInputSchema,
     outputSchema: AnalyzePdfOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async ({documentContent, query}) => {
+    // 1. Chunk the document content. This is a simple strategy.
+    const CHUNK_SIZE = 2000; // characters
+    const CHUNK_OVERLAP = 200;
+    const chunks: string[] = [];
+    for (
+      let i = 0;
+      i < documentContent.length;
+      i += CHUNK_SIZE - CHUNK_OVERLAP
+    ) {
+      chunks.push(documentContent.substring(i, i + CHUNK_SIZE));
+    }
+
+    // 2. Find relevant chunks in parallel by calling the relevance check prompt.
+    const relevanceChecks = await Promise.all(
+      chunks.map(async chunk => {
+        const {output} = await relevanceCheckPrompt({chunk, query});
+        return {chunk, isRelevant: output?.isRelevant ?? false};
+      })
+    );
+
+    const relevantChunks = relevanceChecks
+      .filter(check => check.isRelevant)
+      .map(check => check.chunk);
+
+    if (relevantChunks.length === 0) {
+      return {
+        answer:
+          'I could not find any relevant information in the document to answer your question.',
+      };
+    }
+
+    const context = relevantChunks.join('\n---\n');
+
+    // 3. Generate a final answer based on the concatenated relevant chunks.
+    const {output} = await answerWithContextPrompt({context, query});
+    return (
+      output ?? {
+        answer: 'The AI failed to generate a response based on the context.',
+      }
+    );
   }
 );
