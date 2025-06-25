@@ -11,7 +11,7 @@ export function AppHeader() {
             <SidebarTrigger />
             <Link href="/app" className="flex items-center gap-2">
                 <Logo className="h-6 w-6" />
-                <span className="font-bold font-headline text-lg tracking-tight">DocuChat AI</span>
+                <span className="font-bold font-headline text-lg tracking-tight">Doc-Chat AI</span>
             </Link>
             {/* Empty div for spacing */}
             <div className="w-8"></div>

@@ -11,7 +11,9 @@ export type AppSettings = Tables<'app_settings'>;
 
 const defaultLandingPageContent: Json = {
     hero: {
-        headline: "Chat with your\ndocuments\nusing AI",
+        headline_part_1: "Chat with your",
+        headline_animated_texts: ["documents", "reports", "manuals", "textbooks"],
+        headline_part_2: "using AI",
         subheadline: "Upload a PDF and get instant answers to your questions with the power of AI.",
         cta_button: "Upload PDF",
         cta_secondary: "No credit card required"
@@ -96,6 +98,11 @@ export async function updateAppSettings(prevState: any, data: any) {
             });
         }
         
+        // Handle animated hero text array
+        if (landingPageContent?.hero?.headline_animated_texts) {
+            landingPageContent.hero.headline_animated_texts = landingPageContent.hero.headline_animated_texts.map((item: { value: string }) => item.value).filter((v: string) => v.trim() !== '');
+        }
+
         const dataToUpdate: TablesUpdate<'app_settings'> = {
             chat_limit_free_user: data.chat_limit_free_user,
             feature_chat_templates_enabled: data.feature_chat_templates_enabled,

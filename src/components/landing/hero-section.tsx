@@ -2,16 +2,50 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { File } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const defaultContent = {
-  headline: "Chat with your\ndocuments\nusing AI",
+  headline_part_1: "Chat with your",
+  headline_animated_texts: ["documents", "reports", "manuals", "textbooks"],
+  headline_part_2: "using AI",
   subheadline: "Upload a PDF and get instant answers to your questions with the power of AI.",
   cta_button: "Upload PDF",
   cta_secondary: "No credit card required",
 };
+
+const AnimatedText = ({ texts }: { texts: string[] }) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prevIndex) => (prevIndex + 1) % (texts.length || 1));
+    }, 2500); // Change text every 2.5 seconds
+    return () => clearInterval(interval);
+  }, [texts.length]);
+  
+  if (!texts || texts.length === 0) {
+    return <span className="text-primary inline-block">documents</span>;
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={index}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        className="text-primary inline-block"
+      >
+        {texts[index]}
+      </motion.span>
+    </AnimatePresence>
+  );
+};
+
 
 const UiMockup = () => (
   <motion.div
@@ -47,13 +81,11 @@ const UiMockup = () => (
 
 export function HeroSection({ content: rawContent }: { content?: any }) {
   const content = { ...defaultContent, ...rawContent };
-  
-  const heroContent = {
-    ...defaultContent,
-    ...rawContent,
-    headline: rawContent?.headline || defaultContent.headline,
-  };
 
+  // Safely handle potentially malformed animated texts from previous versions
+  const animatedTexts = (content.hero?.headline_animated_texts || []).map((item: any) =>
+    typeof item === 'object' && item.value ? item.value : item
+  ).filter((item: any) => typeof item === 'string');
 
   return (
     <section className="py-20 md:py-32">
@@ -64,17 +96,19 @@ export function HeroSection({ content: rawContent }: { content?: any }) {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="text-center md:text-left"
         >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight whitespace-pre-wrap">
-            {heroContent.headline}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight">
+            {content.hero.headline_part_1}{' '}
+            <AnimatedText texts={animatedTexts} />{' '}
+            {content.hero.headline_part_2}
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
-            {heroContent.subheadline}
+            {content.hero.subheadline}
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
             <Button size="lg" asChild className="text-lg h-14 px-8 w-full sm:w-auto">
-              <Link href="/app">{heroContent.cta_button}</Link>
+              <Link href="/app">{content.hero.cta_button}</Link>
             </Button>
-            <p className="text-sm text-muted-foreground">{heroContent.cta_secondary}</p>
+            <p className="text-sm text-muted-foreground">{content.hero.cta_secondary}</p>
           </div>
         </motion.div>
         <UiMockup />
