@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,6 +8,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,14 +24,26 @@ import { ThemeToggle } from "./theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
 import { logout } from "@/app/actions/auth";
+import { useEffect, useState } from "react";
+import { getUserRole } from "@/app/actions/workspace";
+
 
 export function AppSidebar({ user }: { user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null }) {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    getUserRole().then(setUserRole);
+  }, []);
 
   const menuItems = [
     { href: "/app", label: "Dashboard", icon: LayoutDashboard },
     { href: "/app/uploads", label: "Uploads", icon: FileUp },
     { href: "/app/chat", label: "Chat", icon: MessageSquare },
+  ];
+
+  const adminMenuItems = [
+      { href: "/app/admin", label: "Admin", icon: Shield },
   ];
 
   return (
@@ -51,7 +65,7 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
               <SidebarMenuButton
                 href={item.href}
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
                 tooltip={item.label}
               >
                 <Link href={item.href}>
@@ -61,12 +75,32 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          {userRole === 'admin' && adminMenuItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                    href={item.href}
+                    asChild
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={item.label}
+                >
+                    <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
            <SidebarMenuItem>
-             <SidebarMenuButton href="/app/settings" asChild tooltip="Settings">
+             <SidebarMenuButton 
+                href="/app/settings" 
+                asChild 
+                tooltip="Settings"
+                isActive={pathname === "/app/settings"}
+            >
               <Link href="/app/settings">
                 <Settings />
                 <span>Settings</span>

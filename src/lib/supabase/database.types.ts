@@ -10,6 +10,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: number
+          user_email: string | null
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: number
+          user_email?: string | null
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: number
+          user_email?: string | null
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           content: string | null
@@ -89,18 +134,21 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_workspace_id: string | null
           avatar_url: string | null
           full_name: string | null
           id: string
           subscription_plan: string | null
         }
         Insert: {
+          active_workspace_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id: string
           subscription_plan?: string | null
         }
         Update: {
+          active_workspace_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id?: string
@@ -108,9 +156,93 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "profiles_active_workspace_id_fkey"
+            columns: ["active_workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_members: {
+        Row: {
+          created_at: string
+          role: "admin" | "member"
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: "admin" | "member"
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: "admin" | "member"
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          allowed_file_types: string[] | null
+          brand_color: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          max_documents: number
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          allowed_file_types?: string[] | null
+          brand_color?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          max_documents?: number
+          name: string
+          owner_id: string
+        }
+        Update: {
+          allowed_file_types?: string[] | null
+          brand_color?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          max_documents?: number
+          name?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -121,6 +253,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_personal_workspace: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
       get_user_chat_history: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -148,7 +284,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      workspace_role: "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never

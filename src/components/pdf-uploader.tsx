@@ -1,28 +1,34 @@
+
 "use client";
 
 import { useState, useRef, type DragEvent } from "react";
 import { motion } from "framer-motion";
 import { UploadCloud, Loader } from "lucide-react";
 import { Progress } from "./ui/progress";
+import type { Tables } from "@/lib/supabase/database.types";
 
 interface PdfUploaderProps {
   onPdfUpload: (file: File) => void;
   isUploading: boolean;
   error: string | null;
+  workspace: Tables<'workspaces'> | null;
 }
 
-export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUploaderProps) {
+export default function PdfUploader({ onPdfUpload, isUploading, error, workspace }: PdfUploaderProps) {
   const [internalError, setInternalError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const allowedFileTypes = workspace?.allowed_file_types || ["application/pdf"];
+  const allowedFileTypesString = allowedFileTypes.join(',');
+
   const handleFile = (file: File | null | undefined) => {
     if (file) {
-      if (file.type === "application/pdf") {
+      if (allowedFileTypes.includes(file.type)) {
         setInternalError(null);
         onPdfUpload(file);
       } else {
-        setInternalError("Please upload a PDF file.");
+        setInternalError(`Please upload one of the allowed file types: ${allowedFileTypes.join(', ')}`);
       }
     }
   };
@@ -73,7 +79,7 @@ export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUplo
         ref={inputRef}
         type="file"
         className="hidden"
-        accept="application/pdf"
+        accept={allowedFileTypesString}
         onChange={handleChange}
         disabled={isUploading}
       />
@@ -103,7 +109,7 @@ export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUplo
                 Drag & drop or <span className="text-primary font-bold">browse</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                PDF documents up to 32MB
+                Allowed file types: {allowedFileTypes.map(t => t.split('/')[1]).join(', ').toUpperCase()}
                 </p>
             </>
             )}

@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { getActiveWorkspace, logAuditEvent } from './workspace';
 
 // Helper function to dynamically import and use pdf-parse
 async function getPdfContent(fileBuffer: Buffer): Promise<string> {
@@ -20,6 +21,20 @@ export async function processDocument(
 
   if (!user) {
     throw new Error('You must be logged in to upload a document.');
+  }
+
+  // Check against workspace limits
+  const workspace = await getActiveWorkspace();
+  const { count: docCount, error: countError } = await supabase
+    .from('documents')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id); // In a team scenario, this might check against the workspace
+  
+  if (countError) throw new Error('Could not count existing documents.');
+  
+  if (docCount >= workspace.max_documents) {
+    await logAuditEvent('document.upload.failed', { reason: 'limit_exceeded', fileName });
+    throw new Error(`Document limit of ${workspace.max_documents} reached. Please upgrade your plan.`);
   }
 
   // Download the file from storage to parse it
@@ -49,9 +64,11 @@ export async function processDocument(
   if (insertError) {
     // If insert fails, clean up the stored file
     await supabase.storage.from('documents').remove([storagePath]);
+    await logAuditEvent('document.upload.failed', { reason: 'db_insert_failed', fileName });
     throw new Error('Failed to save document metadata to database.');
   }
 
+  await logAuditEvent('document.upload.success', { documentId: document.id, fileName });
   revalidatePath('/app');
   revalidatePath('/app/uploads');
   return document;
@@ -97,6 +114,8 @@ export async function deleteDocument(prevState: any, formData: FormData) {
     if (fetchError || !doc) {
         return { error: 'Document not found or you do not have permission to delete it.' };
     }
+    
+    const docName = doc.name;
 
     // Delete from storage
     const { error: storageError } = await supabase.storage
@@ -108,17 +127,19 @@ export async function deleteDocument(prevState: any, formData: FormData) {
         console.error("Storage deletion failed, but proceeding to delete from DB", storageError);
     }
 
-    // Delete from database (cascading delete will handle chat_sessions and messages)
+    // Delete from database (cascading delete will handle messages)
     const { error: dbError } = await supabase
         .from('documents')
         .delete()
         .eq('id', documentId);
     
     if (dbError) {
+        await logAuditEvent('document.delete.failed', { documentId, fileName: docName, error: dbError.message });
         return { error: 'Failed to delete document from database.' };
     }
 
+    await logAuditEvent('document.delete.success', { documentId, fileName: docName });
     revalidatePath('/app');
     revalidatePath('/app/uploads');
-    return { success: `Document "${doc.name}" deleted successfully.` };
+    return { success: `Document "${docName}" deleted successfully.` };
 }
