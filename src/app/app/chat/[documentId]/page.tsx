@@ -46,8 +46,33 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
       )
     }
 
-    const session = await getChatSession(document.id);
-    const initialMessages = await getMessages(session.id);
+    let initialMessages = [];
+    let chatError: string | null = null;
+    try {
+        const session = await getChatSession(document.id);
+        initialMessages = await getMessages(session.id);
+    } catch (e: any) {
+        console.error("Error loading chat history:", e.message);
+        chatError = e.message;
+    }
+    
+    if (chatError) {
+        return (
+            <div className="flex h-full items-center justify-center p-4">
+                <Alert variant="destructive" className="max-w-lg">
+                    <TriangleAlert className="h-4 w-4" />
+                    <AlertTitle>Error Loading Chat</AlertTitle>
+                    <AlertDescription>
+                        <p>Could not load the conversation history due to a database error:</p>
+                        <pre className="mt-2 text-xs bg-muted p-2 rounded-md overflow-x-auto"><code>{chatError}</code></pre>
+                        <p className="mt-2 text-sm">
+                            This can happen after database changes. Please go to the <strong>API Docs</strong> section of your Supabase dashboard and click <strong>"Reload"</strong> to refresh the schema cache.
+                        </p>
+                    </AlertDescription>
+                </Alert>
+            </div>
+        );
+    }
     
     const formattedMessages: Message[] = initialMessages.map(m => ({
         id: m.id,

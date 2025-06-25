@@ -18,7 +18,7 @@ export async function getChatSession(documentId: string) {
     const { data: session, error } = await supabase
         .from('chat_sessions')
         .upsert(
-            { document_id: documentId, user_id: user.id } as TablesInsert<'chat_sessions'>,
+            { document_id: documentId, user_id: user.id },
             { onConflict: 'user_id,document_id', ignoreDuplicates: false }
         )
         .select()
@@ -42,7 +42,8 @@ export async function getMessages(sessionId: string) {
 
     if (error) {
         console.error('Error fetching messages:', error.message);
-        return [];
+        // Throw the error to be caught by the page component
+        throw new Error(error.message);
     }
     return data;
 }
