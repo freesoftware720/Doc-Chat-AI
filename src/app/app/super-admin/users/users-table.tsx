@@ -13,6 +13,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 type User = UserWithDetails;
 
@@ -54,9 +58,9 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction type="submit" disabled={isPending}>
+                        <Button type="submit" disabled={isPending}>
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
@@ -89,16 +93,22 @@ function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { u
                         <AlertDialogTitle>Are you sure you want to {desiredStatus === 'banned' ? 'ban' : 'unban'} this user?</AlertDialogTitle>
                         <AlertDialogDescription>
                            {desiredStatus === 'banned' 
-                            ? 'Banning the user will immediately log them out and prevent them from accessing the application.' 
+                            ? 'Banning the user will prevent them from accessing the application.' 
                             : 'Unbanning will restore their access immediately.'
                            }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                     {desiredStatus === 'banned' && (
+                        <div className="py-2 space-y-2">
+                            <Label htmlFor="banReason">Reason for ban (optional)</Label>
+                            <Textarea id="banReason" name="banReason" placeholder="e.g., Violation of terms of service." />
+                        </div>
+                    )}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction type="submit" disabled={isPending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
+                        <Button type="submit" disabled={isPending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
@@ -140,10 +150,21 @@ export function UsersTable({ users }: { users: User[] }) {
                                     </Badge>
                                 </TableCell>
                                  <TableCell>
-                                    <Badge variant={user.status === 'banned' ? 'destructive' : 'outline'}>
-                                        {user.status === 'banned' ? <UserX className="h-3 w-3 mr-1"/> : <CheckCircle className="h-3 w-3 mr-1"/>}
-                                        {user.status || 'active'}
-                                    </Badge>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <Badge variant={user.status === 'banned' ? 'destructive' : 'outline'}>
+                                                    {user.status === 'banned' ? <UserX className="h-3 w-3 mr-1"/> : <CheckCircle className="h-3 w-3 mr-1"/>}
+                                                    {user.status || 'active'}
+                                                </Badge>
+                                            </TooltipTrigger>
+                                            {user.status === 'banned' && user.ban_reason && (
+                                                <TooltipContent>
+                                                    <p>Reason: {user.ban_reason}</p>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell">{user.message_count}</TableCell>
                                 <TableCell className="hidden lg:table-cell">
@@ -164,7 +185,7 @@ export function UsersTable({ users }: { users: User[] }) {
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             {user.status !== 'banned' ? (
-                                                <DropdownMenuItem onSelect={() => setDialog({ type: 'ban', user })} className="text-destructive">
+                                                <DropdownMenuItem onSelect={() => setDialog({ type: 'ban', user })} className="text-destructive focus:text-destructive">
                                                    Ban User
                                                 </DropdownMenuItem>
                                             ) : (

@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { serviceSupabase } from '@/lib/supabase/service';
 import { revalidatePath } from 'next/cache';
+import type { TablesUpdate } from '@/lib/supabase/database.types';
 
 export async function isSuperAdmin() {
     const supabase = createClient();
@@ -81,6 +82,7 @@ export async function getAllUsersWithDetails() {
             full_name: profile?.full_name,
             subscription_plan: profile?.subscription_plan,
             status: profile?.status,
+            ban_reason: profile?.ban_reason,
             message_count: messageCountMap[user.id] || 0,
         };
     });
@@ -115,11 +117,24 @@ export async function updateUserStatus(prevState: any, formData: FormData) {
 
     const userId = formData.get('userId') as string;
     const status = formData.get('status') as string;
+    const banReason = formData.get('banReason') as string | null;
+
+    const dataToUpdate: TablesUpdate<'profiles'> = {
+      status: status,
+    };
+
+    if (status === 'banned') {
+      dataToUpdate.ban_reason = banReason;
+      dataToUpdate.banned_at = new Date().toISOString();
+    } else {
+      dataToUpdate.ban_reason = null;
+      dataToUpdate.banned_at = null;
+    }
 
     const { error } = await serviceSupabase
-        .from('profiles')
-        .update({ status })
-        .eq('id', userId);
+      .from('profiles')
+      .update(dataToUpdate)
+      .eq('id', userId);
 
     if (error) {
         return { error: `Failed to update status: ${error.message}` };

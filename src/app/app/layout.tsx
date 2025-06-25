@@ -4,9 +4,9 @@ import { AppSidebar } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { logout } from "../actions/auth";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
+import { BannedUserPage } from "@/components/banned-user-page";
 
 export default async function AppLayout({
   children,
@@ -22,14 +22,17 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('status')
+    .select('status, ban_reason')
     .eq('id', user.id)
     .single();
 
+  // If user is banned, show the banned page and stop rendering the app
   if (profile?.status === 'banned') {
-    await logout();
-    // The logout action already handles redirection.
-    // This check ensures a banned user is logged out and can't access the app.
+    return (
+      <BannedUserPage 
+        reason={profile.ban_reason || "No reason was provided."} 
+      />
+    );
   }
   
   return (
