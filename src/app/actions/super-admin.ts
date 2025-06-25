@@ -105,7 +105,7 @@ export async function updateUserPlan(prevState: any, formData: FormData) {
         return { error: `Failed to update plan: ${error.message}` };
     }
 
-    revalidatePath('/super-admin/users');
+    revalidatePath('/app/super-admin/users');
     return { success: 'User plan updated successfully.' };
 }
 
@@ -125,14 +125,14 @@ export async function updateUserStatus(prevState: any, formData: FormData) {
         return { error: `Failed to update status: ${error.message}` };
     }
 
-    revalidatePath('/super-admin/users');
+    revalidatePath('/app/super-admin/users');
     return { success: `User status set to ${status}.` };
 }
 
 export async function getAllReferralDetails() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
 
-    // Fetch referrals without ordering to make the query as simple as possible.
+    // 1. Fetch all referrals.
     const { data: referrals, error: referralsError } = await serviceSupabase
         .from('referrals')
         .select(`created_at, referrer_id, referred_id`);
@@ -145,28 +145,39 @@ export async function getAllReferralDetails() {
         return [];
     }
 
-    const userIds = new Set(referrals.map(r => r.referrer_id).concat(referrals.map(r => r.referred_id)));
-    if (userIds.size === 0) return [];
-    
+    // 2. Collect all unique user IDs from the referrals.
+    const userIds = new Set<string>();
+    referrals.forEach(r => {
+        userIds.add(r.referrer_id);
+        userIds.add(r.referred_id);
+    });
+
+    if (userIds.size === 0) {
+        return [];
+    }
+    const uniqueUserIds = Array.from(userIds);
+
+    // 3. Fetch all relevant profiles in one go.
     const { data: profiles, error: profilesError } = await serviceSupabase
         .from('profiles')
         .select('id, full_name')
-        .in('id', Array.from(userIds));
+        .in('id', uniqueUserIds);
 
     if (profilesError) {
         console.error('Error fetching profiles for referrals:', profilesError);
         throw new Error('Failed to fetch profiles for referrals.');
     }
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
+    
+    // 4. Fetch all user emails in one go.
     const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
-    if (usersError) throw new Error('Failed to fetch user emails for referrals');
+    if (usersError) {
+        throw new Error('Failed to fetch user emails for referrals');
+    }
     const emailMap = new Map(users.map(u => [u.id, u.email]));
     
-    // Perform sorting in the application code instead of the database.
-    const sortedReferrals = referrals.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-    return sortedReferrals.map(r => {
+    // 5. Combine the data.
+    const combinedDetails = referrals.map(r => {
         const referrerProfile = profilesMap.get(r.referrer_id);
         const referredProfile = profilesMap.get(r.referred_id);
         
@@ -178,6 +189,9 @@ export async function getAllReferralDetails() {
             referred_email: emailMap.get(r.referred_id) || 'N/A',
         }
     });
+
+    // 6. Sort in the application code.
+    return combinedDetails.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
 
