@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { analyzePdf, AnalyzePdfInput, Persona } from '@/ai/flows/pdf-analyzer';
 import type { TablesInsert } from '@/lib/supabase/database.types';
+import { getAppSettings } from './settings';
 
 export async function getMessages(documentId: string) {
     const supabase = createClient();
@@ -52,6 +53,25 @@ export async function sendMessage(documentId: string, content: string, persona: 
         throw new Error('User not authenticated');
     }
 
+    // Check user's chat limit if they are on the free plan
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_plan, chat_credits_used')
+        .eq('id', user.id)
+        .single();
+
+    const isFreePlan = !profile?.subscription_plan || profile.subscription_plan === 'Free';
+
+    if (isFreePlan) {
+        const appSettings = await getAppSettings();
+        const limit = appSettings.chat_limit_free_user;
+        const used = profile?.chat_credits_used || 0;
+
+        if (used >= limit) {
+            throw new Error(`You have reached your daily message limit of ${limit}. Please upgrade or try again tomorrow.`);
+        }
+    }
+    
     const { data: document } = await supabase
         .from('documents')
         .select('content')
@@ -81,6 +101,15 @@ export async function sendMessage(documentId: string, content: string, persona: 
         // 3. Save assistant's message
         await addMessage(documentId, user.id, 'assistant', result.answer);
 
+        // 4. Increment usage credit for free users
+        if (isFreePlan) {
+            const { error: creditError } = await supabase.rpc('increment_chat_credits', { user_id_param: user.id });
+            if (creditError) {
+                // Log the error but don't fail the whole operation
+                console.error("Failed to increment chat credits:", creditError.message);
+            }
+        }
+        
         revalidatePath(`/app/chat/${documentId}`);
         
         return result;

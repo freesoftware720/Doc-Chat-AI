@@ -166,6 +166,10 @@ export type Database = {
         Row: {
           active_workspace_id: string | null
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          chat_credits_last_reset: string | null
+          chat_credits_used: number | null
           full_name: string | null
           id: string
           pro_credits: number | null
@@ -177,6 +181,10 @@ export type Database = {
         Insert: {
           active_workspace_id?: string | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          chat_credits_last_reset?: string | null
+          chat_credits_used?: number | null
           full_name?: string | null
           id: string
           pro_credits?: number | null
@@ -188,6 +196,10 @@ export type Database = {
         Update: {
           active_workspace_id?: string | null
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          chat_credits_last_reset?: string | null
+          chat_credits_used?: number | null
           full_name?: string | null
           id?: string
           pro_credits?: number | null
