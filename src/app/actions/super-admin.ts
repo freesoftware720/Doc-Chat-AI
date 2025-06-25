@@ -46,6 +46,59 @@ export async function getSuperAdminDashboardStats() {
     };
 }
 
+export async function getAnalyticsData() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+        { data: planData, error: planError },
+        { data: messagesData, error: messagesError }
+    ] = await Promise.all([
+        serviceSupabase.from('profiles').select('subscription_plan'),
+        serviceSupabase.from('messages').select('created_at').gte('created_at', thirtyDaysAgo.toISOString())
+    ]);
+    
+    if (planError || messagesError) {
+        console.error({ planError, messagesError });
+        throw new Error("Failed to fetch analytics data.");
+    }
+
+    // Process plan distribution
+    const planDistribution = (planData || []).reduce((acc, { subscription_plan }) => {
+        const plan = subscription_plan || 'Free';
+        acc[plan] = (acc[plan] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    
+    const planChartData = Object.entries(planDistribution).map(([name, value]) => ({ name, value, fill: `var(--color-${name.toLowerCase()})` }));
+
+    // Process daily messages
+    const dailyMessagesMap = (messagesData || []).reduce((acc, { created_at }) => {
+        const date = new Date(created_at).toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Ensure we have entries for all days in the last 30 days for a complete graph
+    const messageChartData = [];
+    for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split('T')[0];
+        messageChartData.push({
+            date: dateString,
+            "Messages": dailyMessagesMap[dateString] || 0,
+        });
+    }
+
+    return { 
+        planChartData, 
+        messageChartData: messageChartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    };
+}
+
 
 export async function getAllUsersWithDetails() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
@@ -58,14 +111,18 @@ export async function getAllUsersWithDetails() {
         .select('*');
     if (profilesError) throw new Error(`Failed to fetch profiles: ${profilesError.message}`);
     
-    const { data: messageCounts, error: messagesError } = await serviceSupabase
+    // Note: This is not efficient for large numbers of messages.
+    // A better approach is a database function (RPC) to perform the aggregation.
+    const { data: allMessages, error: messagesError } = await serviceSupabase
         .from('messages')
-        .select('user_id', { count: 'exact' });
-        
-    // This is not efficient on large datasets, but works for this example.
-    // A better approach would be a GROUP BY query in a database function.
-    const messageCountMap = (messageCounts as any[]).reduce((acc, { user_id, count }) => {
-        if (user_id) acc[user_id] = (acc[user_id] || 0) + 1;
+        .select('user_id');
+
+    if (messagesError) throw new Error(`Failed to fetch messages for count: ${messagesError.message}`);
+    
+    const messageCountMap = (allMessages || []).reduce((acc, { user_id }) => {
+        if (user_id) {
+            acc[user_id] = (acc[user_id] || 0) + 1;
+        }
         return acc;
     }, {} as Record<string, number>);
 
