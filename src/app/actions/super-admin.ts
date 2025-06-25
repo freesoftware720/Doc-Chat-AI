@@ -132,35 +132,48 @@ export async function updateUserStatus(prevState: any, formData: FormData) {
 export async function getAllReferralDetails() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
 
-    const { data, error } = await serviceSupabase
+    const { data: referrals, error: referralsError } = await serviceSupabase
         .from('referrals')
-        .select(`
-            created_at,
-            referrer:profiles!referrals_referrer_id_fkey(full_name, id),
-            referred:profiles!referrals_referred_id_fkey(full_name, id)
-        `)
+        .select(`created_at, referrer_id, referred_id`)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching referral details:', error);
-        throw new Error('Failed to fetch referral details.');
+    if (referralsError) {
+        console.error('Error fetching referrals:', referralsError);
+        throw new Error('Failed to fetch referrals.');
     }
+    if (!referrals) return [];
 
-    const userIds = new Set(data.map(r => r.referrer.id).concat(data.map(r => r.referred.id)));
+    const userIds = new Set(referrals.map(r => r.referrer_id).concat(referrals.map(r => r.referred_id)));
+    if (userIds.size === 0) return [];
     
+    const { data: profiles, error: profilesError } = await serviceSupabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', Array.from(userIds));
+
+    if (profilesError) {
+        console.error('Error fetching profiles for referrals:', profilesError);
+        throw new Error('Failed to fetch profiles for referrals.');
+    }
+    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
     const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
-
     if (usersError) throw new Error('Failed to fetch user emails for referrals');
-
     const emailMap = new Map(users.map(u => [u.id, u.email]));
 
-    return data.map(r => ({
-        created_at: r.created_at,
-        referrer_name: r.referrer.full_name,
-        referrer_email: emailMap.get(r.referrer.id) || 'N/A',
-        referred_name: r.referred.full_name,
-        referred_email: emailMap.get(r.referred.id) || 'N/A',
-    }));
+    return referrals.map(r => {
+        const referrerProfile = profilesMap.get(r.referrer_id);
+        const referredProfile = profilesMap.get(r.referred_id);
+        
+        return {
+            created_at: r.created_at,
+            referrer_name: referrerProfile?.full_name || 'N/A',
+            referrer_email: emailMap.get(r.referrer_id) || 'N/A',
+            referred_name: referredProfile?.full_name || 'N/A',
+            referred_email: emailMap.get(r.referred_id) || 'N/A',
+        }
+    });
 }
+
 
 export type ReferralWithDetails = Awaited<ReturnType<typeof getAllReferralDetails>>[0];
