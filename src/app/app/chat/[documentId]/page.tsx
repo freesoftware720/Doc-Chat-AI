@@ -37,9 +37,9 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
         <div className="flex h-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
                 <TriangleAlert className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>Error Loading Document</AlertTitle>
                 <AlertDescription>
-                    Could not load the document viewer. The public URL for the PDF could not be generated. Please try again later.
+                    Could not generate a public URL for the PDF. Please ensure you have a public Supabase Storage bucket named "documents" and that the file exists.
                 </AlertDescription>
             </Alert>
         </div>
