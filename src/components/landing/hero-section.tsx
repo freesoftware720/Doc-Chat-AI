@@ -122,6 +122,7 @@ const UiMockup = () => {
 };
 
 export function HeroSection({ content: rawContent }: { content?: any }) {
+  // This merge logic is the fix. It handles null or undefined rawContent gracefully.
   const content = { ...defaultContent, ...rawContent };
 
   const animatedTexts = (content.headline_animated_texts || []).map((item: any) =>
