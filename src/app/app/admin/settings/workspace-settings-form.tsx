@@ -2,6 +2,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,13 +10,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { updateWorkspaceSettings } from "@/app/actions/workspace";
 import type { Tables } from "@/lib/supabase/database.types";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Workspace name must be at least 3 characters." }),
 });
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : "Save Changes"}
+    </Button>
+  );
+}
 
 export function WorkspaceSettingsForm({ workspace }: { workspace: Tables<'workspaces'> }) {
   const [state, formAction] = useActionState(updateWorkspaceSettings, undefined);
@@ -47,7 +57,7 @@ export function WorkspaceSettingsForm({ workspace }: { workspace: Tables<'worksp
             <FormItem>
               <FormLabel>Workspace Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Company, Inc." {...field} disabled={form.formState.isSubmitting} />
+                <Input placeholder="Your Company, Inc." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,9 +82,7 @@ export function WorkspaceSettingsForm({ workspace }: { workspace: Tables<'worksp
             </FormDescription>
         </FormItem>
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Save Changes"}
-        </Button>
+        <SubmitButton />
       </form>
     </Form>
   );

@@ -1,6 +1,8 @@
+
 "use client"
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { sendPasswordResetEmail } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,11 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AuthCardContent } from "./auth-card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
 })
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full mt-6" disabled={pending}>
+       {pending ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
+    </Button>
+  )
+}
 
 export function ForgotPasswordForm() {
   const [state, formAction] = useActionState(sendPasswordResetEmail, undefined);
@@ -39,7 +50,6 @@ export function ForgotPasswordForm() {
     <Form {...form}>
       <form
         action={formAction}
-        className="space-y-6"
       >
         <AuthCardContent>
           <FormField
@@ -52,18 +62,14 @@ export function ForgotPasswordForm() {
                   <Input 
                     type="email" 
                     placeholder="you@example.com" 
-                    {...field} 
-                    disabled={form.formState.isSubmitting}
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <Button type="submit" className="w-full mt-6" disabled={form.formState.isSubmitting}>
-             {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Send Reset Link"}
-          </Button>
+          <SubmitButton />
         </AuthCardContent>
       </form>
     </Form>

@@ -2,15 +2,16 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { format } from "date-fns";
-import { MoreHorizontal, UserX, CheckCircle, VenetianMask, Check, Loader2 } from "lucide-react";
+import { MoreHorizontal, UserX, CheckCircle, Loader2 } from "lucide-react";
 import type { UserWithDetails } from "@/app/actions/super-admin";
 import { updateUserPlan, updateUserStatus } from "@/app/actions/super-admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 type User = UserWithDetails;
 
 function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: boolean, onOpenChange: (open: boolean) => void }) {
-    const [state, formAction, isPending] = useActionState(updateUserPlan, null);
+    const [state, formAction] = useActionState(updateUserPlan, null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -33,6 +34,15 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
             toast({ variant: "destructive", title: "Error", description: state.error });
         }
     }, [state, toast, onOpenChange]);
+    
+    function SubmitButton() {
+        const { pending } = useFormStatus();
+        return (
+            <Button type="submit" disabled={pending}>
+                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+            </Button>
+        )
+    }
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -58,9 +68,7 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-                        </Button>
+                        <SubmitButton />
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
@@ -70,7 +78,7 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
 
 
 function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { user: User, open: boolean, onOpenChange: (open: boolean) => void, desiredStatus: 'active' | 'banned' }) {
-    const [state, formAction, isPending] = useActionState(updateUserStatus, null);
+    const [state, formAction] = useActionState(updateUserStatus, null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -82,6 +90,15 @@ function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { u
             toast({ variant: "destructive", title: "Error", description: state.error });
         }
     }, [state, toast, onOpenChange]);
+
+    function SubmitButton() {
+        const { pending } = useFormStatus();
+        return (
+            <Button type="submit" disabled={pending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
+                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
+            </Button>
+        )
+    }
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -106,9 +123,7 @@ function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { u
                     )}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={isPending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
-                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
-                        </Button>
+                        <SubmitButton />
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

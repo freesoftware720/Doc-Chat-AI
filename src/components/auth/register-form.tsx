@@ -1,6 +1,8 @@
+
 "use client"
 
 import { useActionState, useEffect, useState, Suspense } from "react";
+import { useFormStatus } from "react-dom";
 import { register } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AuthCardContent } from "./auth-card";
 import { OAuthButtons } from "./oauth-buttons";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
@@ -22,6 +24,15 @@ const formSchema = z.object({
   terms: z.boolean().default(false).refine(val => val === true, { message: "You must accept the terms and conditions." }),
   referralCode: z.string().optional(),
 })
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+     <Button type="submit" className="w-full" disabled={pending}>
+       {pending ? <Loader2 className="animate-spin" /> : "Create Account"}
+    </Button>
+  )
+}
 
 function RegisterFormComponent() {
   const searchParams = useSearchParams();
@@ -66,7 +77,7 @@ function RegisterFormComponent() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} disabled={form.formState.isSubmitting} />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -79,7 +90,7 @@ function RegisterFormComponent() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} disabled={form.formState.isSubmitting} />
+                    <Input type="email" placeholder="you@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -97,7 +108,6 @@ function RegisterFormComponent() {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...field}
-                        disabled={form.formState.isSubmitting}
                       />
                        <Button
                           type="button"
@@ -123,7 +133,6 @@ function RegisterFormComponent() {
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -136,11 +145,9 @@ function RegisterFormComponent() {
               )}
             />
             <input type="hidden" {...form.register('referralCode')} />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-             {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Create Account"}
-          </Button>
+          <SubmitButton />
         </form>
-        <OAuthButtons isSubmitting={form.formState.isSubmitting}/>
+        <OAuthButtons />
       </AuthCardContent>
     </Form>
   )

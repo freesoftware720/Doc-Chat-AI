@@ -1,6 +1,8 @@
+
 "use client"
 
 import { useActionState, useEffect, useState, Suspense } from "react";
+import { useFormStatus } from "react-dom";
 import { resetPassword } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { AuthCardContent } from "./auth-card";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
@@ -21,6 +23,15 @@ const formSchema = z.object({
   message: "Passwords do not match.",
   path: ["confirmPassword"],
 })
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : "Reset Password"}
+    </Button>
+  )
+}
 
 function ResetPasswordFormComponent() {
   const searchParams = useSearchParams();
@@ -62,7 +73,6 @@ function ResetPasswordFormComponent() {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       {...field}
-                      disabled={form.formState.isSubmitting}
                     />
                     <Button
                       type="button"
@@ -91,7 +101,6 @@ function ResetPasswordFormComponent() {
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
                       {...field}
-                       disabled={form.formState.isSubmitting}
                     />
                      <Button
                       type="button"
@@ -109,9 +118,7 @@ function ResetPasswordFormComponent() {
             )}
           />
           <input type="hidden" {...form.register('code')} />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-             {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Reset Password"}
-          </Button>
+          <SubmitButton />
         </AuthCardContent>
       </form>
     </Form>

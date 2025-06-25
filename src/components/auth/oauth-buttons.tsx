@@ -1,10 +1,12 @@
+
 "use client"
 
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { signInWithGithub, signInWithGoogle } from "@/app/actions/auth"
-import { Github, Loader } from "lucide-react";
+import { Github, Loader2 } from "lucide-react";
 import type { SVGProps } from "react";
+import { useFormStatus } from "react-dom"
 
 function GoogleIcon(props: SVGProps<SVGSVGElement>) {
     return (
@@ -23,7 +25,9 @@ function GoogleIcon(props: SVGProps<SVGSVGElement>) {
     );
   }
 
-export function OAuthButtons({ isSubmitting }: { isSubmitting: boolean }) {
+export function OAuthButtons() {
+  const { pending } = useFormStatus();
+
   return (
     <>
       <div className="relative">
@@ -34,13 +38,13 @@ export function OAuthButtons({ isSubmitting }: { isSubmitting: boolean }) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <form action={signInWithGoogle}>
-          <Button variant="outline" type="submit" className="w-full" disabled={isSubmitting}>
-             {isSubmitting ? <Loader className="animate-spin" /> : <><GoogleIcon className="mr-2 h-4 w-4" /> Google</>}
+          <Button variant="outline" type="submit" className="w-full" disabled={pending}>
+             {pending ? <Loader2 className="animate-spin" /> : <><GoogleIcon className="mr-2 h-4 w-4" /> Google</>}
           </Button>
         </form>
         <form action={signInWithGithub}>
-          <Button variant="outline" type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? <Loader className="animate-spin" /> : <><Github className="mr-2 h-4 w-4" /> Github</>}
+          <Button variant="outline" type="submit" className="w-full" disabled={pending}>
+            {pending ? <Loader2 className="animate-spin" /> : <><Github className="mr-2 h-4 w-4" /> Github</>}
           </Button>
         </form>
       </div>

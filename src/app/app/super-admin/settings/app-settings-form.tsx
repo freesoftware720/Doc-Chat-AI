@@ -2,6 +2,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -83,6 +84,16 @@ const formSchema = z.object({
   landing_page_content: landingPageContentSchema,
 });
 
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" size="lg" disabled={pending}>
+          {pending ? <Loader2 className="animate-spin mr-2" /> : null}
+          Save All Settings
+        </Button>
+    )
+}
+
 export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   const [state, formAction] = useActionState(updateAppSettings, null);
   const { toast } = useToast();
@@ -132,7 +143,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(formAction)} className="space-y-8">
+      <form action={formAction} className="space-y-8">
         <Accordion type="multiple" defaultValue={['general']} className="w-full">
             {/* General Settings */}
             <AccordionItem value="general">
@@ -222,10 +233,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             </AccordionItem>
         </Accordion>
 
-        <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? <Loader2 className="animate-spin mr-2" /> : null}
-          Save All Settings
-        </Button>
+        <SubmitButton />
       </form>
     </Form>
   );

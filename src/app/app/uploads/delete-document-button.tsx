@@ -2,10 +2,11 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { deleteDocument } from "@/app/actions/documents";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +19,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+function DeleteDialogButton() {
+  const { pending } = useFormStatus();
+  return (
+    <AlertDialogAction type="submit" disabled={pending}>
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}
+    </AlertDialogAction>
+  );
+}
+
 export function DeleteDocumentButton({ documentId }: { documentId: string }) {
-  const [state, formAction, isPending] = useActionState(deleteDocument, null);
+  const [state, formAction] = useActionState(deleteDocument, null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,12 +44,8 @@ export function DeleteDocumentButton({ documentId }: { documentId: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm" disabled={isPending}>
-          {isPending ? (
-            <Loader className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Trash2 className="h-4 w-4 mr-2" />
-          )}
+        <Button variant="destructive" size="sm">
+          <Trash2 className="h-4 w-4 mr-2" />
           Delete
         </Button>
       </AlertDialogTrigger>
@@ -55,9 +61,7 @@ export function DeleteDocumentButton({ documentId }: { documentId: string }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction type="submit" disabled={isPending}>
-               {isPending ? <Loader className="h-4 w-4 animate-spin" /> : "Continue"}
-            </AlertDialogAction>
+            <DeleteDialogButton />
           </AlertDialogFooter>
         </form>
       </AlertDialogContent>

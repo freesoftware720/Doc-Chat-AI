@@ -2,6 +2,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { updateProfile } from "@/app/actions/profile";
 import type { Tables } from "@/lib/supabase/database.types";
 
@@ -19,6 +20,15 @@ const formSchema = z.object({
 });
 
 type Profile = Tables<'profiles'>;
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : "Save Changes"}
+    </Button>
+  )
+}
 
 export function SettingsForm({ profile }: { profile: Profile | null }) {
   const [state, formAction] = useActionState(updateProfile, undefined);
@@ -60,7 +70,7 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} disabled={form.formState.isSubmitting} />
+                <Input placeholder="Your Name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -74,9 +84,7 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
             <p className="text-xs text-muted-foreground">You cannot change your email address.</p>
         </FormItem>
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Save Changes"}
-        </Button>
+        <SubmitButton />
       </form>
     </Form>
   );

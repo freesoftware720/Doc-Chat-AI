@@ -1,6 +1,8 @@
+
 "use client"
 
 import { useActionState, useEffect, useState } from "react"
+import { useFormStatus } from "react-dom";
 import { login } from "@/app/actions/auth"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -18,12 +20,21 @@ import {
 import { AuthCardContent } from "./auth-card"
 import { OAuthButtons } from "./oauth-buttons"
 import { useToast } from "@/hooks/use-toast"
-import { Eye, EyeOff, Loader } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(1, { message: "Password is required." }),
 })
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : "Sign In"}
+    </Button>
+  )
+}
 
 export function LoginForm() {
   const [state, formAction] = useActionState(login, undefined)
@@ -63,7 +74,6 @@ export function LoginForm() {
                       type="email"
                       placeholder="you@example.com"
                       {...field}
-                      disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -87,7 +97,6 @@ export function LoginForm() {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         {...field}
-                        disabled={form.formState.isSubmitting}
                       />
                        <Button
                           type="button"
@@ -104,11 +113,9 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Sign In"}
-          </Button>
+          <SubmitButton />
         </form>
-        <OAuthButtons isSubmitting={form.formState.isSubmitting} />
+        <OAuthButtons />
       </AuthCardContent>
     </Form>
   )
