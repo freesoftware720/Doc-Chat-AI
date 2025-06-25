@@ -102,6 +102,11 @@ export async function updateAppSettings(prevState: any, data: any) {
             });
         }
         
+        // The form sends animated headlines as an array of objects { value: '...' }, convert back to strings.
+        if (landingPageContent?.hero?.headline_animated) {
+            landingPageContent.hero.headline_animated = landingPageContent.hero.headline_animated.map((item: { value: string }) => item.value);
+        }
+        
         const dataToUpdate: TablesUpdate<'app_settings'> = {
             chat_limit_free_user: data.chat_limit_free_user,
             feature_chat_templates_enabled: data.feature_chat_templates_enabled,
