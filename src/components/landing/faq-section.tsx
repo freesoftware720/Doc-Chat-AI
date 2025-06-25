@@ -13,8 +13,8 @@ const defaultContent = {
     subheadline: "Have questions? We've got answers. If you can't find what you're looking for, feel free to contact us.",
     items: [
         {
-            question: "How does DocuChat AI work?",
-            answer: "DocuChat AI uses advanced large language models to analyze the content of your PDF documents. Once you upload a file, our AI reads and understands the text, allowing you to ask questions and receive intelligent, context-aware answers in a conversational format.",
+            question: "How does Doc-Chat AI work?",
+            answer: "Doc-Chat AI uses advanced large language models to analyze the content of your PDF documents. Once you upload a file, our AI reads and understands the text, allowing you to ask questions and receive intelligent, context-aware answers in a conversational format.",
         },
         {
             question: "Is my data secure?",

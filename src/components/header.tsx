@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -16,7 +17,7 @@ export function Header({ user }: { user: User | null }) {
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Logo className="h-7 w-7" />
-          <span className="font-bold font-headline text-2xl tracking-tight">DocuChat AI</span>
+          <span className="font-bold font-headline text-2xl tracking-tight">Doc-Chat AI</span>
         </Link>
         
         {isLandingPage && (

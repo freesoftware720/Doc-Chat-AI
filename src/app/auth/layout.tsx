@@ -1,3 +1,4 @@
+
 import { Logo } from "@/components/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -17,7 +18,7 @@ export default function AuthLayout({
         <nav className="flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <Logo className="h-7 w-7" />
-            <span className="font-bold font-headline text-2xl tracking-tight">DocuChat AI</span>
+            <span className="font-bold font-headline text-2xl tracking-tight">Doc-Chat AI</span>
           </a>
           <ThemeToggle />
         </nav>

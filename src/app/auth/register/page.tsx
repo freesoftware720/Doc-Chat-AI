@@ -1,3 +1,4 @@
+
 import { RegisterForm } from "@/components/auth/register-form";
 import { AuthCard, AuthCardHeader, AuthCardTitle, AuthCardDescription, AuthCardFooter } from "@/components/auth/auth-card";
 
@@ -7,7 +8,7 @@ export default function RegisterPage() {
       <AuthCardHeader>
         <AuthCardTitle>Create an Account</AuthCardTitle>
         <AuthCardDescription>
-          Join DocuChat AI to start chatting with your documents.
+          Join Doc-Chat AI to start chatting with your documents.
         </AuthCardDescription>
       </AuthCardHeader>
       

@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -15,7 +16,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'DocuChat AI',
+  title: 'Doc-Chat AI',
   description: 'Chat with your PDF documents using AI.',
 };
 

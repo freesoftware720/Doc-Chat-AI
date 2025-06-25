@@ -14,7 +14,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 
 const defaultContent = {
     headline: "A Smarter Way to Work With Documents",
-    subheadline: "DocuChat AI transforms your static documents into dynamic conversational partners.",
+    subheadline: "Doc-Chat AI transforms your static documents into dynamic conversational partners.",
     items: [
         { icon: "UploadCloud", title: "Seamless PDF Upload", description: "Drag and drop any PDF to get started. Your documents are processed quickly and securely." },
         { icon: "Sparkles", title: "Intelligent AI-Powered Q&A", description: "Ask complex questions and receive accurate, context-aware answers in seconds." },

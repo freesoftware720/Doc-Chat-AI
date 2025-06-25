@@ -35,7 +35,7 @@ export function ReferralCard({ profile }: { profile: Profile | null }) {
                     Refer & Earn
                 </CardTitle>
                 <CardDescription>
-                    Invite friends to DocuChat AI and earn free Pro credits for each successful sign-up.
+                    Invite friends to Doc-Chat AI and earn free Pro credits for each successful sign-up.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

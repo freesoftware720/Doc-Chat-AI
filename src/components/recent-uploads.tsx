@@ -67,7 +67,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
       <div className="lg:col-span-1 space-y-6 flex flex-col">
-        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} />
+        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} workspace={null} />
       </div>
       <div className="lg:col-span-2 h-full min-h-0">
         <AnimatePresence mode="wait">
@@ -81,7 +81,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
           >
             <Card className="h-full bg-card/60 backdrop-blur-md border-white/10 shadow-lg flex flex-col">
               <CardHeader>
-                <CardTitle>Welcome to DocuChat AI</CardTitle>
+                <CardTitle>Welcome to Doc-Chat AI</CardTitle>
                 <CardDescription>Upload a document or start a conversation with an existing one.</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden flex flex-col justify-center">
