@@ -57,7 +57,7 @@ export function PricingSection({ content = defaultContent }: { content?: typeof 
   return (
     <section id="pricing" className="py-20 md:py-32">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16 gsap-fade-in">
           <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">{content.headline}</h2>
           <p className="mt-4 text-lg text-muted-foreground">
             {content.subheadline}
@@ -65,7 +65,7 @@ export function PricingSection({ content = defaultContent }: { content?: typeof 
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {content.plans.map((plan: Plan) => (
-            <Card key={plan.name} className={`rounded-2xl shadow-2xl bg-gradient-to-br from-card/60 to-card/20 border-white/20 flex flex-col ${plan.isPopular ? "shadow-primary/20 border-primary/50" : "shadow-primary/10"}`}>
+            <Card key={plan.name} className={`rounded-2xl shadow-2xl bg-gradient-to-br from-card/60 to-card/20 border-white/20 flex flex-col gsap-pricing-card ${plan.isPopular ? "shadow-primary/20 border-primary/50" : "shadow-primary/10"}`}>
               <CardHeader className="p-8">
                 {plan.isPopular && <div className="text-xs font-bold uppercase text-primary tracking-widest mb-2">Most Popular</div>}
                 <CardTitle className="text-3xl font-headline tracking-tight">{plan.name}</CardTitle>

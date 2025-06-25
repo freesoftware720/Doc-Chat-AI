@@ -40,7 +40,7 @@ export function FaqSection({ content = defaultContent }: { content?: typeof defa
   return (
     <section id="faq" className="py-20 md:py-32">
       <div className="container mx-auto max-w-4xl px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 gsap-fade-in">
           <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">{content.headline}</h2>
           <p className="mt-4 text-lg text-muted-foreground">
             {content.subheadline}
@@ -49,7 +49,7 @@ export function FaqSection({ content = defaultContent }: { content?: typeof defa
         
         <Accordion type="single" collapsible className="w-full">
           {content.items.map((faq: FaqItem, index: number) => (
-            <AccordionItem key={index} value={`item-${index}`} className="bg-card/40 border border-white/10 rounded-2xl shadow-lg backdrop-blur-md mb-4 px-6">
+            <AccordionItem key={index} value={`item-${index}`} className="bg-card/40 border border-white/10 rounded-2xl shadow-lg backdrop-blur-md mb-4 px-6 gsap-faq-item">
               <AccordionTrigger className="text-lg font-semibold hover:no-underline text-left">{faq.question}</AccordionTrigger>
               <AccordionContent className="text-base text-muted-foreground">
                 {faq.answer}

@@ -7,6 +7,7 @@ import { FeaturesSection } from '@/components/landing/features-section';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FaqSection } from '@/components/landing/faq-section';
 import { getAppSettings } from './actions/settings';
+import { LandingAnimations } from '@/components/landing/landing-animations';
 
 export default async function LandingPage() {
   const supabase = createClient();
@@ -17,6 +18,7 @@ export default async function LandingPage() {
 
   return (
     <>
+      <LandingAnimations />
       <Header user={user} />
       <div className="flex-1 relative">
         <div className="absolute inset-0 -z-10 h-full w-full bg-background">

@@ -1,10 +1,12 @@
+
 "use client";
 
 import Link from "next/link";
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { File } from "lucide-react";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 const defaultContent = {
   headline_part_1: "Chat with your",
@@ -83,10 +85,7 @@ const UiMockup = () => {
         transformStyle: "preserve-3d",
         perspective: "1000px",
       }}
-      initial={{ opacity: 0, scale: 0.8, y: 50 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-      className="relative"
+      className="relative gsap-hero-el"
     >
       <motion.div
         style={{
@@ -125,35 +124,31 @@ const UiMockup = () => {
 export function HeroSection({ content: rawContent }: { content?: any }) {
   const content = { ...defaultContent, ...rawContent };
 
-  // Safely handle potentially malformed animated texts from previous versions
   const animatedTexts = (content.hero?.headline_animated_texts || []).map((item: any) =>
     typeof item === 'object' && item.value ? item.value : item
   ).filter((item: any) => typeof item === 'string');
 
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-20 md:py-32 overflow-hidden">
       <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+        <div
           className="text-center md:text-left"
         >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight gsap-hero-el">
             {content.hero.headline_part_1}{' '}
             <AnimatedText texts={animatedTexts} />{' '}
             {content.hero.headline_part_2}
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
+          <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0 gsap-hero-el">
             {content.hero.subheadline}
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start gsap-hero-el">
             <Button size="lg" asChild className="text-lg h-14 px-8 w-full sm:w-auto">
               <Link href="/app">{content.hero.cta_button}</Link>
             </Button>
             <p className="text-sm text-muted-foreground">{content.hero.cta_secondary}</p>
           </div>
-        </motion.div>
+        </div>
         <UiMockup />
       </div>
     </section>
