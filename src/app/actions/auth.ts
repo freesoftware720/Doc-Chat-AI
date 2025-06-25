@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+import { serviceSupabase } from '@/lib/supabase/service'
+import { logAuditEvent } from './workspace'
 
 export async function login(prevState: any, formData: FormData) {
   const supabase = createClient()
@@ -32,8 +34,9 @@ export async function register(prevState: any, formData: FormData) {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
+  const referralCode = formData.get('referralCode') as string | null;
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -45,6 +48,50 @@ export async function register(prevState: any, formData: FormData) {
 
   if (error) {
     return { error: 'Could not create user. Please try again.' };
+  }
+  
+  if (signUpData.user && referralCode) {
+    if (!serviceSupabase) {
+        console.warn("Referral processed without service client. Credits may not be applied.");
+    } else {
+        // Use a try/catch to not block registration if referral processing fails
+        try {
+            // 1. Find referrer by code
+            const { data: referrerProfile } = await serviceSupabase
+                .from('profiles')
+                .select('id, pro_credits')
+                .eq('referral_code', referralCode)
+                .single();
+
+            if (referrerProfile) {
+                const newUserId = signUpData.user.id;
+                const referrerId = referrerProfile.id;
+                const creditsToAward = 1; // e.g., 1 month of Pro
+
+                // 2. Update new user's profile with who referred them
+                await serviceSupabase
+                    .from('profiles')
+                    .update({ referred_by: referrerId })
+                    .eq('id', newUserId);
+
+                // 3. Update referrer's profile with new credits
+                await serviceSupabase
+                    .from('profiles')
+                    .update({ pro_credits: (referrerProfile.pro_credits || 0) + creditsToAward })
+                    .eq('id', referrerId);
+
+                // 4. Log the successful referral
+                await serviceSupabase
+                    .from('referrals')
+                    .insert({ referrer_id: referrerId, referred_id: newUserId });
+                
+                await logAuditEvent('user.referral.completed', { referredUserId: newUserId, referrerId: referrerId });
+            }
+        } catch (referralError: any) {
+            console.error("Failed to process referral:", referralError.message);
+            // Don't throw, as the user has already been created.
+        }
+    }
   }
 
   return { success: 'Check your email to verify your account.' }

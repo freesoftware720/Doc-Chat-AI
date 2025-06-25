@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, Suspense } from "react";
 import { register } from "@/app/actions/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,23 +13,34 @@ import { AuthCardContent } from "./auth-card";
 import { OAuthButtons } from "./oauth-buttons";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   terms: z.boolean().default(false).refine(val => val === true, { message: "You must accept the terms and conditions." }),
+  referralCode: z.string().optional(),
 })
 
-export function RegisterForm() {
+function RegisterFormComponent() {
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get('ref');
+
   const [state, formAction] = useActionState(register, undefined);
   const [showPassword, setShowPassword] = useState(false)
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { fullName: "", email: "", password: "", terms: false },
+    defaultValues: { fullName: "", email: "", password: "", terms: false, referralCode: refCode || "" },
   })
+  
+  useEffect(() => {
+    if (refCode) {
+      form.setValue('referralCode', refCode);
+    }
+  }, [refCode, form]);
 
   useEffect(() => {
     if (state?.success) {
@@ -124,6 +135,7 @@ export function RegisterForm() {
                 </FormItem>
               )}
             />
+            <input type="hidden" {...form.register('referralCode')} />
           <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
              {form.formState.isSubmitting ? <Loader className="animate-spin" /> : "Create Account"}
           </Button>
@@ -131,5 +143,13 @@ export function RegisterForm() {
         <OAuthButtons isSubmitting={form.formState.isSubmitting}/>
       </AuthCardContent>
     </Form>
+  )
+}
+
+export function RegisterForm() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RegisterFormComponent />
+    </Suspense>
   )
 }

@@ -22,15 +22,17 @@ export async function getSuperAdminDashboardStats() {
         { count: docCount, error: docError },
         { count: msgCount, error: msgError },
         { count: wsCount, error: wsError },
+        { count: refCount, error: refError },
     ] = await Promise.all([
         serviceSupabase.from('profiles').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('documents').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('messages').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('workspaces').select('*', { count: 'exact', head: true }),
+        serviceSupabase.from('referrals').select('*', { count: 'exact', head: true }),
     ]);
 
-    if (userError || docError || msgError || wsError) {
-        console.error({ userError, docError, msgError, wsError });
+    if (userError || docError || msgError || wsError || refError) {
+        console.error({ userError, docError, msgError, wsError, refError });
         throw new Error("Failed to fetch super admin dashboard stats.");
     }
     
@@ -39,6 +41,7 @@ export async function getSuperAdminDashboardStats() {
         documents: docCount ?? 0,
         messages: msgCount ?? 0,
         workspaces: wsCount ?? 0,
+        referrals: refCount ?? 0,
     };
 }
 
@@ -126,3 +129,38 @@ export async function updateUserStatus(prevState: any, formData: FormData) {
     return { success: `User status set to ${status}.` };
 }
 
+export async function getAllReferralDetails() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+
+    const { data, error } = await serviceSupabase
+        .from('referrals')
+        .select(`
+            created_at,
+            referrer:profiles!referrals_referrer_id_fkey(full_name, id),
+            referred:profiles!referrals_referred_id_fkey(full_name, id)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching referral details:', error);
+        throw new Error('Failed to fetch referral details.');
+    }
+
+    const userIds = new Set(data.map(r => r.referrer.id).concat(data.map(r => r.referred.id)));
+    
+    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
+
+    if (usersError) throw new Error('Failed to fetch user emails for referrals');
+
+    const emailMap = new Map(users.map(u => [u.id, u.email]));
+
+    return data.map(r => ({
+        created_at: r.created_at,
+        referrer_name: r.referrer.full_name,
+        referrer_email: emailMap.get(r.referrer.id) || 'N/A',
+        referred_name: r.referred.full_name,
+        referred_email: emailMap.get(r.referred.id) || 'N/A',
+    }));
+}
+
+export type ReferralWithDetails = Awaited<ReturnType<typeof getAllReferralDetails>>[0];

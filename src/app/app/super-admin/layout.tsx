@@ -15,6 +15,7 @@ import { isSuperAdmin } from '@/app/actions/super-admin';
 const superAdminNavItems = [
   { href: '/app/super-admin', label: 'Overview' },
   { href: '/app/super-admin/users', label: 'Users' },
+  { href: '/app/super-admin/referrals', label: 'Referrals' },
 ];
 
 function SuperAdminLayoutSkeleton() {
@@ -27,6 +28,7 @@ function SuperAdminLayoutSkeleton() {
         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
           <CardHeader>
             <div className="flex border-b">
+                <Skeleton className="h-10 w-24 mr-2" />
                 <Skeleton className="h-10 w-24 mr-2" />
                 <Skeleton className="h-10 w-24 mr-2" />
             </div>
@@ -81,7 +83,7 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
             </header>
 
             <Tabs value={pathname} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-sm">
+                <TabsList className="grid w-full grid-cols-3 max-w-md">
                     {superAdminNavItems.map(item => (
                         <TabsTrigger key={item.href} value={item.href} asChild>
                            <Link href={item.href}>{item.label}</Link>

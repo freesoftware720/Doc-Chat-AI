@@ -32,7 +32,7 @@ export async function getDashboardStats() {
 
     const profilePromise = supabase
         .from('profiles')
-        .select('subscription_plan')
+        .select('subscription_plan, pro_credits')
         .eq('id', user.id)
         .single();
 
@@ -56,10 +56,12 @@ export async function getDashboardStats() {
         console.error({ profileError, docsError, chatsError });
     }
 
+    const currentPlan = (profile?.pro_credits ?? 0) > 0 ? 'Pro (Credit)' : (profile?.subscription_plan ?? 'Free');
+
     return {
         documents: documentsCount ?? 0,
         chats: distinctDocs ?? 0,
-        plan: profile?.subscription_plan ?? 'Free'
+        plan: currentPlan
     };
 }
 

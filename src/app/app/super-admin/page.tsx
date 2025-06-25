@@ -1,7 +1,7 @@
 
 import { getSuperAdminDashboardStats } from "@/app/actions/super-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, MessageSquare, Briefcase } from "lucide-react";
+import { Users, FileText, MessageSquare, Briefcase, Gift } from "lucide-react";
 
 export default async function SuperAdminOverviewPage() {
     const stats = await getSuperAdminDashboardStats();
@@ -10,7 +10,7 @@ export default async function SuperAdminOverviewPage() {
         { title: "Total Users", value: stats.users, icon: <Users className="h-6 w-6 text-primary" /> },
         { title: "Total Documents", value: stats.documents, icon: <FileText className="h-6 w-6 text-primary" /> },
         { title: "Total Messages", value: stats.messages, icon: <MessageSquare className="h-6 w-6 text-primary" /> },
-        { title: "Total Workspaces", value: stats.workspaces, icon: <Briefcase className="h-6 w-6 text-primary" /> },
+        { title: "Successful Referrals", value: stats.referrals, icon: <Gift className="h-6 w-6 text-primary" /> },
     ];
 
     return (
