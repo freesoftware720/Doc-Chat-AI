@@ -5,6 +5,36 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { Tables, TablesInsert } from '@/lib/supabase/database.types';
 
+async function createAndSetActiveWorkspace(userId: string) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not found during workspace creation');
+
+    const { data: newWorkspace, error: createError } = await supabase
+        .from('workspaces')
+        .insert({
+            owner_id: userId,
+            name: `${user.user_metadata?.full_name || user.email}'s Workspace`,
+        })
+        .select()
+        .single();
+    
+    if (createError) {
+        console.error('Error creating workspace:', createError.message);
+        throw new Error('Could not create a personal workspace for user.');
+    }
+
+    await supabase.from('workspace_members').insert({
+        workspace_id: newWorkspace.id,
+        user_id: userId,
+        role: 'admin',
+    });
+
+    await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
+
+    return newWorkspace;
+}
+
 export async function getActiveWorkspace() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -15,42 +45,45 @@ export async function getActiveWorkspace() {
         .select('active_workspace_id')
         .eq('id', user.id)
         .single();
+
+    if (!profile) {
+        console.error('Profile not found for user. Creating a new workspace.');
+        return createAndSetActiveWorkspace(user.id);
+    }
     
-    if (!profile || !profile.active_workspace_id) {
-        throw new Error('No active workspace found for user.');
+    if (profile.active_workspace_id) {
+        const { data: workspace, error } = await supabase
+            .from('workspaces')
+            .select('*')
+            .eq('id', profile.active_workspace_id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching active workspace:', error.message);
+            throw new Error('Could not fetch active workspace.');
+        }
+
+        if (workspace) {
+            return workspace;
+        }
     }
 
-    const { data: workspace, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('id', profile.active_workspace_id)
-        .single();
-
-    if (error) {
-        console.error('Error fetching active workspace:', error.message);
-        throw new Error('Could not fetch active workspace.');
-    }
-
-    return workspace;
+    return createAndSetActiveWorkspace(user.id);
 }
+
 
 export async function getUserRole() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('active_workspace_id')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile || !profile.active_workspace_id) return null;
+    const workspace = await getActiveWorkspace();
+    if (!workspace) return null;
 
     const { data: member, error } = await supabase
         .from('workspace_members')
         .select('role')
-        .eq('workspace_id', profile.active_workspace_id)
+        .eq('workspace_id', workspace.id)
         .eq('user_id', user.id)
         .single();
     
@@ -59,7 +92,20 @@ export async function getUserRole() {
         return null;
     }
 
-    return member?.role || null;
+    if (member?.role) {
+      return member.role;
+    }
+    
+    if (workspace.owner_id === user.id) {
+      await supabase.from('workspace_members').upsert({
+        workspace_id: workspace.id,
+        user_id: user.id,
+        role: 'admin',
+      });
+      return 'admin';
+    }
+
+    return null;
 }
 
 export async function logAuditEvent(action: string, details?: object) {
