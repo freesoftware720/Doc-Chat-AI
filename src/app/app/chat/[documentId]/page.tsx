@@ -66,7 +66,10 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
                         <p>Could not load the conversation history due to a database error:</p>
                         <pre className="mt-2 text-xs bg-muted p-2 rounded-md overflow-x-auto"><code>{chatError}</code></pre>
                         <p className="mt-2 text-sm">
-                            This can happen after database changes. Please go to the <strong>API Docs</strong> section of your Supabase dashboard and click <strong>"Reload"</strong> to refresh the schema cache.
+                           This can happen after database changes. Please go to the <strong>API Docs</strong> section of your Supabase dashboard and click <strong>"Reload"</strong> to refresh the schema cache.
+                        </p>
+                         <p className="mt-2 text-sm">
+                           If you don't see a "Reload" button, you can also <strong>pause and restart your project</strong> in Project Settings to force a refresh.
                         </p>
                     </AlertDescription>
                 </Alert>
