@@ -23,17 +23,25 @@ const defaultContent = {
 export function HeroSection({ content = defaultContent }: { content?: typeof defaultContent }) {
   const [index, setIndex] = useState(0);
 
+  const animatedTextArray = content?.headline_animated || defaultContent.headline_animated;
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % (content.headline_animated || []).length);
+      setIndex((prevIndex) => (prevIndex + 1) % (animatedTextArray.length || 1));
     }, 2500); // Change text every 2.5 seconds
     return () => clearInterval(interval);
-  }, [content.headline_animated]);
+  }, [animatedTextArray]);
   
-  if (!content || !content.headline_animated || content.headline_animated.length === 0) {
+  if (!content || !animatedTextArray || animatedTextArray.length === 0) {
     // Fallback for when content is not loaded or structured incorrectly
     content = defaultContent;
   }
+
+  const currentTextItem = animatedTextArray[index];
+  const textToRender = typeof currentTextItem === 'object' && currentTextItem !== null && typeof (currentTextItem as any).value === 'string'
+    ? (currentTextItem as any).value
+    : currentTextItem;
+
 
   return (
     <section className="py-20 md:py-32">
@@ -56,7 +64,7 @@ export function HeroSection({ content = defaultContent }: { content?: typeof def
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                         className="inline-block text-primary"
                     >
-                        {content.headline_animated[index]}
+                        {textToRender}
                     </motion.span>
                 </AnimatePresence>
             </span>
