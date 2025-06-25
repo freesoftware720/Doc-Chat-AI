@@ -6,15 +6,17 @@ import ChatInterface from '@/components/chat-interface';
 import type { Message } from '@/components/chat-interface';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Card } from '@/components/ui/card';
 
 interface ChatPageClientProps {
     documentId: string;
     documentName: string;
     initialMessages: Message[];
     sendMessageAction: (documentId: string, content: string) => Promise<any>;
+    pdfUrl: string;
 }
 
-export function ChatPageClient({ documentId, documentName, initialMessages, sendMessageAction }: ChatPageClientProps) {
+export function ChatPageClient({ documentId, documentName, initialMessages, sendMessageAction, pdfUrl }: ChatPageClientProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
@@ -64,12 +66,23 @@ export function ChatPageClient({ documentId, documentName, initialMessages, send
     };
     
     return (
-        <ChatInterface
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            documentName={documentName}
-            onReset={() => router.push('/app')}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full p-4">
+            <Card className="h-full hidden lg:flex flex-col bg-card/60 backdrop-blur-md border-white/10 shadow-lg overflow-hidden rounded-2xl">
+                 <iframe 
+                    src={pdfUrl} 
+                    className="w-full h-full border-0" 
+                    title={documentName}
+                />
+            </Card>
+            <div className="h-full lg:col-span-1">
+                 <ChatInterface
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading}
+                    documentName={documentName}
+                    onReset={() => router.push('/app')}
+                />
+            </div>
+        </div>
     );
 }
