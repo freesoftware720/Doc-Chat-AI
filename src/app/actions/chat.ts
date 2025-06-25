@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { analyzePdf, AnalyzePdfInput } from '@/ai/flows/pdf-analyzer';
+import { analyzePdf, AnalyzePdfInput, Persona } from '@/ai/flows/pdf-analyzer';
 import type { TablesInsert } from '@/lib/supabase/database.types';
 
 export async function getMessages(documentId: string) {
@@ -44,7 +44,7 @@ async function addMessage(documentId: string, userId: string, role: 'user' | 'as
     }
 }
 
-export async function sendMessage(documentId: string, content: string) {
+export async function sendMessage(documentId: string, content: string, persona: Persona) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -70,6 +70,7 @@ export async function sendMessage(documentId: string, content: string) {
         const aiInput: AnalyzePdfInput = {
             documentContent: document.content,
             query: content,
+            persona: persona,
         };
         const result = await analyzePdf(aiInput);
         
