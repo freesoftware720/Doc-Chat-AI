@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -19,31 +18,47 @@ const defaultContent = {
 
 const AnimatedText = ({ texts }: { texts: string[] }) => {
   const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prevIndex) => (prevIndex + 1) % (texts.length || 1));
-    }, 2500); // Change text every 2.5 seconds
-    return () => clearInterval(interval);
-  }, [texts.length]);
-  
+    if (!texts || texts.length === 0) return;
+
+    if (isDeleting) {
+      if (subIndex === 0) {
+        setIsDeleting(false);
+        setIndex((prev) => (prev + 1) % texts.length);
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        setSubIndex((prev) => prev - 1);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+
+    if (subIndex === texts[index].length) {
+      const timeout = setTimeout(() => {
+        setIsDeleting(true);
+      }, 2500);
+      return () => clearTimeout(timeout);
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + 1);
+    }, 150);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, isDeleting, texts]);
+
   if (!texts || texts.length === 0) {
     return <span className="text-primary inline-block">documents</span>;
   }
-
+  
   return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={index}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
-        className="text-primary inline-block"
-      >
-        {texts[index]}
-      </motion.span>
-    </AnimatePresence>
+    <span className={cn("text-primary inline-block typing-cursor")}>
+      {texts[index].substring(0, subIndex)}
+    </span>
   );
 };
 
