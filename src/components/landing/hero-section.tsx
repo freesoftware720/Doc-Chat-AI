@@ -1,8 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { File } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -47,37 +46,81 @@ const AnimatedText = ({ texts }: { texts: string[] }) => {
 };
 
 
-const UiMockup = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.8, y: 50 }}
-    animate={{ opacity: 1, scale: 1, y: 0 }}
-    transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-    className="relative"
-  >
-    <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
-    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+const UiMockup = () => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
-    <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto">
-      <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
-        <span>example.pdf</span>
-      </div>
-      
-      <div className="border-dashed border-2 border-border/50 rounded-xl mt-3 p-6 flex flex-col items-center justify-center text-center">
-        <File className="w-8 h-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
-      </div>
+  const mouseX = useSpring(x, { stiffness: 200, damping: 40 });
+  const mouseY = useSpring(y, { stiffness: 200, damping: 40 });
 
-      <div className="mt-4 space-y-2 flex flex-col">
-        <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
-          <p>What are the main findings from the report?</p>
+  const rotateX = useTransform(
+    mouseY,
+    [-200, 200],
+    ["-15deg", "15deg"]
+  );
+  const rotateY = useTransform(
+    mouseX,
+    [-200, 200],
+    ["15deg", "-15deg"]
+  );
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    x.set(e.clientX - rect.left - rect.width / 2);
+    y.set(e.clientY - rect.top - rect.height / 2);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        transformStyle: "preserve-3d",
+        perspective: "1000px",
+      }}
+      initial={{ opacity: 0, scale: 0.8, y: 50 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+      className="relative"
+    >
+      <motion.div
+        style={{
+          rotateX,
+          rotateY,
+        }}
+        className="relative"
+      >
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+
+        <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto">
+          <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
+            <span>example.pdf</span>
+          </div>
+          
+          <div className="border-dashed border-2 border-border/50 rounded-xl mt-3 p-6 flex flex-col items-center justify-center text-center">
+            <File className="w-8 h-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
+          </div>
+
+          <div className="mt-4 space-y-2 flex flex-col">
+            <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
+              <p>What are the main findings from the report?</p>
+            </div>
+            <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
+              <p>The main findings from the report are that the company achieved a 20% increase in revenue compared to the previous year, with significant growth in the European and Asian markets.</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
-          <p>The main findings from the report are that the company achieved a 20% increase in revenue compared to the previous year, with significant growth in the European and Asian markets.</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export function HeroSection({ content: rawContent }: { content?: any }) {
   const content = { ...defaultContent, ...rawContent };
