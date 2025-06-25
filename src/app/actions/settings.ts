@@ -82,7 +82,7 @@ export async function getAppSettings(): Promise<AppSettings> {
     return data;
 }
 
-export async function updateAppSettings(prevState: any, formData: FormData) {
+export async function updateAppSettings(prevState: any, data: any) {
     if (!serviceSupabase) {
         return { error: "Service client not initialized." };
     }
@@ -91,24 +91,24 @@ export async function updateAppSettings(prevState: any, formData: FormData) {
     }
 
     try {
-        const landingPageContentString = formData.get('landing_page_content') as string;
-        let landingPageContentJson: Json | null = null;
+        const landingPageContent = data.landing_page_content;
 
-        if (landingPageContentString) {
-            try {
-                landingPageContentJson = JSON.parse(landingPageContentString);
-            } catch (e) {
-                return { error: "Invalid JSON format for Landing Page Content." };
-            }
+        // The form sends the pricing features as a single string, so we convert it back to an array.
+        if (landingPageContent?.pricing?.plans) {
+            landingPageContent.pricing.plans.forEach((plan: any) => {
+                if (plan.features && typeof plan.features === 'string') {
+                    plan.features = (plan.features as string).split('\n').filter(f => f.trim() !== '');
+                }
+            });
         }
         
         const dataToUpdate: TablesUpdate<'app_settings'> = {
-            chat_limit_free_user: parseInt(formData.get('chat_limit_free_user') as string, 10),
-            feature_chat_templates_enabled: formData.get('feature_chat_templates_enabled') === 'on',
-            feature_multi_pdf_enabled: formData.get('feature_multi_pdf_enabled') === 'on',
-            homepage_announcement_message: (formData.get('homepage_announcement_message') as string) || null,
-            logo_url: (formData.get('logo_url') as string) || null,
-            landing_page_content: landingPageContentJson,
+            chat_limit_free_user: data.chat_limit_free_user,
+            feature_chat_templates_enabled: data.feature_chat_templates_enabled,
+            feature_multi_pdf_enabled: data.feature_multi_pdf_enabled,
+            homepage_announcement_message: data.homepage_announcement_message || null,
+            logo_url: data.logo_url || null,
+            landing_page_content: landingPageContent,
             updated_at: new Date().toISOString(),
         };
 
