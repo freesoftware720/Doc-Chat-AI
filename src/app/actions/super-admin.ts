@@ -132,16 +132,18 @@ export async function updateUserStatus(prevState: any, formData: FormData) {
 export async function getAllReferralDetails() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
 
+    // Fetch referrals without ordering to make the query as simple as possible.
     const { data: referrals, error: referralsError } = await serviceSupabase
         .from('referrals')
-        .select(`created_at, referrer_id, referred_id`)
-        .order('created_at', { ascending: false });
+        .select(`created_at, referrer_id, referred_id`);
 
     if (referralsError) {
         console.error('Error fetching referrals:', referralsError);
         throw new Error('Failed to fetch referrals.');
     }
-    if (!referrals) return [];
+    if (!referrals || referrals.length === 0) {
+        return [];
+    }
 
     const userIds = new Set(referrals.map(r => r.referrer_id).concat(referrals.map(r => r.referred_id)));
     if (userIds.size === 0) return [];
@@ -160,8 +162,11 @@ export async function getAllReferralDetails() {
     const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
     if (usersError) throw new Error('Failed to fetch user emails for referrals');
     const emailMap = new Map(users.map(u => [u.id, u.email]));
+    
+    // Perform sorting in the application code instead of the database.
+    const sortedReferrals = referrals.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    return referrals.map(r => {
+    return sortedReferrals.map(r => {
         const referrerProfile = profilesMap.get(r.referrer_id);
         const referredProfile = profilesMap.get(r.referred_id);
         
