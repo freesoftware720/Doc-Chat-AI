@@ -6,57 +6,40 @@ import { createClient } from '@/lib/supabase/server';
 import { analyzePdf, AnalyzePdfInput } from '@/ai/flows/pdf-analyzer';
 import type { TablesInsert } from '@/lib/supabase/database.types';
 
-export async function getChatSession(documentId: string) {
+export async function getMessages(documentId: string) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         throw new Error('User not authenticated');
     }
 
-    // Upsert ensures a session exists, and returns it.
-    const { data: session, error } = await supabase
-        .from('chat_sessions')
-        .upsert(
-            { document_id: documentId, user_id: user.id },
-            { onConflict: 'user_id,document_id', ignoreDuplicates: false }
-        )
-        .select()
-        .single();
-
-    if (error || !session) {
-        console.error('Error getting or creating chat session:', error?.message);
-        throw new Error(`Could not get or create a chat session. DB Error: ${error?.message}`);
-    }
-
-    return session;
-}
-
-export async function getMessages(sessionId: string) {
-    const supabase = createClient();
     const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('document_id', documentId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
     if (error) {
         console.error('Error fetching messages:', error.message);
-        // Throw the error to be caught by the page component
         throw new Error(error.message);
     }
     return data;
 }
 
-async function addMessage(sessionId: string, userId: string, role: 'user' | 'assistant', content: string) {
+async function addMessage(documentId: string, userId: string, role: 'user' | 'assistant', content: string) {
     const supabase = createClient();
-    const { error } = await supabase
-        .from('messages')
-        .insert({ session_id: sessionId, user_id: userId, role, content } as TablesInsert<'messages'>);
+    const message: TablesInsert<'messages'> = {
+      document_id: documentId,
+      user_id: userId,
+      role,
+      content,
+    };
+    const { error } = await supabase.from('messages').insert(message);
 
     if (error) {
         console.error(`Error saving ${role} message:`, error.message);
-        // Propagate the actual database error message for better debugging
         throw new Error(`Failed to save ${role} message. DB error: ${error.message}`);
     }
 }
@@ -80,10 +63,8 @@ export async function sendMessage(documentId: string, content: string) {
     }
 
     try {
-        const session = await getChatSession(documentId);
-
         // 1. Save user's message
-        await addMessage(session.id, user.id, 'user', content);
+        await addMessage(documentId, user.id, 'user', content);
 
         // 2. Call AI flow
         const aiInput: AnalyzePdfInput = {
@@ -97,7 +78,7 @@ export async function sendMessage(documentId: string, content: string) {
         }
 
         // 3. Save assistant's message
-        await addMessage(session.id, user.id, 'assistant', result.answer);
+        await addMessage(documentId, user.id, 'assistant', result.answer);
 
         revalidatePath(`/app/chat/${documentId}`);
         
@@ -105,7 +86,6 @@ export async function sendMessage(documentId: string, content: string) {
 
     } catch (error: any) {
         console.error("Error in sendMessage flow:", error.message);
-        // Re-throw with a more specific message for the client
         throw new Error(error.message);
     }
 }
@@ -115,26 +95,18 @@ export async function getChatHistory() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data, error } = await supabase
-        .from('chat_sessions')
-        .select(`
-            id,
-            created_at,
-            document:documents(id, name)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+    // This query is more complex now. It finds the most recent message for each document
+    // to represent a "chat session".
+    const { data, error } = await supabase.rpc('get_user_chat_history');
 
     if (error) {
         console.error('Error fetching chat history:', error.message);
         return [];
     }
-    
-    // The type from Supabase is a bit complex, let's simplify it
-    return data.map(item => ({
-        id: item.id,
-        created_at: item.created_at,
-        document_id: item.document?.id,
-        document_name: item.document?.name,
-    })).filter(item => item.document_id); // Filter out sessions with no document
+
+    return data.map((item: any) => ({
+        document_id: item.document_id,
+        document_name: item.document_name,
+        last_message_at: item.last_message_at,
+    }));
 }

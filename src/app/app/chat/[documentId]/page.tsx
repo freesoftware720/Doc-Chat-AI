@@ -1,7 +1,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getChatSession, getMessages, sendMessage } from "@/app/actions/chat";
+import { getMessages, sendMessage } from "@/app/actions/chat";
 import { ChatPageClient } from "./chat-page-client";
 import type { Message } from "@/components/chat-interface";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -17,7 +17,7 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
 
     const { data: document, error: docError } = await supabase
         .from('documents')
-        .select('id, name, content, storage_path')
+        .select('id, name, storage_path')
         .eq('id', params.documentId)
         .eq('user_id', user.id)
         .single();
@@ -49,8 +49,7 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
     let initialMessages = [];
     let chatError: string | null = null;
     try {
-        const session = await getChatSession(document.id);
-        initialMessages = await getMessages(session.id);
+        initialMessages = await getMessages(document.id);
     } catch (e: any) {
         console.error("Error loading chat history:", e.message);
         chatError = e.message;

@@ -27,7 +27,7 @@ export default async function ChatHistoryPage() {
                 {history.length > 0 ? (
                     <ul className="space-y-3">
                         {history.map(session => (
-                            <li key={session.id}>
+                            <li key={session.document_id}>
                                 <Link href={`/app/chat/${session.document_id}`}>
                                     <div className="flex items-center justify-between p-4 rounded-lg transition-colors hover:bg-muted/50 border">
                                         <div className="flex items-center gap-4 overflow-hidden">
@@ -35,7 +35,7 @@ export default async function ChatHistoryPage() {
                                             <div>
                                                 <p className="font-semibold truncate">{session.document_name}</p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Started {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                                                    Last message {formatDistanceToNow(new Date(session.last_message_at), { addSuffix: true })}
                                                 </p>
                                             </div>
                                         </div>

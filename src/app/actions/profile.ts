@@ -41,16 +41,16 @@ export async function getDashboardStats() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-    const chatsCountPromise = supabase
-        .from('chat_sessions')
-        .select('*', { count: 'exact', head: true })
+    // To count "chats", we count the number of distinct documents the user has messaged.
+    const { data: distinctDocs, error: chatsError } = await supabase
+        .from('messages')
+        .select('document_id', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
     const [
         { data: profile, error: profileError },
         { count: documentsCount, error: docsError },
-        { count: chatsCount, error: chatsError }
-    ] = await Promise.all([profilePromise, docsCountPromise, chatsCountPromise]);
+    ] = await Promise.all([profilePromise, docsCountPromise]);
 
     if (profileError || docsError || chatsError) {
         console.error({ profileError, docsError, chatsError });
@@ -58,7 +58,7 @@ export async function getDashboardStats() {
 
     return {
         documents: documentsCount ?? 0,
-        chats: chatsCount ?? 0,
+        chats: distinctDocs ?? 0,
         plan: profile?.subscription_plan ?? 'Free'
     };
 }

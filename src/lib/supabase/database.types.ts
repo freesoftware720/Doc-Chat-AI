@@ -10,42 +10,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      chat_sessions: {
-        Row: {
-          created_at: string
-          document_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          document_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          document_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_sessions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       documents: {
         Row: {
           content: string | null
@@ -85,33 +49,33 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          document_id: string
           id: string
           role: string
-          session_id: string
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          document_id: string
           id?: string
           role: string
-          session_id: string
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          document_id?: string
           id?: string
           role?: string
-          session_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "messages_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "messages_document_id_fkey"
+            columns: ["document_id"]
             isOneToOne: false
-            referencedRelation: "chat_sessions"
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
           {
@@ -157,6 +121,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_chat_history: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          document_id: string
+          document_name: string
+          last_message_at: string
+        }[]
+      }
       handle_new_user: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -258,7 +230,7 @@ export type Enums<
     | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
