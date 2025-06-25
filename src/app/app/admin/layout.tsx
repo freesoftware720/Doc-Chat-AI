@@ -5,14 +5,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getUserRole } from '@/app/actions/workspace';
+import { redirect } from 'next/navigation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ShieldAlert } from 'lucide-react';
 
 const adminNavItems = [
   { href: '/app/admin', label: 'Overview' },
   { href: '/app/admin/settings', label: 'Settings' },
   { href: '/app/admin/audit-log', label: 'Audit Log' },
-  { href: '/app/admin/members', label: 'Members' },
+  // { href: '/app/admin/members', label: 'Members' },
 ];
 
 function AdminLayoutSkeleton() {
@@ -28,7 +32,6 @@ function AdminLayoutSkeleton() {
                 <Skeleton className="h-10 w-24 mr-2" />
                 <Skeleton className="h-10 w-24 mr-2" />
                 <Skeleton className="h-10 w-24 mr-2" />
-                <Skeleton className="h-10 w-24 mr-2" />
             </div>
           </CardHeader>
           <CardContent>
@@ -41,6 +44,39 @@ function AdminLayoutSkeleton() {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    getUserRole().then(role => {
+      setUserRole(role);
+      setIsLoading(false);
+      if (role !== 'admin') {
+        // Not using next/navigation redirect because it can cause loops in client components
+        // on initial render. A hard redirect is safer here for access control.
+        window.location.href = '/app';
+      }
+    });
+  }, []);
+  
+  if (isLoading) {
+    return <AdminLayoutSkeleton />;
+  }
+
+  if (userRole !== 'admin') {
+     return (
+        <div className="flex h-full items-center justify-center p-4">
+            <Alert variant="destructive" className="max-w-lg">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Access Denied</AlertTitle>
+                <AlertDescription>
+                   You do not have permission to view this page. Redirecting...
+                </AlertDescription>
+            </Alert>
+        </div>
+      )
+  }
+
 
   return (
     <Suspense fallback={<AdminLayoutSkeleton />}>
@@ -51,7 +87,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </header>
 
             <Tabs value={pathname} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 max-w-lg">
+                <TabsList className="grid w-full grid-cols-3 max-w-lg">
                     {adminNavItems.map(item => (
                         <TabsTrigger key={item.href} value={item.href} asChild>
                            <Link href={item.href}>{item.label}</Link>

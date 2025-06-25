@@ -89,14 +89,15 @@ export async function getUserRole() {
     
     if (error) {
         console.error('Error fetching user role:', error.message);
-        return null;
     }
 
     if (member?.role) {
       return member.role;
     }
     
+    // Fallback: If the user is the owner, they should be an admin.
     if (workspace.owner_id === user.id) {
+      // Upsert ensures that if the member exists, their role is set to admin.
       await supabase.from('workspace_members').upsert({
         workspace_id: workspace.id,
         user_id: user.id,

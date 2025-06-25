@@ -65,7 +65,7 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
               <SidebarMenuButton
                 href={item.href}
                 asChild
-                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
+                isActive={pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href + '/'))}
                 tooltip={item.label}
               >
                 <Link href={item.href}>
