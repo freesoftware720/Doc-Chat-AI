@@ -124,7 +124,7 @@ const UiMockup = () => {
 export function HeroSection({ content: rawContent }: { content?: any }) {
   const content = { ...defaultContent, ...rawContent };
 
-  const animatedTexts = (content.hero?.headline_animated_texts || []).map((item: any) =>
+  const animatedTexts = (content.headline_animated_texts || []).map((item: any) =>
     typeof item === 'object' && item.value ? item.value : item
   ).filter((item: any) => typeof item === 'string');
 
@@ -135,18 +135,18 @@ export function HeroSection({ content: rawContent }: { content?: any }) {
           className="text-center md:text-left"
         >
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tighter !leading-tight gsap-hero-el">
-            {content.hero.headline_part_1}{' '}
+            {content.headline_part_1}{' '}
             <AnimatedText texts={animatedTexts} />{' '}
-            {content.hero.headline_part_2}
+            {content.headline_part_2}
           </h1>
           <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0 gsap-hero-el">
-            {content.hero.subheadline}
+            {content.subheadline}
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start gsap-hero-el">
             <Button size="lg" asChild className="text-lg h-14 px-8 w-full sm:w-auto">
-              <Link href="/app">{content.hero.cta_button}</Link>
+              <Link href="/app">{content.cta_button}</Link>
             </Button>
-            <p className="text-sm text-muted-foreground">{content.hero.cta_secondary}</p>
+            <p className="text-sm text-muted-foreground">{content.cta_secondary}</p>
           </div>
         </div>
         <UiMockup />
