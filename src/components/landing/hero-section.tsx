@@ -38,10 +38,10 @@ export function HeroSection() {
         >
           <Image
             src="https://placehold.co/600x400.png"
-            alt="AI Document Analysis"
+            alt="App Dashboard and AI Chat Interface"
             width={600}
             height={400}
-            data-ai-hint="AI document analysis"
+            data-ai-hint="dashboard chat"
             className="rounded-2xl shadow-2xl shadow-primary/20"
           />
         </motion.div>
