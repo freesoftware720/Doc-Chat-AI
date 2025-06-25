@@ -10,6 +10,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          chat_limit_free_user: number
+          feature_chat_templates_enabled: boolean
+          feature_multi_pdf_enabled: boolean
+          homepage_announcement_message: string | null
+          id: number
+          logo_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          chat_limit_free_user?: number
+          feature_chat_templates_enabled?: boolean
+          feature_multi_pdf_enabled?: boolean
+          homepage_announcement_message?: string | null
+          id: number
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          chat_limit_free_user?: number
+          feature_chat_templates_enabled?: boolean
+          feature_multi_pdf_enabled?: boolean
+          homepage_announcement_message?: string | null
+          id?: number
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -138,24 +168,33 @@ export type Database = {
           avatar_url: string | null
           full_name: string | null
           id: string
-          subscription_plan: string | null
+          pro_credits: number | null
+          referral_code: string | null
+          referred_by: string | null
           status: string | null
+          subscription_plan: string | null
         }
         Insert: {
           active_workspace_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id: string
-          subscription_plan?: string | null
+          pro_credits?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           status?: string | null
+          subscription_plan?: string | null
         }
         Update: {
           active_workspace_id?: string | null
           avatar_url?: string | null
           full_name?: string | null
           id?: string
-          subscription_plan?: string | null
+          pro_credits?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           status?: string | null
+          subscription_plan?: string | null
         }
         Relationships: [
           {
@@ -170,6 +209,49 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: number
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -256,9 +338,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_personal_workspace: {
+      generate_referral_code: {
         Args: Record<PropertyKey, never>
-        Returns: unknown
+        Returns: string
       }
       get_user_chat_history: {
         Args: Record<PropertyKey, never>
@@ -270,20 +352,7 @@ export type Database = {
       }
       handle_new_user: {
         Args: Record<PropertyKey, never>
-        Returns: {
-          id: string
-          aud: string
-          role: string
-          email: string
-          phone: string
-          created_at: string
-          last_sign_in_at: string
-          app_metadata: Json
-          user_metadata: Json
-          identities: Json
-          updated_at: string
-          is_anonymous: boolean
-        }
+        Returns: undefined
       }
     }
     Enums: {
@@ -376,3 +445,5 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
+
+    
