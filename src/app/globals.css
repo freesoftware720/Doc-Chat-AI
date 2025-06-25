@@ -86,3 +86,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes blink {
+  from, to {
+    color: transparent;
+  }
+  50% {
+    color: inherit;
+  }
+}
+
+.typing-cursor::after {
+  content: '▋';
+  animation: blink 1s step-end infinite;
+  font-weight: 500;
+}

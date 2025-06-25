@@ -39,7 +39,7 @@ export default function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(scrollToBottom, [messages, isLoading]);
+  useEffect(scrollToBottom, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,61 +65,53 @@ export default function ChatInterface({
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-8">
           <AnimatePresence>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className={cn("flex items-start gap-4", {
-                  "justify-end": message.role === "user",
-                })}
-              >
-                {message.role === "assistant" && (
-                  <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
-                    <AvatarFallback className="bg-transparent">
-                        <Bot className="h-5 w-5"/>
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                <div
-                  className={cn(
-                    "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
-                    {
-                      "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
-                      "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
-                    },
-                    "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
-                  )}
+            {messages.map((message, index) => {
+              const isStreaming = isLoading && message.role === 'assistant' && index === messages.length - 1;
+
+              return (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={cn("flex items-start gap-4", {
+                    "justify-end": message.role === "user",
+                  })}
                 >
-                  <p className="text-base whitespace-pre-wrap">{message.content}</p>
-                </div>
-                {message.role === "user" && (
-                  <Avatar className="h-9 w-9">
-                     <AvatarFallback>
-                        <User className="h-5 w-5"/>
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </motion.div>
-            ))}
+                  {message.role === "assistant" && (
+                    <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
+                      <AvatarFallback className="bg-transparent">
+                          <Bot className="h-5 w-5"/>
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
+                      {
+                        "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
+                        "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
+                      },
+                      "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
+                    )}
+                  >
+                    <p className="text-base whitespace-pre-wrap">
+                      {message.content}
+                      {isStreaming && <span className="typing-cursor" />}
+                    </p>
+                  </div>
+                  {message.role === "user" && (
+                    <Avatar className="h-9 w-9">
+                       <AvatarFallback>
+                          <User className="h-5 w-5"/>
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </motion.div>
+              )
+            })}
           </AnimatePresence>
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-4"
-            >
-              <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
-                <AvatarFallback className="bg-transparent"><Bot className="h-5 w-5"/></AvatarFallback>
-              </Avatar>
-              <div className="bg-card/60 backdrop-blur-md border border-white/10 rounded-2xl rounded-bl-lg px-4 py-3 shadow-lg flex items-center">
-                <Loader className="h-5 w-5 animate-spin mr-3 text-primary" />
-                <span className="text-sm text-muted-foreground">Thinking...</span>
-              </div>
-            </motion.div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>

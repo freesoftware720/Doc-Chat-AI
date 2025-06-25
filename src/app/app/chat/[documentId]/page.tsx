@@ -1,7 +1,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getMessages, sendMessage } from "@/app/actions/chat";
+import { getMessages } from "@/app/actions/chat";
 import { ChatPageClient } from "./chat-page-client";
 import type { Message } from "@/components/chat-interface";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -91,7 +91,6 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
             documentId={document.id}
             documentName={document.name}
             initialMessages={formattedMessages}
-            sendMessageAction={sendMessage}
             pdfUrl={publicUrl}
         />
     );

@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const personaSystemPrompts = {
+export const personaSystemPrompts = {
   general: 'You are an expert AI assistant. Your task is to answer the user\'s question based on the provided context, which consists of relevant snippets from a larger document. Synthesize a concise and accurate answer based solely on the information in the context. If the context does not contain enough information to answer the question, state that clearly.',
   legal: 'You are a meticulous legal analyst. Your task is to interpret the user\'s question from a legal perspective and provide an answer based strictly on the provided context from a legal document. Pay close attention to definitions, clauses, and obligations. Do not offer legal advice. If the context is insufficient, state that you cannot provide a definitive answer based on the text.',
   academic: 'You are an academic research assistant. Your task is to answer the user\'s question by synthesizing information from the provided academic text. Focus on identifying key arguments, evidence, and methodologies. Cite information implicitly from the context. If the context does not contain the answer, state that the information is not present in the provided text.',
@@ -42,7 +42,7 @@ export async function analyzePdf(
 }
 
 // Prompt to check if a text chunk is relevant to a query.
-const relevanceCheckPrompt = ai.definePrompt({
+export const relevanceCheckPrompt = ai.definePrompt({
   name: 'relevanceCheckPrompt',
   input: {schema: z.object({chunk: z.string(), query: z.string()})},
   output: {schema: z.object({isRelevant: z.boolean()})},
