@@ -17,6 +17,7 @@ export type Database = {
           feature_multi_pdf_enabled: boolean
           homepage_announcement_message: string | null
           id: number
+          landing_page_content: Json | null
           logo_url: string | null
           updated_at: string | null
         }
@@ -26,6 +27,7 @@ export type Database = {
           feature_multi_pdf_enabled?: boolean
           homepage_announcement_message?: string | null
           id: number
+          landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
         }
@@ -35,6 +37,7 @@ export type Database = {
           feature_multi_pdf_enabled?: boolean
           homepage_announcement_message?: string | null
           id?: number
+          landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
         }
@@ -169,7 +172,7 @@ export type Database = {
           ban_reason: string | null
           banned_at: string | null
           chat_credits_last_reset: string | null
-          chat_credits_used: number | null
+          chat_credits_used: number
           full_name: string | null
           id: string
           pro_credits: number | null
@@ -184,7 +187,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           chat_credits_last_reset?: string | null
-          chat_credits_used?: number | null
+          chat_credits_used?: number
           full_name?: string | null
           id: string
           pro_credits?: number | null
@@ -199,7 +202,7 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           chat_credits_last_reset?: string | null
-          chat_credits_used?: number | null
+          chat_credits_used?: number
           full_name?: string | null
           id?: string
           pro_credits?: number | null
@@ -450,7 +453,7 @@ export type Enums<
     | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]

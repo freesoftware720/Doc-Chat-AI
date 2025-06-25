@@ -6,10 +6,14 @@ import { HeroSection } from '@/components/landing/hero-section';
 import { FeaturesSection } from '@/components/landing/features-section';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FaqSection } from '@/components/landing/faq-section';
+import { getAppSettings } from './actions/settings';
 
 export default async function LandingPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const settings = await getAppSettings();
+  const content = settings.landing_page_content as any;
+
 
   return (
     <>
@@ -20,10 +24,10 @@ export default async function LandingPage() {
           <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_15%_50%,hsl(var(--primary)/0.1),transparent_30%),radial-gradient(circle_at_85%_30%,hsl(var(--accent)/0.1),transparent_30%)]"></div>
         </div>
         <main className="container px-4 md:px-6">
-          <HeroSection />
-          <FeaturesSection />
-          <PricingSection />
-          <FaqSection />
+          <HeroSection content={content?.hero} />
+          <FeaturesSection content={content?.features} />
+          <PricingSection content={content?.pricing} />
+          <FaqSection content={content?.faq} />
         </main>
       </div>
       <Footer />
