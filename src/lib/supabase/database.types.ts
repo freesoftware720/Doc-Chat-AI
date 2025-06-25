@@ -139,6 +139,7 @@ export type Database = {
           full_name: string | null
           id: string
           subscription_plan: string | null
+          status: string | null
         }
         Insert: {
           active_workspace_id?: string | null
@@ -146,6 +147,7 @@ export type Database = {
           full_name?: string | null
           id: string
           subscription_plan?: string | null
+          status?: string | null
         }
         Update: {
           active_workspace_id?: string | null
@@ -153,6 +155,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           subscription_plan?: string | null
+          status?: string | null
         }
         Relationships: [
           {

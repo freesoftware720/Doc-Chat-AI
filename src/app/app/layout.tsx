@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { logout } from "../actions/auth";
 
 export default async function AppLayout({
   children,
@@ -15,6 +16,18 @@ export default async function AppLayout({
 
   if (!user) {
     redirect('/auth/login');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('status')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.status === 'banned') {
+    await logout();
+    // The logout action already handles redirection.
+    // This check ensures a banned user is logged out and can't access the app.
   }
   
   return (

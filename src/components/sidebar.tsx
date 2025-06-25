@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Shield,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -18,22 +19,25 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarContent,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons";
-import { ThemeToggle } from "./theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { useEffect, useState } from "react";
 import { getUserRole } from "@/app/actions/workspace";
+import { isSuperAdmin } from "@/app/actions/super-admin";
 
 
 export function AppSidebar({ user }: { user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null }) {
   const pathname = usePathname();
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [showSuperAdmin, setShowSuperAdmin] = useState(false);
 
   useEffect(() => {
     getUserRole().then(setUserRole);
+    isSuperAdmin().then(setShowSuperAdmin);
   }, []);
 
   const menuItems = [
@@ -45,6 +49,10 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
   const adminMenuItems = [
       { href: "/app/admin", label: "Admin", icon: Shield },
   ];
+
+  const superAdminMenuItems = [
+    { href: "/app/super-admin", label: "Super Admin", icon: ShieldCheck }
+  ]
 
   return (
     <Sidebar
@@ -90,6 +98,22 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
                 </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          {showSuperAdmin && (
+             <SidebarMenuItem>
+                <SidebarSeparator className="my-2" />
+                 <SidebarMenuButton
+                    href="/app/super-admin"
+                    asChild
+                    isActive={pathname.startsWith("/app/super-admin")}
+                    tooltip="Super Admin"
+                >
+                    <Link href="/app/super-admin">
+                        <ShieldCheck />
+                        <span>Super Admin</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
