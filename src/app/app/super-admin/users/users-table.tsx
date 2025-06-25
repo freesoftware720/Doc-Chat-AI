@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
@@ -54,9 +54,9 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={isPending}>
+                        <AlertDialogAction type="submit" disabled={isPending}>
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-                        </Button>
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
@@ -96,9 +96,9 @@ function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { u
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={isPending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
+                        <AlertDialogAction type="submit" disabled={isPending} variant={desiredStatus === 'banned' ? 'destructive' : 'default'}>
                             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
-                        </Button>
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

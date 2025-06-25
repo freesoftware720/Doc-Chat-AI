@@ -10,40 +10,44 @@ async function createAndSetActiveWorkspace(userId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not found during workspace creation');
 
-    const { data: newWorkspace, error: createError } = await supabase
-        .from('workspaces')
-        .insert({
-            owner_id: userId,
-            name: `${user.user_metadata?.full_name || user.email}'s Workspace`,
-        })
-        .select()
-        .single();
-    
-    if (createError) {
-        console.error('Error creating workspace:', createError);
-        throw new Error(`Could not create a personal workspace for user. Original error: ${createError.message}`);
+    let newWorkspace: Tables<'workspaces'>;
+    try {
+        const { data, error } = await supabase
+            .from('workspaces')
+            .insert({
+                owner_id: userId,
+                name: `${user.user_metadata?.full_name || user.email}'s Workspace`,
+            })
+            .select()
+            .single();
+        if (error) throw new Error(`Workspace creation failed: ${error.message}`);
+        newWorkspace = data;
+    } catch (createError: any) {
+        console.error('Error creating workspace in DB:', createError.message);
+        throw new Error(`Could not create a personal workspace for user. DB Error: ${createError.message}`);
     }
 
-    const { error: memberError } = await supabase.from('workspace_members').insert({
-        workspace_id: newWorkspace.id,
-        user_id: userId,
-        role: 'admin',
-    });
-
-    if (memberError) {
-        console.error('Error adding user to workspace members:', memberError);
-        // Attempt to clean up the created workspace if membership fails
+    try {
+        const { error: memberError } = await supabase.from('workspace_members').insert({
+            workspace_id: newWorkspace.id,
+            user_id: userId,
+            role: 'admin',
+        });
+        if (memberError) throw new Error(`Adding user to members failed: ${memberError.message}`);
+    } catch (memberError: any) {
+        console.error('Error adding user to workspace members:', memberError.message);
         await supabase.from('workspaces').delete().eq('id', newWorkspace.id);
         throw new Error(`Could not add user to workspace members. Original error: ${memberError.message}`);
     }
 
-    const { error: profileError } = await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
-
-    if (profileError) {
-        console.error('Error updating profile with active workspace:', profileError);
-        // This is less critical, so we might just log it and continue, but for now we throw.
+    try {
+        const { error: profileError } = await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
+        if (profileError) throw new Error(`Updating profile failed: ${profileError.message}`);
+    } catch (profileError: any) {
+        console.error('Error updating profile with active workspace:', profileError.message);
         throw new Error(`Could not update profile with active workspace. Original error: ${profileError.message}`);
     }
+
 
     return newWorkspace;
 }
@@ -93,7 +97,14 @@ export async function getUserRole() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const workspace = await getActiveWorkspace();
+    let workspace;
+    try {
+        workspace = await getActiveWorkspace();
+    } catch (error) {
+        console.error("Failed to get active workspace in getUserRole:", error);
+        return null;
+    }
+    
     if (!workspace) return null;
 
     const { data: member, error } = await supabase
