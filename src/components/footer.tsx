@@ -9,7 +9,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Logo className="h-8 w-8" />
+              <Logo className="h-8 w-8 drop-shadow-[0_0_5px_hsl(var(--primary)/0.7)]" />
               <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
             </Link>
             <p className="max-w-xs text-muted-foreground text-sm">

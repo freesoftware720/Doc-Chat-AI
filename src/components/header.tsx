@@ -16,7 +16,7 @@ export function Header({ user }: { user: User | null }) {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-lg">
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Logo className="h-8 w-8" />
+          <Logo className="h-8 w-8 ml-4 drop-shadow-[0_0_5px_hsl(var(--primary)/0.7)]" />
           <span className="font-bold font-headline text-2xl tracking-tight">Doc-Chat AI</span>
         </Link>
         
