@@ -55,21 +55,46 @@ export async function getAppSettings(): Promise<AppSettings> {
         .select('*')
         .eq('id', 1)
         .single();
-    
+
+    const defaultSettings: AppSettings = {
+        id: 1,
+        chat_limit_free_user: 50,
+        feature_chat_templates_enabled: true,
+        feature_multi_pdf_enabled: false,
+        homepage_announcement_message: null,
+        logo_url: null,
+        landing_page_content: defaultLandingPageContent,
+        updated_at: new Date().toISOString(),
+    };
+
+    // If no settings row is found (e.g., on first run), create it.
+    if (error && error.code === 'PGRST116') {
+        console.log('No app settings found, creating default settings...');
+        if (!serviceSupabase) {
+            console.error('Service client not available. Cannot create default settings. Returning hardcoded defaults.');
+            return defaultSettings;
+        }
+
+        const { data: newData, error: insertError } = await serviceSupabase
+            .from('app_settings')
+            .insert(defaultSettings)
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error('Error creating default app settings:', insertError);
+            return defaultSettings;
+        }
+
+        console.log('Default settings created successfully.');
+        return newData;
+    }
+
     if (error || !data) {
         console.error('Error fetching app settings, returning defaults:', error);
-        // Return default settings on error or if row doesn't exist
-        return {
-            id: 1,
-            chat_limit_free_user: 50,
-            feature_chat_templates_enabled: true,
-            feature_multi_pdf_enabled: false,
-            homepage_announcement_message: null,
-            logo_url: null,
-            landing_page_content: defaultLandingPageContent,
-            updated_at: new Date().toISOString(),
-        };
+        return defaultSettings;
     }
+    
     // Ensure landing_page_content is not null
     if (!data.landing_page_content) {
         data.landing_page_content = defaultLandingPageContent;
