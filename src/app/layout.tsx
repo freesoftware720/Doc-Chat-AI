@@ -2,13 +2,8 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Space_Grotesk, Inter } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster';
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-headline',
-})
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${spaceGrotesk.variable} ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable}`}>
       <body className="font-body antialiased min-h-screen bg-background flex flex-col">
         <ThemeProvider
           attribute="class"
