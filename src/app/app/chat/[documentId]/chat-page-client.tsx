@@ -59,8 +59,8 @@ export function ChatPageClient({ documentId, documentName, initialMessages, pdfU
             });
 
             if (!response.ok || !response.body) {
-                const errorData = await response.json().catch(() => ({ error: "An unknown error occurred." }));
-                throw new Error(errorData.error || `Request failed with status ${response.status}`);
+                const errorText = await response.text().catch(() => "An unknown error occurred.");
+                throw new Error(errorText || `Request failed with status ${response.status}`);
             }
 
             const reader = response.body.getReader();
