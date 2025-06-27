@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,16 +46,16 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
     }
 
     return (
-        <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
                 <form action={formAction}>
                     <input type="hidden" name="userId" value={user.id} />
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Change Plan for {user.full_name || user.email}</AlertDialogTitle>
-                        <AlertDialogDescription>
+                    <DialogHeader>
+                        <DialogTitle>Change Plan for {user.full_name || user.email}</DialogTitle>
+                        <DialogDescription>
                            Select a new subscription plan for this user. This will immediately apply.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
+                        </DialogDescription>
+                    </DialogHeader>
                     <div className="py-4">
                          <Select name="plan" defaultValue={user.subscription_plan || 'Free'}>
                             <SelectTrigger>
@@ -66,13 +67,15 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
                             </SelectContent>
                         </Select>
                     </div>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
                         <SubmitButton />
-                    </AlertDialogFooter>
+                    </DialogFooter>
                 </form>
-            </AlertDialogContent>
-        </AlertDialog>
+            </DialogContent>
+        </Dialog>
     )
 }
 
