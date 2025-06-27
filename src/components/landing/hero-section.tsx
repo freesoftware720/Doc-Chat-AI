@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -112,25 +113,32 @@ const UiMockup = () => {
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
 
-        <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto">
-          <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
-            <span>example.pdf</span>
-          </div>
+        <motion.div
+          style={{ transformStyle: "preserve-3d" }}
+          className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto"
+        >
+          <motion.div style={{ transform: "translateZ(20px)" }}>
+            <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
+              <span>example.pdf</span>
+            </div>
+          </motion.div>
           
-          <div className="border-dashed border-2 border-border/50 rounded-xl mt-3 p-6 flex flex-col items-center justify-center text-center">
-            <File className="w-8 h-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
-          </div>
+          <motion.div style={{ transform: "translateZ(40px)" }} className="mt-3">
+            <div className="border-dashed border-2 border-border/50 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+              <File className="w-8 h-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
+            </div>
+          </motion.div>
 
-          <div className="mt-4 space-y-2 flex flex-col">
+          <motion.div style={{ transform: "translateZ(30px)" }} className="mt-4 space-y-2 flex flex-col">
             <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
               <p>What are the main findings from the report?</p>
             </div>
             <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
               <p>The main findings from the report are that the company achieved a 20% increase in revenue compared to the previous year, with significant growth in the European and Asian markets.</p>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
