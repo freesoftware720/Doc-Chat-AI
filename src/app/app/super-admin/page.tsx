@@ -1,15 +1,97 @@
 
-import { getSuperAdminDashboardStats, getAnalyticsData, getAllUsersWithDetails, type UserWithDetails } from "@/app/actions/super-admin";
+import { getSuperAdminDashboardStats, getAnalyticsData, getAllUsersWithDetails, getConversionFunnelData, type UserWithDetails, type ConversionFunnelData } from "@/app/actions/super-admin";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, FileText, MessageSquare, Gift, LineChart, PieChart } from "lucide-react";
+import { Users, FileText, MessageSquare, Gift, ArrowRight } from "lucide-react";
 import { DailyMessagesChart, PlanDistributionChart } from "./analytics-charts";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+// Helper function to calculate conversion rate safely
+const calculateConversion = (current: number, previous: number): string => {
+    if (previous === 0) return "N/A";
+    const rate = (current / previous) * 100;
+    // Don't show 100% for the first step
+    if (rate === 100) return "100%";
+    return `${rate.toFixed(1)}%`;
+};
+
+function FunnelStep({ title, count, conversionRate, isFirst = false, isLast = false }: { title: string, count: number, conversionRate: string, isFirst?: boolean, isLast?: boolean }) {
+    return (
+        <div className="flex items-center gap-4">
+            <Card className="flex-1 bg-card/80">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-base">{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-3xl font-bold">{count}</p>
+                    {!isFirst && <p className="text-sm text-muted-foreground">{conversionRate} conversion</p>}
+                </CardContent>
+            </Card>
+            {!isLast && <ArrowRight className="h-8 w-8 text-muted-foreground shrink-0 hidden 2xl:block" />}
+        </div>
+    )
+}
+
+function ConversionFunnel({ data }: { data: ConversionFunnelData }) {
+    const funnelSteps = [
+        {
+            title: "Signed Up",
+            count: data.signedUp,
+            conversion: "100%",
+            isFirst: true,
+        },
+        {
+            title: "Uploaded First PDF",
+            count: data.uploadedFirstDoc,
+            conversion: calculateConversion(data.uploadedFirstDoc, data.signedUp),
+        },
+        {
+            title: "Started First Chat",
+            count: data.startedFirstChat,
+            conversion: calculateConversion(data.startedFirstChat, data.uploadedFirstDoc),
+        },
+        {
+            title: "Subscribed to Pro",
+            count: data.subscribedToPro,
+            conversion: calculateConversion(data.subscribedToPro, data.startedFirstChat),
+        }
+    ];
+
+    return (
+         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+            <CardHeader>
+                <CardTitle>User Conversion Funnel</CardTitle>
+                <CardDescription>A breakdown of user progression through key actions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-6">
+                    {funnelSteps.map((step, index) => (
+                        <FunnelStep 
+                            key={step.title} 
+                            title={step.title} 
+                            count={step.count}
+                            conversionRate={step.conversion}
+                            isFirst={step.isFirst}
+                            isLast={index === funnelSteps.length - 1}
+                        />
+                    ))}
+                </div>
+                 {data.signedUp === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                        No user data available yet to build the funnel.
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default async function SuperAdminOverviewPage() {
     const stats = await getSuperAdminDashboardStats();
     const { planChartData, messageChartData } = await getAnalyticsData();
     const allUsers = await getAllUsersWithDetails();
     const topUsers = allUsers.sort((a,b) => b.message_count - a.message_count).slice(0, 5);
+    const funnelData = await getConversionFunnelData();
 
     const statCards = [
         { title: "Total Users", value: stats.users, icon: <Users className="h-6 w-6 text-primary" /> },
@@ -34,6 +116,10 @@ export default async function SuperAdminOverviewPage() {
                     </Card>
                 ))}
             </div>
+
+            {/* Conversion Funnel */}
+            <ConversionFunnel data={funnelData} />
+
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

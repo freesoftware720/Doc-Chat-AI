@@ -268,3 +268,36 @@ export async function getAllReferralDetails() {
 
 
 export type ReferralWithDetails = Awaited<ReturnType<typeof getAllReferralDetails>>[0];
+
+export async function getConversionFunnelData() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+
+    const [
+        { count: signedUpCount, error: usersError },
+        { data: docUsers, error: docUsersError },
+        { data: msgUsers, error: msgUsersError },
+        { count: proCount, error: proError },
+    ] = await Promise.all([
+        serviceSupabase.from('profiles').select('*', { count: 'exact', head: true }),
+        serviceSupabase.from('documents').select('user_id'),
+        serviceSupabase.from('messages').select('user_id'),
+        serviceSupabase.from('profiles').select('*', { count: 'exact', head: true }).eq('subscription_plan', 'Pro'),
+    ]);
+
+    if (usersError || docUsersError || msgUsersError || proError) {
+        console.error({ usersError, docUsersError, msgUsersError, proError });
+        throw new Error("Failed to fetch conversion funnel data.");
+    }
+    
+    const uploadedFirstDocCount = new Set((docUsers || []).map(u => u.user_id)).size;
+    const startedFirstChatCount = new Set((msgUsers || []).map(u => u.user_id)).size;
+
+    return {
+        signedUp: signedUpCount ?? 0,
+        uploadedFirstDoc: uploadedFirstDocCount,
+        startedFirstChat: startedFirstChatCount,
+        subscribedToPro: proCount ?? 0,
+    };
+}
+
+export type ConversionFunnelData = Awaited<ReturnType<typeof getConversionFunnelData>>;
