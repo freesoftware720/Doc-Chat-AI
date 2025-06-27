@@ -8,21 +8,17 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import {
-  personaSystemPrompts,
+  defaultSystemPrompt,
   relevanceCheckPrompt,
 } from './pdf-analyzer-config';
-
-// The personaSystemPrompts object is now imported, so we can derive the Persona type from it.
-export type Persona = keyof typeof personaSystemPrompts;
 
 const AnalyzePdfInputSchema = z.object({
   documentContent: z
     .string()
     .describe('The full text content of the document.'),
   query: z.string().describe('The question about the document content.'),
-  persona: z.nativeEnum(Object.keys(personaSystemPrompts) as [Persona, ...Persona[]]).optional().default('general').describe('The persona for the AI assistant.'),
 });
 export type AnalyzePdfInput = z.infer<typeof AnalyzePdfInputSchema>;
 
@@ -46,7 +42,7 @@ const analyzePdfFlow = ai.defineFlow(
     inputSchema: AnalyzePdfInputSchema,
     outputSchema: AnalyzePdfOutputSchema,
   },
-  async ({documentContent, query, persona}) => {
+  async ({documentContent, query}) => {
     // 1. Chunk the document content. This is a simple strategy.
     const CHUNK_SIZE = 2000; // characters
     const CHUNK_OVERLAP = 200;
@@ -79,7 +75,7 @@ const analyzePdfFlow = ai.defineFlow(
     }
 
     const context = relevantChunks.join('\n---\n');
-    const systemPrompt = personaSystemPrompts[persona ?? 'general'];
+    const systemPrompt = defaultSystemPrompt;
 
     // 3. Generate a final answer based on the concatenated relevant chunks and persona.
     const {output} = await ai.generate({

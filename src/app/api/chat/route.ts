@@ -3,10 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
 import {
-  personaSystemPrompts,
+  defaultSystemPrompt,
   relevanceCheckPrompt,
 } from '@/ai/flows/pdf-analyzer-config';
-import type { Persona } from '@/ai/flows/pdf-analyzer';
 import { getAppSettings } from '@/app/actions/settings';
 import type { TablesInsert, TablesUpdate } from '@/lib/supabase/database.types';
 
@@ -31,7 +30,7 @@ async function addMessage(documentId: string, userId: string, role: 'user' | 'as
 
 export async function POST(req: Request) {
     try {
-        const { documentId, query, persona } = await req.json();
+        const { documentId, query } = await req.json();
 
         if (!documentId || !query) {
             return new NextResponse('Missing documentId or query', { status: 400 });
@@ -106,7 +105,7 @@ export async function POST(req: Request) {
         }
 
         const context = relevantChunks.join('\n---\n');
-        const systemPrompt = personaSystemPrompts[persona as Persona ?? 'general'];
+        const systemPrompt = defaultSystemPrompt;
         const finalPrompt = `Context:\n---\n${context}\n---\n\nUser Question: ${query}\n\nAnswer:`;
 
         const { stream, response } = ai.generateStream({
