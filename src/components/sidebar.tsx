@@ -133,7 +133,12 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
           </SidebarMenuItem>
           <SidebarMenuItem>
              <form action={logout}>
-                <SidebarMenuButton type="submit" asChild tooltip="Logout">
+                <SidebarMenuButton
+                  type="submit"
+                  asChild
+                  tooltip="Logout"
+                  className="hover:bg-destructive/20 hover:text-destructive hover:border-destructive/40 dark:hover:text-destructive hover:shadow-none dark:hover:shadow-none"
+                >
                     <button className="w-full">
                         <LogOut />
                         <span>Logout</span>
