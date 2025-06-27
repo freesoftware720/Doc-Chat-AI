@@ -2,7 +2,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
-import { personaSystemPrompts, relevanceCheckPrompt, type Persona } from '@/ai/flows/pdf-analyzer';
+import {
+  personaSystemPrompts,
+  relevanceCheckPrompt,
+} from '@/ai/flows/pdf-analyzer-config';
+import type { Persona } from '@/ai/flows/pdf-analyzer';
 import { getAppSettings } from '@/app/actions/settings';
 import type { TablesInsert, TablesUpdate } from '@/lib/supabase/database.types';
 
