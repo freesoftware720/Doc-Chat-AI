@@ -167,6 +167,11 @@ export async function logAuditEvent(action: string, details?: object) {
         return;
     }
 
+    if (!serviceSupabase) {
+        console.warn('Service client is not available. Skipping audit log for action:', action);
+        return;
+    }
+
     try {
         const workspace = await getActiveWorkspace();
         if (!workspace) {
@@ -182,7 +187,7 @@ export async function logAuditEvent(action: string, details?: object) {
             details: details ? { ...details } : undefined,
         };
 
-        const { error } = await supabase.from('audit_logs').insert(logEntry);
+        const { error } = await serviceSupabase.from('audit_logs').insert(logEntry);
 
         if (error) {
             console.error('Failed to log audit event:', error.message);
