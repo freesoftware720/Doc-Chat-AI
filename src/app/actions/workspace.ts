@@ -77,16 +77,21 @@ export async function getActiveWorkspace() {
     }
     
     if (profile.active_workspace_id) {
-        const { data: workspace, error } = await supabase
+        // Use service client to fetch the workspace to bypass potentially recursive RLS on SELECT.
+        // This is safe because the workspace ID comes from the user's own profile, which is RLS protected.
+        if (!serviceSupabase) {
+            throw new Error("Service client not available, cannot fetch active workspace.");
+        }
+        const { data: workspace, error } = await serviceSupabase
             .from('workspaces')
             .select('*')
             .eq('id', profile.active_workspace_id)
             .single();
 
         if (error) {
-            console.error('Error fetching active workspace:', error.message);
             // This could happen if the workspace was deleted but the profile wasn't updated.
-            // Let's try to recover by creating a new one.
+            // This is a critical state to recover from. Create a new workspace.
+            console.error('Error fetching active workspace with service client. It might be deleted. Creating a new one. Error:', error.message);
             return createAndSetActiveWorkspace(user.id);
         }
 
@@ -133,7 +138,12 @@ export async function getUserRole() {
     // Fallback: If the user is the owner, they should be an admin.
     if (workspace.owner_id === user.id) {
       // Upsert ensures that if the member exists, their role is set to admin.
-      const { error: upsertError } = await supabase.from('workspace_members').upsert({
+      // Use service client to bypass RLS.
+      if (!serviceSupabase) {
+          console.error("Failed to upsert owner as admin: Service client not available.");
+          return 'admin'; // Optimistically return admin if owner
+      }
+      const { error: upsertError } = await serviceSupabase.from('workspace_members').upsert({
         workspace_id: workspace.id,
         user_id: user.id,
         role: 'admin',
