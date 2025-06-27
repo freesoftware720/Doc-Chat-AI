@@ -137,7 +137,7 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
                   type="submit"
                   asChild
                   tooltip="Logout"
-                  className="hover:bg-destructive/20 hover:text-destructive hover:border-destructive/40 dark:hover:text-destructive hover:shadow-none dark:hover:shadow-none"
+                  className="hover:bg-destructive hover:text-destructive-foreground hover:[text-shadow:none]"
                 >
                     <button className="w-full">
                         <LogOut />
