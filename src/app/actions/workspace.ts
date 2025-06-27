@@ -4,15 +4,23 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { Tables, TablesInsert } from '@/lib/supabase/database.types';
+import { serviceSupabase } from '@/lib/supabase/service';
 
 async function createAndSetActiveWorkspace(userId: string) {
+    // Standard client to get user metadata
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not found during workspace creation');
 
+    // Service client is required for initial setup to bypass RLS policies
+    // that might cause recursion before the user is a member of the new workspace.
+    if (!serviceSupabase) {
+        throw new Error('Service client not initialized. Cannot create a workspace.');
+    }
+
     let newWorkspace: Tables<'workspaces'>;
     try {
-        const { data, error } = await supabase
+        const { data, error } = await serviceSupabase
             .from('workspaces')
             .insert({
                 owner_id: userId,
@@ -28,7 +36,7 @@ async function createAndSetActiveWorkspace(userId: string) {
     }
 
     try {
-        const { error: memberError } = await supabase.from('workspace_members').insert({
+        const { error: memberError } = await serviceSupabase.from('workspace_members').insert({
             workspace_id: newWorkspace.id,
             user_id: userId,
             role: 'admin',
@@ -36,12 +44,12 @@ async function createAndSetActiveWorkspace(userId: string) {
         if (memberError) throw new Error(`Adding user to members failed: ${memberError.message}`);
     } catch (memberError: any) {
         console.error('Error adding user to workspace members:', memberError.message);
-        await supabase.from('workspaces').delete().eq('id', newWorkspace.id);
+        await serviceSupabase.from('workspaces').delete().eq('id', newWorkspace.id);
         throw new Error(`Could not add user to workspace members. Original error: ${memberError.message}`);
     }
 
     try {
-        const { error: profileError } = await supabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
+        const { error: profileError } = await serviceSupabase.from('profiles').update({ active_workspace_id: newWorkspace.id }).eq('id', userId);
         if (profileError) throw new Error(`Updating profile failed: ${profileError.message}`);
     } catch (profileError: any) {
         console.error('Error updating profile with active workspace:', profileError.message);
