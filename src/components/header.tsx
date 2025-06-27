@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
@@ -43,7 +42,6 @@ export function Header({ user }: { user: User | null }) {
               </Button>
             </div>
           )}
-          <ThemeToggle />
         </div>
       </div>
     </header>

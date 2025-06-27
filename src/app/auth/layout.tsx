@@ -1,6 +1,5 @@
 
 import { Logo } from "@/components/icons";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AuthLayout({
   children,
@@ -20,7 +19,6 @@ export default function AuthLayout({
             <Logo className="h-7 w-7" />
             <span className="font-bold font-headline text-2xl tracking-tight">Doc-Chat AI</span>
           </a>
-          <ThemeToggle />
         </nav>
       </header>
 
