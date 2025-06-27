@@ -75,19 +75,25 @@ export async function getAppSettings(): Promise<AppSettings> {
             return defaultSettings;
         }
 
-        const { data: newData, error: insertError } = await serviceSupabase
-            .from('app_settings')
-            .insert(defaultSettings)
-            .select()
-            .single();
+        try {
+            const { data: newData, error: insertError } = await serviceSupabase
+                .from('app_settings')
+                .insert(defaultSettings)
+                .select()
+                .single();
 
-        if (insertError) {
-            console.error('Error creating default app settings:', insertError);
+            if (insertError) {
+                // Use throw to trigger the catch block, ensuring consistent error handling.
+                throw insertError;
+            }
+
+            console.log('Default settings created successfully.');
+            return newData;
+        } catch (e: any) {
+            // This will catch and log the full error object, which is more descriptive than the empty {}
+            console.error('An exception occurred while creating default app settings:', e);
             return defaultSettings;
         }
-
-        console.log('Default settings created successfully.');
-        return newData;
     }
 
     if (error || !data) {
