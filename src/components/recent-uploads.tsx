@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -8,11 +7,12 @@ import { FileText, PlusCircle, ArrowRight } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/database.types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PdfUploader from './pdf-uploader';
 import { createClient } from '@/lib/supabase/client';
 import { processDocument } from '@/app/actions/documents';
 import { useToast } from '@/hooks/use-toast';
+import { getActiveWorkspace } from '@/app/actions/workspace';
 
 type Document = Tables<'documents'>;
 
@@ -27,6 +27,19 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
   const supabase = createClient();
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workspace, setWorkspace] = useState<Tables<'workspaces'> | null>(null);
+
+  useEffect(() => {
+    const fetchWorkspace = async () => {
+        try {
+            const ws = await getActiveWorkspace();
+            setWorkspace(ws);
+        } catch (e) {
+            console.error("Failed to fetch workspace settings for uploader.");
+        }
+    };
+    fetchWorkspace();
+  }, []);
 
   const handlePdfUpload = async (file: File) => {
     if (documents.some(d => d.name === file.name)) {
@@ -36,6 +49,15 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
     
     setIsUploading(true);
     setError(null);
+    
+    // Client-side validation for file type
+    if (workspace?.allowed_file_types && !workspace.allowed_file_types.includes(file.type)) {
+        const errMessage = `File type not allowed. Please upload one of: ${workspace.allowed_file_types.join(', ')}`;
+        setError(errMessage);
+        toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
+        setIsUploading(false);
+        return;
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -56,8 +78,9 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
 
     } catch (error: any) {
       console.error("Upload failed:", error);
-      setError("Upload failed. Please try again.");
-      toast({ variant: "destructive", title: "Upload Failed", description: error.message });
+      const errorMessage = error.message || "Upload failed. Please try again.";
+      setError(errorMessage);
+      toast({ variant: "destructive", title: "Upload Failed", description: errorMessage });
     } finally {
       setIsUploading(false);
     }
@@ -67,7 +90,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
       <div className="lg:col-span-1 space-y-6 flex flex-col">
-        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} workspace={null} />
+        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} workspace={workspace} />
       </div>
       <div className="lg:col-span-2 h-full min-h-0">
         <AnimatePresence mode="wait">
