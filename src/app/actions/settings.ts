@@ -90,8 +90,10 @@ export async function getAppSettings(): Promise<AppSettings> {
             console.log('Default settings created successfully.');
             return newData;
         } catch (e: any) {
-            // This will catch and log the full error object, which is more descriptive than the empty {}
-            console.error('An exception occurred while creating default app settings:', e);
+            // The Supabase error object (PostgrestError) doesn't log well on its own.
+            // We log its message property for a more descriptive error. This will help debug
+            // issues like an incorrect SUPABASE_SERVICE_ROLE_KEY.
+            console.error('An exception occurred while creating default app settings:', e.message || e);
             return defaultSettings;
         }
     }
