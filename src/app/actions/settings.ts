@@ -75,27 +75,25 @@ export async function getAppSettings(): Promise<AppSettings> {
             return defaultSettings;
         }
 
-        try {
-            const { data: newData, error: insertError } = await serviceSupabase
-                .from('app_settings')
-                .insert(defaultSettings)
-                .select()
-                .single();
+        const { data: newData, error: insertError } = await serviceSupabase
+            .from('app_settings')
+            .insert(defaultSettings)
+            .select()
+            .single();
 
-            if (insertError) {
-                // Use throw to trigger the catch block, ensuring consistent error handling.
-                throw insertError;
+        if (insertError) {
+            // A "unique constraint" violation (code 23505) is expected if another request
+            // created the settings right before this one (a race condition). This is not a
+            // critical error. We can safely proceed, and subsequent calls will fetch the
+            // settings correctly. We log other errors as they are unexpected.
+            if (insertError.code !== '23505') {
+                 console.error('An unexpected error occurred while creating default app settings:', insertError.message || insertError);
             }
-
-            console.log('Default settings created successfully.');
-            return newData;
-        } catch (e: any) {
-            // The Supabase error object (PostgrestError) doesn't log well on its own.
-            // We log its message property for a more descriptive error. This will help debug
-            // issues like an incorrect SUPABASE_SERVICE_ROLE_KEY.
-            console.error('An exception occurred while creating default app settings:', e.message || e);
             return defaultSettings;
         }
+
+        console.log('Default settings created successfully.');
+        return newData;
     }
 
     if (error || !data) {
