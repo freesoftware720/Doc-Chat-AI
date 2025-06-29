@@ -47,6 +47,7 @@ export async function register(prevState: any, formData: FormData) {
   })
 
   if (error) {
+    console.error('Supabase sign up error:', error.message);
     return { error: 'Could not create user. Please try again.' };
   }
   
@@ -84,8 +85,6 @@ export async function register(prevState: any, formData: FormData) {
                 await serviceSupabase
                     .from('referrals')
                     .insert({ referrer_id: referrerId, referred_id: newUserId });
-                
-                await logAuditEvent('user.referral.completed', { referredUserId: newUserId, referrerId: referrerId });
             }
         } catch (referralError: any) {
             console.error("Failed to process referral:", referralError.message);
