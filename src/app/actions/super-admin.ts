@@ -147,7 +147,6 @@ export async function getAllUsersWithDetails() {
 
 export type UserWithDetails = Awaited<ReturnType<typeof getAllUsersWithDetails>>[0];
 
-
 export async function updateUserPlan(prevState: any, formData: FormData) {
     if (!serviceSupabase) return { error: "Service client not initialized." };
     if (!(await isSuperAdmin())) return { error: "Permission denied." };
@@ -266,7 +265,6 @@ export async function getAllReferralDetails() {
     return combinedDetails.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
-
 export type ReferralWithDetails = Awaited<ReturnType<typeof getAllReferralDetails>>[0];
 
 export async function getConversionFunnelData() {
@@ -301,3 +299,100 @@ export async function getConversionFunnelData() {
 }
 
 export type ConversionFunnelData = Awaited<ReturnType<typeof getConversionFunnelData>>;
+
+
+// --- Document Management Actions ---
+
+export async function getAllDocumentsWithDetails() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+
+    const { data: documents, error: docsError } = await serviceSupabase
+        .from('documents')
+        .select('*');
+    if (docsError) throw new Error(`Failed to fetch documents: ${docsError.message}`);
+
+    const userIds = [...new Set(documents.map(d => d.user_id))];
+    if (userIds.length === 0) return [];
+
+    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
+    if (usersError) throw new Error(`Failed to fetch users: ${usersError.message}`);
+
+    const userMap = new Map(users.map(u => [u.id, { email: u.email, fullName: u.user_metadata.full_name }]));
+
+    return documents.map(doc => ({
+        ...doc,
+        user_email: userMap.get(doc.user_id)?.email || 'Unknown User',
+        user_full_name: userMap.get(doc.user_id)?.fullName || 'N/A',
+    })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
+export type DocumentWithUserDetails = Awaited<ReturnType<typeof getAllDocumentsWithDetails>>[0];
+
+export async function deleteDocumentAsAdmin(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    
+    const documentId = formData.get('documentId') as string;
+    
+    const { data: doc, error: fetchError } = await serviceSupabase
+        .from('documents')
+        .select('storage_path, name')
+        .eq('id', documentId)
+        .single();
+
+    if (fetchError || !doc) {
+        return { error: 'Document not found.' };
+    }
+    
+    // Delete from storage
+    const { error: storageError } = await serviceSupabase.storage
+        .from('documents')
+        .remove([doc.storage_path]);
+
+    if (storageError) {
+        console.error("Admin delete: Storage deletion failed", storageError);
+    }
+
+    // Delete from database
+    const { error: dbError } = await serviceSupabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId);
+    
+    if (dbError) {
+        return { error: 'Failed to delete document from database.' };
+    }
+
+    revalidatePath('/app/super-admin/documents');
+    return { success: `Document "${doc.name}" deleted successfully.` };
+}
+
+export async function transferDocumentOwnership(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    
+    const documentId = formData.get('documentId') as string;
+    const newOwnerEmail = formData.get('newOwnerEmail') as string;
+
+    // Find the new owner
+    const { data: { users }, error: userError } = await serviceSupabase.auth.admin.listUsers();
+    if (userError) return { error: "Could not fetch user list." };
+    
+    const newOwner = users.find(u => u.email === newOwnerEmail);
+    if (!newOwner) {
+        return { error: `User with email "${newOwnerEmail}" not found.` };
+    }
+
+    // Update document owner
+    const { error: updateError } = await serviceSupabase
+        .from('documents')
+        .update({ user_id: newOwner.id })
+        .eq('id', documentId);
+    
+    if (updateError) {
+        return { error: `Failed to transfer document: ${updateError.message}` };
+    }
+
+    revalidatePath('/app/super-admin/documents');
+    return { success: `Document successfully transferred to ${newOwnerEmail}.` };
+}

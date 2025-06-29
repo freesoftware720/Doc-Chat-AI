@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { getActiveWorkspace, logAuditEvent } from './workspace';
+import type { TablesInsert } from '@/lib/supabase/database.types';
 
 // Helper function to dynamically import and use pdf-parse
 async function getPdfContent(fileBuffer: Buffer): Promise<string> {
@@ -48,16 +49,20 @@ export async function processDocument(
 
   const buffer = Buffer.from(await blob.arrayBuffer());
   const content = await getPdfContent(buffer);
+  const fileSize = blob.size;
 
   // Insert document metadata and content into the database
+  const docToInsert: TablesInsert<'documents'> = {
+    name: fileName,
+    user_id: user.id,
+    storage_path: storagePath,
+    content: content,
+    file_size: fileSize,
+  };
+
   const { data: document, error: insertError } = await supabase
     .from('documents')
-    .insert({
-      name: fileName,
-      user_id: user.id,
-      storage_path: storagePath,
-      content: content,
-    })
+    .insert(docToInsert)
     .select()
     .single();
 
@@ -141,5 +146,6 @@ export async function deleteDocument(prevState: any, formData: FormData) {
     await logAuditEvent('document.delete.success', { documentId, fileName: docName });
     revalidatePath('/app');
     revalidatePath('/app/uploads');
+    revalidatePath('/app/super-admin/documents');
     return { success: `Document "${docName}" deleted successfully.` };
 }

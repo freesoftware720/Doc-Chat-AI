@@ -15,6 +15,7 @@ import { isSuperAdmin } from '@/app/actions/super-admin';
 const superAdminNavItems = [
   { href: '/app/super-admin', label: 'Overview' },
   { href: '/app/super-admin/users', label: 'Users' },
+  { href: '/app/super-admin/documents', label: 'Documents' },
   { href: '/app/super-admin/referrals', label: 'Referrals' },
   { href: '/app/super-admin/settings', label: 'App Settings' },
 ];
@@ -85,7 +86,7 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
             </header>
 
             <Tabs value={pathname} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+                <TabsList className="grid w-full grid-cols-5 max-w-3xl">
                     {superAdminNavItems.map(item => (
                         <TabsTrigger key={item.href} value={item.href} asChild>
                            <Link href={item.href}>{item.label}</Link>
