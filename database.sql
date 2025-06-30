@@ -1,336 +1,370 @@
+-- This script is designed to be idempotent, meaning it can be run multiple times without causing errors.
+-- It checks for the existence of objects before creating them.
 
--- Create the custom enum type for workspace roles if it doesn't exist.
+-- #################################################################
+-- 1. Create ENUM Types
+-- #################################################################
+
+-- Create workspace_role ENUM type if it doesn't exist
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workspace_role') THEN
-        CREATE TYPE "public"."workspace_role" AS ENUM ('admin', 'member');
+        CREATE TYPE public.workspace_role AS ENUM (
+            'admin',
+            'member'
+        );
     END IF;
-END$$;
+END
+$$;
 
+-- #################################################################
+-- 2. Create Tables
+-- #################################################################
 
--- Create workspaces table
-CREATE TABLE IF NOT EXISTS "public"."workspaces" (
-    "id" uuid DEFAULT gen_random_uuid() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "owner_id" uuid NOT NULL,
-    "name" text NOT NULL,
-    "logo_url" text,
-    "brand_color" text,
-    "max_documents" integer DEFAULT 10 NOT NULL,
-    "allowed_file_types" text[] DEFAULT ARRAY['application/pdf']
+-- Create Workspaces Table
+CREATE TABLE IF NOT EXISTS public.workspaces (
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    owner_id uuid NOT NULL,
+    name text NOT NULL,
+    logo_url text NULL,
+    brand_color text NULL,
+    max_documents integer NOT NULL DEFAULT 3,
+    allowed_file_types text[] NULL DEFAULT ARRAY['application/pdf'::text],
+    CONSTRAINT workspaces_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
-ALTER TABLE "public"."workspaces" OWNER TO "postgres";
-ALTER TABLE ONLY "public"."workspaces" ADD CONSTRAINT "workspaces_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."workspaces" ADD CONSTRAINT "workspaces_owner_id_fkey" FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
 
-
--- Create profiles table
-CREATE TABLE IF NOT EXISTS "public"."profiles" (
-    "id" uuid NOT NULL,
-    "full_name" text,
-    "avatar_url" text,
-    "active_workspace_id" uuid,
-    "subscription_plan" text DEFAULT 'Free'::text,
-    "referral_code" text,
-    "referred_by" uuid,
-    "pro_credits" integer DEFAULT 0,
-    "status" text DEFAULT 'active'::text,
-    "ban_reason" text,
-    "banned_at" timestamp with time zone,
-    "chat_credits_used" integer DEFAULT 0 NOT NULL,
-    "chat_credits_last_reset" timestamp with time zone DEFAULT now()
+-- Create Profiles Table
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id uuid NOT NULL PRIMARY KEY,
+    full_name text,
+    avatar_url text,
+    subscription_plan text,
+    active_workspace_id uuid,
+    referral_code text,
+    referred_by uuid,
+    pro_credits integer,
+    status text,
+    ban_reason text,
+    banned_at timestamp with time zone,
+    chat_credits_used integer NOT NULL DEFAULT 0,
+    chat_credits_last_reset timestamp with time zone,
+    CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE,
+    CONSTRAINT profiles_active_workspace_id_fkey FOREIGN KEY (active_workspace_id) REFERENCES public.workspaces(id) ON DELETE SET NULL,
+    CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id) ON DELETE SET NULL,
+    CONSTRAINT profiles_referral_code_key UNIQUE (referral_code)
 );
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
-ALTER TABLE ONLY "public"."profiles" ADD CONSTRAINT "profiles_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."profiles" ADD CONSTRAINT "profiles_referral_code_key" UNIQUE (referral_code);
-ALTER TABLE ONLY "public"."profiles" ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
-ALTER TABLE ONLY "public"."profiles" ADD CONSTRAINT "profiles_active_workspace_id_fkey" FOREIGN KEY (active_workspace_id) REFERENCES public.workspaces(id) ON DELETE SET NULL;
-ALTER TABLE ONLY "public"."profiles" ADD CONSTRAINT "profiles_referred_by_fkey" FOREIGN KEY (referred_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-
--- Create workspace_members table
-CREATE TABLE IF NOT EXISTS "public"."workspace_members" (
-    "workspace_id" uuid NOT NULL,
-    "user_id" uuid NOT NULL,
-    "role" public.workspace_role DEFAULT 'member'::public.workspace_role,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL
+-- Create Workspace Members Table
+CREATE TABLE IF NOT EXISTS public.workspace_members (
+    workspace_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    role public.workspace_role NOT NULL DEFAULT 'member'::workspace_role,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT workspace_members_pkey PRIMARY KEY (workspace_id, user_id),
+    CONSTRAINT workspace_members_workspace_id_fkey FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id) ON DELETE CASCADE,
+    CONSTRAINT workspace_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
-ALTER TABLE "public"."workspace_members" OWNER TO "postgres";
-ALTER TABLE ONLY "public"."workspace_members" ADD CONSTRAINT "workspace_members_pkey" PRIMARY KEY (workspace_id, user_id);
-ALTER TABLE ONLY "public"."workspace_members" ADD CONSTRAINT "workspace_members_workspace_id_fkey" FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id) ON DELETE CASCADE;
-ALTER TABLE ONLY "public"."workspace_members" ADD CONSTRAINT "workspace_members_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
 
 
--- Create documents table
-CREATE TABLE IF NOT EXISTS "public"."documents" (
-    "id" uuid DEFAULT gen_random_uuid() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "name" text NOT NULL,
-    "content" text,
-    "storage_path" text NOT NULL,
-    "user_id" uuid NOT NULL,
-    "file_size" integer
+-- Create Documents Table
+CREATE TABLE IF NOT EXISTS public.documents (
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id uuid NOT NULL,
+    name text NOT NULL,
+    content text,
+    storage_path text NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    file_size integer,
+    CONSTRAINT documents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
-ALTER TABLE "public"."documents" OWNER TO "postgres";
-ALTER TABLE ONLY "public"."documents" ADD CONSTRAINT "documents_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."documents" ADD CONSTRAINT "documents_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 
-
--- Create messages table
-CREATE TABLE IF NOT EXISTS "public"."messages" (
-    "id" uuid DEFAULT gen_random_uuid() NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "document_id" uuid NOT NULL,
-    "user_id" uuid NOT NULL,
-    "role" text NOT NULL,
-    "content" text NOT NULL
+-- Create Messages Table
+CREATE TABLE IF NOT EXISTS public.messages (
+    id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    document_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    role text NOT NULL,
+    content text NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT messages_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(id) ON DELETE CASCADE,
+    CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
-ALTER TABLE "public"."messages" OWNER TO "postgres";
-ALTER TABLE ONLY "public"."messages" ADD CONSTRAINT "messages_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."messages" ADD CONSTRAINT "messages_document_id_fkey" FOREIGN KEY (document_id) REFERENCES public.documents(id) ON DELETE CASCADE;
-ALTER TABLE ONLY "public"."messages" ADD CONSTRAINT "messages_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
-
--- Create referrals table
-CREATE TABLE IF NOT EXISTS "public"."referrals" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "referrer_id" uuid NOT NULL,
-    "referred_id" uuid NOT NULL
+-- Create Referrals Table
+CREATE TABLE IF NOT EXISTS public.referrals (
+  id bigint generated by default as identity primary key,
+  referrer_id uuid not null,
+  referred_id uuid not null,
+  created_at timestamp with time zone default now() not null,
+  constraint referrals_referrer_id_fkey foreign key (referrer_id) references public.profiles (id) on delete cascade,
+  constraint referrals_referred_id_fkey foreign key (referred_id) references public.profiles (id) on delete cascade
 );
-ALTER TABLE "public"."referrals" OWNER TO "postgres";
-CREATE SEQUENCE IF NOT EXISTS "public"."referrals_id_seq"
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE "public"."referrals_id_seq" OWNER TO "postgres";
-ALTER SEQUENCE "public"."referrals_id_seq" OWNED BY "public"."referrals"."id";
-ALTER TABLE ONLY "public"."referrals" ALTER COLUMN "id" SET DEFAULT nextval('public.referrals_id_seq'::regclass);
-ALTER TABLE ONLY "public"."referrals" ADD CONSTRAINT "referrals_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."referrals" ADD CONSTRAINT "referrals_referred_id_fkey" FOREIGN KEY (referred_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
-ALTER TABLE ONLY "public"."referrals" ADD CONSTRAINT "referrals_referrer_id_fkey" FOREIGN KEY (referrer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 
-
--- Create audit_logs table
-CREATE TABLE IF NOT EXISTS "public"."audit_logs" (
-    "id" bigint NOT NULL,
-    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-    "workspace_id" uuid NOT NULL,
-    "user_id" uuid,
-    "user_email" text,
-    "action" text NOT NULL,
-    "details" jsonb
+-- Create App Settings Table
+CREATE TABLE IF NOT EXISTS public.app_settings (
+  id integer primary key,
+  logo_url text,
+  homepage_announcement_message text,
+  chat_limit_free_user integer not null default 50,
+  feature_chat_templates_enabled boolean not null default true,
+  feature_multi_pdf_enabled boolean not null default false,
+  landing_page_content jsonb,
+  updated_at timestamp with time zone
 );
-ALTER TABLE "public"."audit_logs" OWNER TO "postgres";
-CREATE SEQUENCE IF NOT EXISTS "public"."audit_logs_id_seq"
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE "public"."audit_logs_id_seq" OWNER TO "postgres";
-ALTER SEQUENCE "public"."audit_logs_id_seq" OWNED BY "public"."audit_logs"."id";
-ALTER TABLE ONLY "public"."audit_logs" ALTER COLUMN "id" SET DEFAULT nextval('public.audit_logs_id_seq'::regclass);
-ALTER TABLE ONLY "public"."audit_logs" ADD CONSTRAINT "audit_logs_pkey" PRIMARY KEY (id);
-ALTER TABLE ONLY "public"."audit_logs" ADD CONSTRAINT "audit_logs_workspace_id_fkey" FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id) ON DELETE CASCADE;
-ALTER TABLE ONLY "public"."audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
 
--- Create app_settings table (singleton)
-CREATE TABLE IF NOT EXISTS "public"."app_settings" (
-    "id" integer PRIMARY KEY,
-    "updated_at" timestamp with time zone DEFAULT now(),
-    "logo_url" text,
-    "homepage_announcement_message" text,
-    "feature_multi_pdf_enabled" boolean DEFAULT false NOT NULL,
-    "feature_chat_templates_enabled" boolean DEFAULT true NOT NULL,
-    "chat_limit_free_user" integer DEFAULT 50 NOT NULL,
-    "landing_page_content" jsonb,
-    CONSTRAINT "app_settings_id_check" CHECK (id = 1)
+-- Create Audit Logs Table
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id bigint generated by default as identity primary key,
+  workspace_id uuid not null,
+  user_id uuid,
+  user_email text,
+  action text not null,
+  details jsonb,
+  created_at timestamp with time zone not null default now(),
+  constraint audit_logs_workspace_id_fkey foreign key (workspace_id) references public.workspaces (id) on delete cascade,
+  constraint audit_logs_user_id_fkey foreign key (user_id) references auth.users (id) on delete set null
 );
-ALTER TABLE "public"."app_settings" OWNER TO "postgres";
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
+-- #################################################################
+-- 3. Create Storage Buckets
+-- #################################################################
 
---- FUNCTIONS AND TRIGGERS ---
+-- Create documents storage bucket if it doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+SELECT 'documents', 'documents', true
+WHERE NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'documents');
+
+-- #################################################################
+-- 4. Database Functions
+-- #################################################################
 
 -- Function to generate a unique referral code
-CREATE OR REPLACE FUNCTION "public"."generate_referral_code"()
+CREATE OR REPLACE FUNCTION public.generate_referral_code()
 RETURNS text
-LANGUAGE "plpgsql"
+LANGUAGE plpgsql
 AS $$
 DECLARE
-  new_code text;
-  is_unique boolean := false;
+    new_code text;
+    is_unique boolean := false;
 BEGIN
-  WHILE NOT is_unique LOOP
-    new_code := upper(substring(md5(random()::text) for 8));
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE referral_code = new_code) THEN
-      is_unique := true;
-    END IF;
-  END LOOP;
-  RETURN new_code;
+    WHILE NOT is_unique LOOP
+        new_code := upper(substring(md5(random()::text) for 8));
+        is_unique := NOT EXISTS (SELECT 1 FROM public.profiles WHERE referral_code = new_code);
+    END LOOP;
+    RETURN new_code;
 END;
 $$;
-ALTER FUNCTION "public"."generate_referral_code"() OWNER TO "postgres";
 
 
 -- Function to handle new user setup
-CREATE OR REPLACE FUNCTION "public"."handle_new_user"()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
-LANGUAGE "plpgsql"
+LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
   INSERT INTO public.profiles (id, full_name, avatar_url, referral_code)
   VALUES (
-    new.id,
-    new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url',
+    NEW.id,
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'avatar_url',
     public.generate_referral_code()
   );
-  RETURN new;
+
+  INSERT INTO public.workspaces (owner_id, name)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name' || '''s Workspace', NEW.email || '''s Workspace'));
+
+  RETURN NEW;
 END;
 $$;
-ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
--- Trigger to call handle_new_user on new user creation
+-- Function to get chat history for a user
+CREATE OR REPLACE FUNCTION public.get_user_chat_history()
+RETURNS TABLE(document_id uuid, document_name text, last_message_at timestamptz)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    WITH latest_messages AS (
+        SELECT
+            document_id,
+            MAX(created_at) as max_created_at
+        FROM messages
+        WHERE user_id = auth.uid()
+        GROUP BY document_id
+    )
+    SELECT
+        d.id as document_id,
+        d.name as document_name,
+        lm.max_created_at as last_message_at
+    FROM documents d
+    JOIN latest_messages lm ON d.id = lm.document_id
+    WHERE d.user_id = auth.uid()
+    ORDER BY lm.max_created_at DESC;
+$$;
+
+
+-- #################################################################
+-- 5. Triggers
+-- #################################################################
+
+-- Create trigger to handle new user setup
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- #################################################################
+-- 6. Row Level Security (RLS) Policies
+-- #################################################################
 
--- Function to get user chat history
-CREATE OR REPLACE FUNCTION public.get_user_chat_history()
-RETURNS TABLE(document_id uuid, document_name text, last_message_at timestamp with time zone)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    d.id as document_id,
-    d.name as document_name,
-    max(m.created_at) as last_message_at
-  FROM
-    documents d
-  JOIN
-    messages m ON d.id = m.document_id
-  WHERE
-    d.user_id = auth.uid()
-  GROUP BY
-    d.id, d.name
-  ORDER BY
-    last_message_at DESC;
-$$;
-ALTER FUNCTION "public"."get_user_chat_history"() OWNER TO "postgres";
+-- Policies for profiles
+DROP POLICY IF EXISTS "Enable read access for authenticated users" ON public.profiles;
+CREATE POLICY "Enable read access for authenticated users" ON public.profiles FOR SELECT USING (auth.role() = 'authenticated');
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
-
---- ROW LEVEL SECURITY (RLS) POLICIES ---
-
--- Profiles
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view their own profile." ON public.profiles;
-CREATE POLICY "Users can view their own profile." ON public.profiles FOR SELECT USING (auth.uid() = id);
-DROP POLICY IF EXISTS "Users can update their own profile." ON public.profiles;
-CREATE POLICY "Users can update their own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-
-
--- Workspaces
-ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view workspaces they are a member of." ON public.workspaces;
-CREATE POLICY "Users can view workspaces they are a member of." ON public.workspaces FOR SELECT USING (
+-- Policies for workspaces
+DROP POLICY IF EXISTS "Enable read access for members of the workspace" ON public.workspaces;
+CREATE POLICY "Enable read access for members of the workspace" ON public.workspaces FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM public.workspace_members
-    WHERE workspace_members.workspace_id = workspaces.id
-    AND workspace_members.user_id = auth.uid()
+    SELECT 1
+    FROM public.workspace_members
+    WHERE workspace_members.workspace_id = workspaces.id AND workspace_members.user_id = auth.uid()
   )
 );
-DROP POLICY IF EXISTS "Workspace owners can update their workspace." ON public.workspaces;
-CREATE POLICY "Workspace owners can update their workspace." ON public.workspaces FOR UPDATE USING (
-  owner_id = auth.uid()
+DROP POLICY IF EXISTS "Admins can update workspace" ON public.workspaces;
+CREATE POLICY "Admins can update workspace" ON public.workspaces FOR UPDATE USING (
+    (get_user_role(id) = 'admin'::public.workspace_role)
 ) WITH CHECK (
-  owner_id = auth.uid()
+    (get_user_role(id) = 'admin'::public.workspace_role)
 );
 
-
--- Workspace Members
-ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view their own workspace membership." ON public.workspace_members;
-CREATE POLICY "Users can view their own workspace membership." ON public.workspace_members FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Admins can manage workspace members." ON public.workspace_members;
-CREATE POLICY "Admins can manage workspace members." ON public.workspace_members FOR ALL USING (
-  (
-    SELECT role FROM public.workspace_members
-    WHERE user_id = auth.uid()
-    AND workspace_id = workspace_members.workspace_id
-  ) = 'admin'::public.workspace_role
+-- Policies for workspace_members
+DROP POLICY IF EXISTS "Enable read access for members of the workspace" ON public.workspace_members;
+CREATE POLICY "Enable read access for members of the workspace" ON public.workspace_members FOR SELECT USING (
+  EXISTS (
+    SELECT 1
+    FROM public.workspaces
+    WHERE workspaces.id = workspace_members.workspace_id
+  )
 );
 
+-- Policies for documents
+DROP POLICY IF EXISTS "Users can view their own documents" ON public.documents;
+CREATE POLICY "Users can view their own documents" ON public.documents FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "Users can insert their own documents" ON public.documents;
+CREATE POLICY "Users can insert their own documents" ON public.documents FOR INSERT WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "Users can delete their own documents" ON public.documents;
+CREATE POLICY "Users can delete their own documents" ON public.documents FOR DELETE USING (user_id = auth.uid());
 
--- Documents
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view their own documents." ON public.documents;
-CREATE POLICY "Users can view their own documents." ON public.documents FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can insert their own documents." ON public.documents;
-CREATE POLICY "Users can insert their own documents." ON public.documents FOR INSERT WITH CHECK (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can delete their own documents." ON public.documents;
-CREATE POLICY "Users can delete their own documents." ON public.documents FOR DELETE USING (auth.uid() = user_id);
+-- Policies for messages
+DROP POLICY IF EXISTS "Users can view messages in their documents" ON public.messages;
+CREATE POLICY "Users can view messages in their documents" ON public.messages FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "Users can insert messages in their documents" ON public.messages;
+CREATE POLICY "Users can insert messages in their documents" ON public.messages FOR INSERT WITH CHECK (user_id = auth.uid());
 
+-- Policies for referrals (typically read-only for users, handled by triggers/functions)
+DROP POLICY IF EXISTS "Authenticated users can read referrals" ON public.referrals;
+CREATE POLICY "Authenticated users can read referrals" ON public.referrals FOR SELECT USING (auth.role() = 'authenticated');
 
--- Messages
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can view their own messages." ON public.messages;
-CREATE POLICY "Users can view their own messages." ON public.messages FOR SELECT USING (auth.uid() = user_id);
-DROP POLICY IF EXISTS "Users can insert their own messages." ON public.messages;
-CREATE POLICY "Users can insert their own messages." ON public.messages FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Policies for app_settings
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.app_settings;
+CREATE POLICY "Enable read access for all users" ON public.app_settings FOR SELECT USING (true);
 
-
--- Audit Logs
-ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Workspace admins can view their workspace audit logs." ON public.audit_logs;
-CREATE POLICY "Workspace admins can view their workspace audit logs." ON public.audit_logs FOR SELECT USING (
-  (
-    SELECT role FROM public.workspace_members
-    WHERE user_id = auth.uid()
-    AND workspace_id = audit_logs.workspace_id
-  ) = 'admin'::public.workspace_role
+-- Policies for audit_logs
+DROP POLICY IF EXISTS "Admins can view their workspace audit logs" ON public.audit_logs;
+CREATE POLICY "Admins can view their workspace audit logs" ON public.audit_logs FOR SELECT USING (
+    (get_user_role(workspace_id) = 'admin'::public.workspace_role)
 );
--- NOTE: Inserts to audit_logs should ONLY be done with the service_role key to bypass RLS.
+
+-- #################################################################
+-- 7. Grant Permissions
+-- #################################################################
+
+-- Grant usage on schema to required roles
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+-- Grant select on all tables to required roles
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+-- Grant insert, update, delete on all tables to required roles
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO postgres, authenticated, service_role;
+-- Grant all privileges on all functions to required roles
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO postgres, anon, authenticated, service_role;
+-- Grant all privileges on all sequences to required roles
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres, authenticated, service_role;
+
+-- Allow anon role to call the get_user_role function
+GRANT EXECUTE ON FUNCTION public.get_user_role(uuid) TO anon;
+
+-- Grant permissions for storage
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA storage TO supabase_storage_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA storage TO supabase_storage_admin;
+GRANT SELECT ON ALL TABLES IN SCHEMA storage TO anon, authenticated, service_role;
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA storage TO authenticated, service_role;
 
 
--- App Settings (publicly readable)
-ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public read-only access to app settings" ON public.app_settings;
-CREATE POLICY "Allow public read-only access to app settings" ON public.app_settings FOR SELECT USING (true);
-
-
--- Referrals (no direct user access, handled by service role)
-ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
-
-
--- STORAGE POLICIES --
--- Create bucket if it doesn't exist
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('documents', 'documents', true)
+-- Final sanity check: Add a default row to app_settings if it doesn't exist
+INSERT INTO public.app_settings (id, landing_page_content)
+VALUES (1, '{
+    "hero": {
+        "headline_part_1": "Chat with your",
+        "headline_animated_texts": ["documents", "reports", "manuals", "textbooks"],
+        "headline_part_2": "using AI",
+        "subheadline": "Upload a PDF and get instant answers to your questions with the power of AI.",
+        "cta_button": "Upload PDF",
+        "cta_secondary": "No credit card required"
+    },
+    "features": {
+        "headline": "A Smarter Way to Work With Documents",
+        "subheadline": "Doc-Chat AI transforms your static documents into dynamic conversational partners.",
+        "items": [
+            { "icon": "UploadCloud", "title": "Seamless PDF Upload", "description": "Drag and drop any PDF to get started. Your documents are processed quickly and securely." },
+            { "icon": "Sparkles", "title": "Intelligent AI-Powered Q&A", "description": "Ask complex questions and receive accurate, context-aware answers in seconds." },
+            { "icon": "ShieldCheck", "title": "Secure & Private by Design", "description": "Your data is encrypted and confidential. Chat with your documents with complete peace of mind." }
+        ]
+    },
+    "pricing": {
+        "headline": "Choose the Plan That''s Right for You",
+        "subheadline": "Simple, transparent pricing. No hidden fees.",
+        "plans": [
+            { "name": "Free", "price": "$0", "period": "/ month", "description": "For individuals and small projects to get a taste of AI power.", "features": ["3 PDF uploads / month", "50 questions / month", "2MB file size limit", "Community support"], "cta": "Start for Free", "link": "/app", "isPopular": false },
+            { "name": "Pro", "price": "$19", "period": "/ month", "description": "For professionals and teams who need unlimited power.", "features": ["Unlimited PDF uploads", "Unlimited questions", "32MB file size limit", "Priority email support", "Advanced AI models"], "cta": "Go Pro", "link": "/app", "isPopular": true }
+        ]
+    },
+    "faq": {
+        "headline": "Frequently Asked Questions",
+        "subheadline": "Have questions? We''ve got answers. If you can''t find what you''re looking for, feel free to contact us.",
+        "items": [
+            { "question": "How does Doc-Chat AI work?", "answer": "Doc-Chat AI uses advanced large language models to analyze the content of your PDF documents. Once you upload a file, our AI reads and understands the text, allowing you to ask questions and receive intelligent, context-aware answers in a conversational format." },
+            { "question": "Is my data secure?", "answer": "Yes, security is our top priority. All documents are encrypted in transit and at rest. We do not use your data for training our models. You have full control over your documents and can delete them from our servers at any time." },
+            { "question": "What kind of documents can I upload?", "answer": "Currently, we support PDF documents. We are working on expanding our capabilities to include other formats like DOCX, TXT, and more in the near future. The maximum file size depends on your subscription plan." },
+            { "question": "Can I cancel my subscription anytime?", "answer": "Absolutely. You can manage your subscription from your account settings. If you cancel, you will retain access to your plan''s features until the end of the current billing cycle. There are no cancellation fees." }
+        ]
+    },
+    "legal_pages": {
+      "privacy": {"title": "Privacy Policy", "content": "This is a placeholder privacy policy. Please update it from the Super Admin settings."},
+      "terms": {"title": "Terms of Service", "content": "This is a placeholder terms of service. Please update it from the Super Admin settings."},
+      "about": {"title": "About Us", "content": "This is a placeholder about us page. Please update it from the Super Admin settings."},
+      "contact": {"title": "Contact Us", "content": "This is a placeholder contact page. Please update it from the Super Admin settings."}
+    }
+}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
--- Policies for documents bucket
-DROP POLICY IF EXISTS "Allow authenticated users to upload documents" ON storage.objects;
-CREATE POLICY "Allow authenticated users to upload documents"
-  ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK (bucket_id = 'documents');
+-- Grant permissions for storage policies
+CREATE POLICY "Give users access to their own folder" ON storage.objects
+  FOR SELECT USING ( auth.uid()::text = (storage.foldername(name))[1] );
 
-DROP POLICY IF EXISTS "Allow users to view their own documents" ON storage.objects;
-CREATE POLICY "Allow users to view their own documents"
-  ON storage.objects FOR SELECT
-  TO authenticated
-  USING (bucket_id = 'documents' AND owner = auth.uid());
+CREATE POLICY "Allow users to upload to their own folder" ON storage.objects
+  FOR INSERT WITH CHECK ( auth.uid()::text = (storage.foldername(name))[1] );
 
-DROP POLICY IF EXISTS "Allow users to delete their own documents" ON storage.objects;
-CREATE POLICY "Allow users to delete their own documents"
-  ON storage.objects FOR DELETE
-  TO authenticated
-  USING (bucket_id = 'documents' AND owner = auth.uid());
+CREATE POLICY "Allow users to delete their own files" ON storage.objects
+  FOR DELETE USING ( auth.uid()::text = (storage.foldername(name))[1] );
