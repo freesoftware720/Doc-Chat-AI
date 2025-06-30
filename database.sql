@@ -1,217 +1,368 @@
--- Create app_settings table
-create table if not exists public.app_settings (
-  id integer not null primary key,
-  logo_url text,
-  homepage_announcement_message text,
-  feature_chat_templates_enabled boolean not null default true,
-  feature_multi_pdf_enabled boolean not null default false,
-  chat_limit_free_user integer not null default 50,
-  landing_page_content jsonb,
-  updated_at timestamptz
+-- This script is designed to be idempotent, meaning it can be run multiple times without causing errors.
+
+-- Create custom types if they don't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workspace_role') THEN
+        CREATE TYPE public.workspace_role AS ENUM (
+            'admin',
+            'member'
+        );
+    END IF;
+END$$;
+
+
+-- Create workspaces table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.workspaces (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    owner_id uuid NOT NULL,
+    name text NOT NULL,
+    logo_url text,
+    brand_color text,
+    max_documents integer DEFAULT 3 NOT NULL,
+    allowed_file_types text[] DEFAULT '{application/pdf}'::text[]
 );
 
--- Seed initial app_settings
-insert into public.app_settings (id) values (1) on conflict (id) do nothing;
+-- Add foreign key constraint to workspaces table
+-- Using a helper function to avoid errors if the constraint already exists
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'workspaces_owner_id_fkey' AND conrelid = 'public.workspaces'::regclass
+    ) THEN
+        ALTER TABLE public.workspaces
+        ADD CONSTRAINT workspaces_owner_id_fkey
+        FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END$$;
 
-
--- Create workspaces table
-create table if not exists public.workspaces (
-  id uuid not null default gen_random_uuid() primary key,
-  owner_id uuid not null references auth.users(id) on delete cascade,
-  name text not null,
-  logo_url text,
-  brand_color text,
-  max_documents integer not null default 10,
-  allowed_file_types text[],
-  created_at timestamptz not null default now()
+-- Create profiles table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id uuid NOT NULL PRIMARY KEY,
+    full_name text,
+    avatar_url text,
+    subscription_plan text,
+    status text DEFAULT 'active'::text,
+    ban_reason text,
+    banned_at timestamp with time zone,
+    referral_code text UNIQUE,
+    referred_by uuid,
+    pro_credits integer,
+    active_workspace_id uuid,
+    chat_credits_used integer DEFAULT 0 NOT NULL,
+    chat_credits_last_reset timestamp with time zone
 );
 
--- Create profiles table
-create table if not exists public.profiles (
-  id uuid not null primary key references auth.users on delete cascade,
-  full_name text,
-  avatar_url text,
-  active_workspace_id uuid references public.workspaces(id) on delete set null,
-  subscription_plan text,
-  pro_credits integer,
-  referral_code text unique,
-  referred_by uuid references public.profiles(id),
-  status text,
-  ban_reason text,
-  banned_at timestamptz,
-  chat_credits_used integer not null default 0,
-  chat_credits_last_reset timestamptz
+-- Add foreign key constraints to profiles table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_id_fkey' AND conrelid = 'public.profiles'::regclass) THEN
+        ALTER TABLE public.profiles ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_referred_by_fkey' AND conrelid = 'public.profiles'::regclass) THEN
+        ALTER TABLE public.profiles ADD CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_active_workspace_id_fkey' AND conrelid = 'public.profiles'::regclass) THEN
+        ALTER TABLE public.profiles ADD CONSTRAINT profiles_active_workspace_id_fkey FOREIGN KEY (active_workspace_id) REFERENCES public.workspaces(id) ON DELETE SET NULL;
+    END IF;
+END$$;
+
+-- Add chat credit columns to profiles table if they don't exist
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS chat_credits_used INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS chat_credits_last_reset TIMESTAMPTZ;
+
+
+-- Create documents table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.documents (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    name text NOT NULL,
+    content text,
+    user_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    storage_path text NOT NULL,
+    file_size integer
 );
 
--- Create workspace_members table
-create table if not exists public.workspace_members (
-  workspace_id uuid not null references public.workspaces(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null default 'member',
-  created_at timestamptz not null default now(),
-  primary key (workspace_id, user_id)
+-- Add foreign key constraint to documents table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'documents_user_id_fkey' AND conrelid = 'public.documents'::regclass) THEN
+        ALTER TABLE public.documents ADD CONSTRAINT documents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END$$;
+
+-- Create messages table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.messages (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    document_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    role text NOT NULL,
+    content text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
--- Create documents table
-create table if not exists public.documents (
-  id uuid not null default gen_random_uuid() primary key,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  name text not null,
-  storage_path text not null,
-  content text,
-  file_size integer,
-  created_at timestamptz not null default now()
+-- Add foreign key constraints to messages table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'messages_document_id_fkey' AND conrelid = 'public.messages'::regclass) THEN
+        ALTER TABLE public.messages ADD CONSTRAINT messages_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'messages_user_id_fkey' AND conrelid = 'public.messages'::regclass) THEN
+        ALTER TABLE public.messages ADD CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END$$;
+
+-- Create workspace_members table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.workspace_members (
+    workspace_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    role public.workspace_role DEFAULT 'member'::public.workspace_role,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    PRIMARY KEY (workspace_id, user_id)
 );
 
--- Create messages table
-create table if not exists public.messages (
-  id uuid not null default gen_random_uuid() primary key,
-  document_id uuid not null references public.documents(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null,
-  content text not null,
-  created_at timestamptz not null default now()
-);
+-- Add foreign key constraints to workspace_members table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'workspace_members_workspace_id_fkey' AND conrelid = 'public.workspace_members'::regclass) THEN
+        ALTER TABLE public.workspace_members ADD CONSTRAINT workspace_members_workspace_id_fkey FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'workspace_members_user_id_fkey' AND conrelid = 'public.workspace_members'::regclass) THEN
+        ALTER TABLE public.workspace_members ADD CONSTRAINT workspace_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+    END IF;
+END$$;
 
--- Create referrals table
-create table if not exists public.referrals (
-  id serial primary key,
-  referrer_id uuid not null references public.profiles(id) on delete cascade,
-  referred_id uuid not null references public.profiles(id) on delete cascade,
-  created_at timestamptz not null default now()
-);
 
--- Create audit_logs table
-create table if not exists public.audit_logs (
-    id bigserial primary key,
-    workspace_id uuid not null references public.workspaces(id) on delete cascade,
-    user_id uuid references auth.users(id) on delete set null,
+-- Create referrals table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.referrals (
+    id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL PRIMARY KEY,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    referrer_id uuid NOT NULL,
+    referred_id uuid NOT NULL
+);
+-- Add foreign key constraints to referrals table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referrals_referrer_id_fkey' AND conrelid = 'public.referrals'::regclass) THEN
+        ALTER TABLE public.referrals ADD CONSTRAINT referrals_referrer_id_fkey FOREIGN KEY (referrer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referrals_referred_id_fkey' AND conrelid = 'public.referrals'::regclass) THEN
+        ALTER TABLE public.referrals ADD CONSTRAINT referrals_referred_id_fkey FOREIGN KEY (referred_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+    END IF;
+END$$;
+
+-- Create audit_logs table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id bigint GENERATED BY DEFAULT AS IDENTITY NOT NULL PRIMARY KEY,
+    workspace_id uuid NOT NULL,
+    user_id uuid,
     user_email text,
-    action text not null,
+    action text NOT NULL,
     details jsonb,
-    created_at timestamptz not null default now()
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+-- Add foreign key constraints to audit_logs table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'audit_logs_workspace_id_fkey' AND conrelid = 'public.audit_logs'::regclass) THEN
+        ALTER TABLE public.audit_logs ADD CONSTRAINT audit_logs_workspace_id_fkey FOREIGN KEY (workspace_id) REFERENCES public.workspaces(id) ON DELETE CASCADE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'audit_logs_user_id_fkey' AND conrelid = 'public.audit_logs'::regclass) THEN
+        ALTER TABLE public.audit_logs ADD CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+    END IF;
+END$$;
+
+-- Create app_settings table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.app_settings (
+    id integer NOT NULL PRIMARY KEY,
+    updated_at timestamp with time zone,
+    logo_url text,
+    homepage_announcement_message text,
+    chat_limit_free_user integer DEFAULT 50 NOT NULL,
+    feature_chat_templates_enabled boolean DEFAULT true NOT NULL,
+    feature_multi_pdf_enabled boolean DEFAULT false NOT NULL,
+    landing_page_content jsonb
 );
 
--- Function to generate a unique referral code
-create or replace function public.generate_referral_code()
-returns text as $$
-declare
-  new_code text;
-  is_unique boolean := false;
-begin
-  while not is_unique loop
-    new_code := upper(substr(md5(random()::text), 0, 9));
-    is_unique := not exists (select 1 from public.profiles where referral_code = new_code);
-  end loop;
-  return new_code;
-end;
-$$ language plpgsql volatile;
+-- Define a function to generate a short, unique referral code
+CREATE OR REPLACE FUNCTION public.generate_referral_code()
+RETURNS text
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    new_code text;
+    is_unique boolean := false;
+BEGIN
+    WHILE NOT is_unique LOOP
+        new_code := (
+            SELECT string_agg(
+                (
+                    SELECT substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random() * 36)::integer + 1, 1)
+                ), ''
+            )
+            FROM generate_series(1, 8)
+        );
+        is_unique := NOT EXISTS (SELECT 1 FROM public.profiles WHERE referral_code = new_code);
+    END LOOP;
+    RETURN new_code;
+END;
+$$;
 
 
--- Function to handle new user setup
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, full_name, avatar_url, referral_code)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', public.generate_referral_code());
-  return new;
-end;
-$$ language plpgsql security definer;
+-- Define a function to handle new user setup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    INSERT INTO public.profiles (id, full_name, avatar_url, referral_code)
+    VALUES (
+        new.id,
+        new.raw_user_meta_data->>'full_name',
+        new.raw_user_meta_data->>'avatar_url',
+        public.generate_referral_code()
+    );
+    RETURN new;
+END;
+$$;
 
--- Trigger to call handle_new_user on new user signup
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+-- Create a trigger to call handle_new_user on new user creation if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'on_auth_user_created') THEN
+        CREATE TRIGGER on_auth_user_created
+        AFTER INSERT ON auth.users
+        FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+    END IF;
+END$$;
 
 
--- RLS: Enable RLS for all tables
-alter table public.profiles enable row level security;
-alter table public.workspaces enable row level security;
-alter table public.workspace_members enable row level security;
-alter table public.documents enable row level security;
-alter table public.messages enable row level security;
-alter table public.referrals enable row level security;
-alter table public.app_settings enable row level security;
-alter table public.audit_logs enable row level security;
+-- RLS Policies
+-- Enable RLS for all tables
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for profiles
-create or replace policy "Allow users to view their own profile" on public.profiles for select using (auth.uid() = id);
-create or replace policy "Allow users to update their own profile" on public.profiles for update using (auth.uid() = id);
+-- Drop existing policies before creating new ones to ensure idempotency
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Public can view any profile" ON public.profiles;
 
--- RLS Policies for workspaces
-create or replace policy "Allow members to view their own workspace" on public.workspaces for select using (
-  id in (
-    select workspace_id from public.workspace_members where user_id = auth.uid()
-  )
+DROP POLICY IF EXISTS "Users can view workspaces they are a member of" ON public.workspaces;
+DROP POLICY IF EXISTS "Workspace owners can update their workspace" ON public.workspaces;
+DROP POLICY IF EXISTS "Workspace owners can delete their workspace" ON public.workspaces;
+
+DROP POLICY IF EXISTS "Users can view their own members" ON public.workspace_members;
+DROP POLICY IF EXISTS "Admins can manage members" ON public.workspace_members;
+
+DROP POLICY IF EXISTS "Users can view their own documents" ON public.documents;
+DROP POLICY IF EXISTS "Users can insert their own documents" ON public.documents;
+DROP POLICY IF EXISTS "Users can delete their own documents" ON public.documents;
+
+DROP POLICY IF EXISTS "Users can view their own messages" ON public.messages;
+DROP POLICY IF EXISTS "Users can insert their own messages" ON public.messages;
+
+DROP POLICY IF EXISTS "Admins can view audit logs for their workspace" ON public.audit_logs;
+
+DROP POLICY IF EXISTS "Users can view their own referrals" ON public.referrals;
+DROP POLICY IF EXISTS "All users can read app settings" ON public.app_settings;
+
+
+-- Profiles RLS
+CREATE POLICY "Public can view any profile" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING ((auth.uid() = id));
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING ((auth.uid() = id));
+
+-- Workspaces RLS
+CREATE POLICY "Users can view workspaces they are a member of" ON public.workspaces
+FOR SELECT USING (
+    id IN (
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
+    )
 );
-create or replace policy "Allow admins to update their workspace" on public.workspaces for update using (
-  id in (
-    select workspace_id from public.workspace_members where user_id = auth.uid() and role = 'admin'
-  )
+CREATE POLICY "Workspace owners can update their workspace" ON public.workspaces
+FOR UPDATE USING (auth.uid() = owner_id);
+
+CREATE POLICY "Workspace owners can delete their workspace" ON public.workspaces
+FOR DELETE USING (auth.uid() = owner_id);
+
+-- Workspace Members RLS
+CREATE POLICY "Users can view their own members" ON public.workspace_members
+FOR SELECT USING (
+    workspace_id IN (
+        SELECT workspace_id FROM public.workspace_members WHERE user_id = auth.uid()
+    )
+);
+CREATE POLICY "Admins can manage members" ON public.workspace_members
+FOR ALL USING (
+    (
+        SELECT role FROM public.workspace_members
+        WHERE user_id = auth.uid() AND workspace_id = public.workspace_members.workspace_id
+    ) = 'admin'::public.workspace_role
 );
 
--- RLS Policies for workspace_members
-create or replace policy "Allow members to view their own membership" on public.workspace_members for select using (
-    user_id = auth.uid()
-);
-create or replace policy "Allow members to view other members of their workspace" on public.workspace_members for select using (
-    workspace_id in (select workspace_id from public.workspace_members where user_id = auth.uid())
-);
+-- Documents RLS
+CREATE POLICY "Users can view their own documents" ON public.documents
+FOR SELECT USING (auth.uid() = user_id);
 
--- RLS Policies for documents
-create or replace policy "Allow users to view their own documents" on public.documents for select using (auth.uid() = user_id);
-create or replace policy "Allow users to create documents" on public.documents for insert with check (auth.uid() = user_id);
-create or replace policy "Allow users to delete their own documents" on public.documents for delete using (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own documents" ON public.documents
+FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- RLS Policies for messages
-create or replace policy "Allow users to view messages in their own documents" on public.messages for select using (
-  document_id in (select id from public.documents where user_id = auth.uid())
-);
-create or replace policy "Allow users to create messages in their own documents" on public.messages for insert with check (
-  document_id in (select id from public.documents where user_id = auth.uid())
-);
+CREATE POLICY "Users can delete their own documents" ON public.documents
+FOR DELETE USING (auth.uid() = user_id);
 
--- RLS Policies for app_settings
-create or replace policy "Allow all users to view app settings" on public.app_settings for select using (true);
+-- Messages RLS
+CREATE POLICY "Users can view their own messages" ON public.messages
+FOR SELECT USING (auth.uid() = user_id);
 
--- RLS Policies for audit_logs
-create or replace policy "Allow admins to view audit logs for their workspace" on public.audit_logs for select using (
-    workspace_id in (select workspace_id from public.workspace_members where user_id = auth.uid() and role = 'admin')
+CREATE POLICY "Users can insert their own messages" ON public.messages
+FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+
+-- Audit Logs RLS (Only admins of a workspace can see its logs)
+CREATE POLICY "Admins can view audit logs for their workspace" ON public.audit_logs
+FOR SELECT USING (
+    (
+        SELECT role FROM public.workspace_members
+        WHERE user_id = auth.uid() AND workspace_id = public.audit_logs.workspace_id
+    ) = 'admin'::public.workspace_role
 );
 
--- Function to get chat history
-create or replace function public.get_user_chat_history()
-returns table (document_id uuid, document_name text, last_message_at timestamptz) as $$
-begin
-  return query
-  with ranked_messages as (
-    select
-      m.document_id,
-      d.name as document_name,
-      m.created_at,
-      row_number() over (partition by m.document_id order by m.created_at desc) as rn
-    from public.messages m
-    join public.documents d on m.document_id = d.id
-    where m.user_id = auth.uid()
-  )
-  select
-    rm.document_id,
-    rm.document_name,
-    rm.created_at as last_message_at
-  from ranked_messages rm
-  where rm.rn = 1
-  order by rm.created_at desc;
-end;
-$$ language plpgsql stable;
+-- Referrals RLS
+CREATE POLICY "Users can view their own referrals" ON public.referrals
+FOR SELECT USING (auth.uid() = referrer_id OR auth.uid() = referred_id);
 
--- Supabase Storage policies
--- Note: These must be configured in the Supabase Dashboard under Storage -> Policies
+-- App Settings RLS
+CREATE POLICY "All users can read app settings" ON public.app_settings FOR SELECT USING (true);
 
--- Policy for 'documents' bucket:
--- Allow authenticated users to upload and view their own documents in a folder named after their user ID.
--- Target roles: authenticated
--- Allowed operations: SELECT, INSERT
--- WITH CHECK expression for INSERT:
---   bucket_id = 'documents' AND (storage.foldername(name))[1] = auth.uid()::text
--- USING expression for SELECT:
---   bucket_id = 'documents' AND (storage.foldername(name))[1] = auth.uid()::text
+
+-- RPC function to get user's chat history
+CREATE OR REPLACE FUNCTION public.get_user_chat_history()
+RETURNS TABLE(document_id uuid, document_name text, last_message_at timestamptz)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT
+        d.id as document_id,
+        d.name as document_name,
+        MAX(m.created_at) as last_message_at
+    FROM
+        public.documents d
+    JOIN
+        public.messages m ON d.id = m.document_id
+    WHERE
+        d.user_id = auth.uid() AND m.user_id = auth.uid()
+    GROUP BY
+        d.id, d.name
+    ORDER BY
+        last_message_at DESC;
+$$;
