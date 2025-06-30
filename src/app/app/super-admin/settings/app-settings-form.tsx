@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trash2, PlusCircle } from "lucide-react";
 import { updateAppSettings, type AppSettings } from "@/app/actions/settings";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 // --- Zod Schemas for Landing Page Content ---
@@ -68,11 +68,22 @@ const faqContentSchema = z.object({
     items: z.array(faqItemSchema),
 });
 
+const legalPageSchema = z.object({
+  title: z.string().min(1, "Title is required."),
+  content: z.string().min(1, "Content is required."),
+});
+
 const landingPageContentSchema = z.object({
     hero: heroContentSchema,
     features: featuresContentSchema,
     pricing: pricingContentSchema,
     faq: faqContentSchema,
+    legal_pages: z.object({
+        privacy: legalPageSchema,
+        terms: legalPageSchema,
+        about: legalPageSchema,
+        contact: legalPageSchema,
+    }),
 });
 
 const formSchema = z.object({
@@ -90,10 +101,15 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   
-  const defaultLpContent = settings.landing_page_content || {};
-  // Prepare default values for the form
+  const defaultLpContent = settings.landing_page_content as any || {};
+
+  // Prepare default values for the form, ensuring all nested objects exist.
   const preparedLpContent = {
       ...defaultLpContent,
+      hero: {
+          ...defaultLpContent.hero,
+          headline_animated_texts: (defaultLpContent.hero?.headline_animated_texts || []).map((text: string) => ({ value: text }))
+      },
       pricing: {
           ...defaultLpContent.pricing,
           plans: (defaultLpContent.pricing?.plans || []).map((plan: any) => ({
@@ -101,10 +117,12 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
               features: (plan.features || []).join('\n'),
           }))
       },
-      hero: {
-          ...defaultLpContent.hero,
-          headline_animated_texts: (defaultLpContent.hero?.headline_animated_texts || []).map((text: string) => ({ value: text }))
-      }
+      legal_pages: defaultLpContent.legal_pages || {
+        privacy: { title: "", content: "" },
+        terms: { title: "", content: "" },
+        about: { title: "", content: "" },
+        contact: { title: "", content: "" },
+      },
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -236,6 +254,40 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                         </div>
                         <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendFaq({question: '', answer: ''})}><PlusCircle className="mr-2 h-4 w-4"/>Add FAQ</Button>
                     </CardContent></Card>
+                </AccordionContent>
+            </AccordionItem>
+            {/* Legal Pages */}
+            <AccordionItem value="legal-pages">
+                <AccordionTrigger className="text-xl font-headline">Legal & Info Pages</AccordionTrigger>
+                <AccordionContent className="space-y-6 pt-6">
+                    <Card>
+                        <CardHeader><h3 className="text-lg font-medium">Privacy Policy</h3></CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><h3 className="text-lg font-medium">Terms of Service</h3></CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><h3 className="text-lg font-medium">About Us</h3></CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField control={form.control} name="landing_page_content.legal_pages.about.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.about.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader><h3 className="text-lg font-medium">Contact Us</h3></CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                        </CardContent>
+                    </Card>
                 </AccordionContent>
             </AccordionItem>
         </Accordion>

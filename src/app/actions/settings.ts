@@ -44,6 +44,24 @@ const defaultLandingPageContent: Json = {
             { question: "What kind of documents can I upload?", answer: "Currently, we support PDF documents. We are working on expanding our capabilities to include other formats like DOCX, TXT, and more in the near future. The maximum file size depends on your subscription plan." },
             { question: "Can I cancel my subscription anytime?", answer: "Absolutely. You can manage your subscription from your account settings. If you cancel, you will retain access to your plan's features until the end of the current billing cycle. There are no cancellation fees." }
         ]
+    },
+    legal_pages: {
+        privacy: {
+            title: "Privacy Policy",
+            content: "This is the default privacy policy. Please update this content from the Super Admin settings."
+        },
+        terms: {
+            title: "Terms of Service",
+            content: "These are the default terms of service. Please update this content from the Super Admin settings."
+        },
+        about: {
+            title: "About Us",
+            content: "This is the default about us page. Please update this content from the Super Admin settings."
+        },
+        contact: {
+            title: "Contact Us",
+            content: "This is the default contact page. Please update this content from the Super Admin settings."
+        }
     }
 };
 
@@ -101,10 +119,16 @@ export async function getAppSettings(): Promise<AppSettings> {
         return defaultSettings;
     }
     
-    // Ensure landing_page_content is not null
+    // Ensure landing_page_content is not null and contains all sections
     if (!data.landing_page_content) {
         data.landing_page_content = defaultLandingPageContent;
+    } else {
+        const content = data.landing_page_content as any;
+        if (!content.legal_pages) {
+            content.legal_pages = defaultLandingPageContent.legal_pages;
+        }
     }
+
 
     return data;
 }
@@ -155,6 +179,7 @@ export async function updateAppSettings(prevState: any, data: any) {
 
         revalidatePath('/app/super-admin/settings');
         revalidatePath('/'); // For announcement, logo and all landing page changes to reflect
+        revalidatePath('/pages', 'layout'); // Revalidate all legal pages
         return { success: 'Application settings updated successfully.' };
 
     } catch (e: any) {

@@ -25,13 +25,13 @@ export function Footer() {
             </div>
             <div className="flex flex-col gap-3">
               <h4 className="font-semibold font-headline text-foreground">Legal</h4>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
+              <Link href="/pages/privacy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link>
+              <Link href="/pages/terms" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link>
             </div>
              <div className="flex flex-col gap-3">
               <h4 className="font-semibold font-headline text-foreground">Company</h4>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-primary">About</Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
+              <Link href="/pages/about" className="text-sm text-muted-foreground hover:text-primary">About</Link>
+              <Link href="/pages/contact" className="text-sm text-muted-foreground hover:text-primary">Contact</Link>
             </div>
           </div>
         </div>
