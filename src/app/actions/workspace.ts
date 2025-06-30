@@ -120,7 +120,15 @@ export async function getUserRole() {
     
     if (!workspace) return null;
 
-    const { data: member, error } = await supabase
+    // Use service client to bypass RLS and avoid recursion.
+    // This is safe because we are checking the currently authenticated user's role
+    // in their own active workspace.
+    if (!serviceSupabase) {
+        console.error("Service client is not available. Falling back to owner check.");
+        return workspace.owner_id === user.id ? 'admin' : null;
+    }
+
+    const { data: member, error } = await serviceSupabase
         .from('workspace_members')
         .select('role')
         .eq('workspace_id', workspace.id)
@@ -128,7 +136,7 @@ export async function getUserRole() {
         .single();
     
     if (error) {
-        console.error('Error fetching user role:', error.message);
+        console.error('Error fetching user role with service client:', error.message);
     }
 
     if (member?.role) {
@@ -138,11 +146,6 @@ export async function getUserRole() {
     // Fallback: If the user is the owner, they should be an admin.
     if (workspace.owner_id === user.id) {
       // Upsert ensures that if the member exists, their role is set to admin.
-      // Use service client to bypass RLS.
-      if (!serviceSupabase) {
-          console.error("Failed to upsert owner as admin: Service client not available.");
-          return 'admin'; // Optimistically return admin if owner
-      }
       const { error: upsertError } = await serviceSupabase.from('workspace_members').upsert({
         workspace_id: workspace.id,
         user_id: user.id,
