@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -23,7 +22,7 @@ export function BottomNav() {
 
                 <div className="flex-shrink-0">
                      <Link href="/app/uploads" passHref>
-                        <Button size="lg" className="h-16 w-16 rounded-full shadow-lg -translate-y-6 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground">
+                        <Button size="lg" className="h-16 w-16 rounded-full shadow-lg shadow-primary/40 -translate-y-6 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/60">
                             <FileUp className="h-7 w-7" />
                             <span className="sr-only">Upload</span>
                         </Button>
