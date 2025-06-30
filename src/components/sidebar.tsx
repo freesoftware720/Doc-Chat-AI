@@ -8,7 +8,6 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  Shield,
   ShieldCheck,
 } from "lucide-react";
 import {
@@ -26,17 +25,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { useEffect, useState } from "react";
-import { getUserRole } from "@/app/actions/workspace";
 import { isSuperAdmin } from "@/app/actions/super-admin";
 
 
 export function AppSidebar({ user }: { user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null }) {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
 
   useEffect(() => {
-    getUserRole().then(setUserRole);
     isSuperAdmin().then(setShowSuperAdmin);
   }, []);
 
@@ -45,14 +41,6 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
     { href: "/app/uploads", label: "Uploads", icon: FileUp },
     { href: "/app/chat", label: "Chat", icon: MessageSquare },
   ];
-
-  const adminMenuItems = [
-      { href: "/app/admin", label: "Admin", icon: Shield },
-  ];
-
-  const superAdminMenuItems = [
-    { href: "/app/super-admin", label: "Super Admin", icon: ShieldCheck }
-  ]
 
   return (
     <Sidebar
@@ -81,21 +69,6 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-          {userRole === 'admin' && adminMenuItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                    href={item.href}
-                    asChild
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
-                >
-                    <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                    </Link>
-                </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
           {showSuperAdmin && (
