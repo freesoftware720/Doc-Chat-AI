@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Bot, Loader, XCircle, FileText, ArrowLeft } from "lucide-react";
+import { Send, User, Bot, Loader, ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -34,16 +34,32 @@ export default function ChatInterface({
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const userHasScrolledUp = useRef(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  useEffect(() => {
+    // This effect handles scrolling. It will only auto-scroll if the user
+    // has not manually scrolled up. This prevents the view from jumping
+    // down while the user is trying to read previous messages.
+    if (!userHasScrolledUp.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const isAtBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 10;
+      userHasScrolledUp.current = !isAtBottom;
+    }
   };
-
-  useEffect(scrollToBottom, [messages]);
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
+      // When user sends a message, we want to override any scroll lock
+      // and ensure the new message is visible.
+      userHasScrolledUp.current = false;
       onSendMessage(input.trim());
       setInput("");
     }
@@ -62,7 +78,7 @@ export default function ChatInterface({
         <div className="flex-grow"></div>
         <div className="hidden md:flex shrink-0">{headerControls}</div>
       </div>
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-8">
           <AnimatePresence>
             {messages.map((message, index) => {
