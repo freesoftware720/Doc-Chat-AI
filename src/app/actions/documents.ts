@@ -3,7 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { getActiveWorkspace, logAuditEvent } from './workspace';
+import { logAuditEvent } from './workspace';
 import type { TablesInsert } from '@/lib/supabase/database.types';
 
 // Helper function to dynamically import and use pdf-parse
@@ -24,19 +24,8 @@ export async function processDocument(
     throw new Error('You must be logged in to upload a document.');
   }
 
-  // Check against workspace limits
-  const workspace = await getActiveWorkspace();
-  const { count: docCount, error: countError } = await supabase
-    .from('documents')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id); // In a team scenario, this might check against the workspace
-  
-  if (countError) throw new Error('Could not count existing documents.');
-  
-  if (docCount >= workspace.max_documents) {
-    await logAuditEvent('document.upload.failed', { reason: 'limit_exceeded', fileName });
-    throw new Error(`Document limit of ${workspace.max_documents} reached. Please upgrade your plan.`);
-  }
+  // The document limit check based on workspaces has been removed to simplify the logic.
+  // This can be re-implemented later based on user subscription plans if needed.
 
   // Download the file from storage to parse it
   const { data: blob, error: downloadError } = await supabase.storage
@@ -69,7 +58,7 @@ export async function processDocument(
   if (insertError) {
     // If insert fails, clean up the stored file
     await supabase.storage.from('documents').remove([storagePath]);
-    await logAuditEvent('document.upload.failed', { reason: 'db_insert_failed', fileName });
+    await logAuditEvent('document.upload.failed', { reason: 'db_insert_failed', fileName, error: insertError.message });
     throw new Error('Failed to save document metadata to database.');
   }
 

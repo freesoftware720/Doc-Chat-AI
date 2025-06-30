@@ -4,22 +4,19 @@
 import { useState, useRef, type DragEvent } from "react";
 import { motion } from "framer-motion";
 import { UploadCloud, Loader } from "lucide-react";
-import { Progress } from "./ui/progress";
-import type { Tables } from "@/lib/supabase/database.types";
 
 interface PdfUploaderProps {
   onPdfUpload: (file: File) => void;
   isUploading: boolean;
   error: string | null;
-  workspace: Tables<'workspaces'> | null;
 }
 
-export default function PdfUploader({ onPdfUpload, isUploading, error, workspace }: PdfUploaderProps) {
+export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUploaderProps) {
   const [internalError, setInternalError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const allowedFileTypes = workspace?.allowed_file_types || ["application/pdf"];
+  const allowedFileTypes = ["application/pdf"];
   const allowedFileTypesString = allowedFileTypes.join(',');
 
   const handleFile = (file: File | null | undefined) => {
@@ -28,7 +25,7 @@ export default function PdfUploader({ onPdfUpload, isUploading, error, workspace
         setInternalError(null);
         onPdfUpload(file);
       } else {
-        setInternalError(`Please upload one of the allowed file types: ${allowedFileTypes.join(', ')}`);
+        setInternalError('Please upload a PDF file.');
       }
     }
   };
@@ -109,7 +106,7 @@ export default function PdfUploader({ onPdfUpload, isUploading, error, workspace
                 Drag & drop or <span className="text-primary font-bold">browse</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                Allowed file types: {allowedFileTypes.map(t => t.split('/')[1]).join(', ').toUpperCase()}
+                PDF (up to 32MB)
                 </p>
             </>
             )}
