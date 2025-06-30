@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import { BannedUserPage } from "@/components/banned-user-page";
+import { getAppSettings } from "../actions/settings";
 
 export default async function AppLayout({
   children,
@@ -22,7 +23,7 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('status, ban_reason')
+    .select('status, ban_reason, subscription_plan, chat_credits_used, chat_credits_last_reset')
     .eq('id', user.id)
     .single();
 
@@ -35,9 +36,31 @@ export default async function AppLayout({
     );
   }
   
+  const appSettings = await getAppSettings();
+  const creditLimit = appSettings.chat_limit_free_user;
+  
+  let creditsUsed = 0;
+  const plan = profile?.subscription_plan ?? 'Free';
+
+  if (plan === 'Free') {
+    const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
+    const now = new Date();
+    const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
+
+    if (hoursSinceReset < 24) {
+        creditsUsed = profile?.chat_credits_used || 0;
+    }
+    // If it's been more than 24 hours, creditsUsed remains 0, effectively resetting it for display.
+  }
+  
   return (
     <SidebarProvider>
-      <AppSidebar user={user} />
+      <AppSidebar 
+        user={user} 
+        plan={plan}
+        creditsUsed={creditsUsed}
+        creditLimit={creditLimit}
+      />
       <SidebarInset className="flex flex-col h-screen overflow-hidden">
         <AppHeader />
         <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0">

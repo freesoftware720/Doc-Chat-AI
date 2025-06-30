@@ -26,9 +26,15 @@ import { User } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { useEffect, useState } from "react";
 import { isSuperAdmin } from "@/app/actions/super-admin";
+import { Progress } from "@/components/ui/progress";
 
 
-export function AppSidebar({ user }: { user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null }) {
+export function AppSidebar({ user, plan, creditsUsed, creditLimit }: { 
+  user: { email?: string, user_metadata: { avatar_url?: string, full_name?: string } } | null,
+  plan: string,
+  creditsUsed: number,
+  creditLimit: number
+}) {
   const pathname = usePathname();
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
 
@@ -90,6 +96,15 @@ export function AppSidebar({ user }: { user: { email?: string, user_metadata: { 
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
+         {plan === 'Free' && creditLimit > 0 && (
+            <div className="p-2 group-data-[collapsible=icon]:hidden">
+                <div className="p-3 rounded-lg bg-muted/50 text-center">
+                    <p className="text-xs font-medium text-muted-foreground">Messages Used Today</p>
+                    <p className="text-lg font-bold text-foreground mt-1">{creditsUsed} / {creditLimit}</p>
+                    <Progress value={(creditsUsed / creditLimit) * 100} className="h-2 mt-2" />
+                </div>
+            </div>
+        )}
         <SidebarMenu>
            <SidebarMenuItem>
              <SidebarMenuButton 

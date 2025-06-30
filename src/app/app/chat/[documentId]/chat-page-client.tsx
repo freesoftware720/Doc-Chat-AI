@@ -18,6 +18,7 @@ interface ChatPageClientProps {
 export function ChatPageClient({ documentId, documentName, initialMessages, pdfUrl }: ChatPageClientProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLimitReached, setIsLimitReached] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -34,6 +35,8 @@ export function ChatPageClient({ documentId, documentName, initialMessages, pdfU
     }, [messages.length, documentName]);
 
     const handleSendMessage = async (content: string) => {
+        if (isLimitReached) return;
+
         const userMessage: Message = { id: Date.now().toString(), role: "user", content };
         const assistantPlaceholder: Message = { id: 'assistant-streaming', role: "assistant", content: "" };
         
@@ -46,6 +49,16 @@ export function ChatPageClient({ documentId, documentName, initialMessages, pdfU
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ documentId, query: content }),
             });
+
+            if (response.status === 429) {
+                const errorText = await response.text();
+                setIsLimitReached(true);
+                setMessages(prev => [
+                    ...prev.slice(0, -2), // remove optimistic user message and placeholder
+                    { id: 'limit-reached-msg', role: 'assistant', content: errorText || "You've reached your daily message limit." }
+                ]);
+                return;
+            }
 
             if (!response.ok || !response.body) {
                 const errorText = await response.text().catch(() => "An unknown error occurred.");
@@ -100,6 +113,7 @@ export function ChatPageClient({ documentId, documentName, initialMessages, pdfU
                     isLoading={isLoading}
                     documentName={documentName}
                     onReset={() => router.push('/app')}
+                    isLimitReached={isLimitReached}
                 />
             </div>
         </div>

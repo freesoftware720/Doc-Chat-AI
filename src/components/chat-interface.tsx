@@ -2,8 +2,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Bot, Loader, ArrowLeft, FileText } from "lucide-react";
+import { Send, User, Bot, Loader, ArrowLeft, FileText, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,6 +23,7 @@ interface ChatInterfaceProps {
   documentName: string;
   onReset: () => void;
   headerControls?: React.ReactNode;
+  isLimitReached: boolean;
 }
 
 export default function ChatInterface({
@@ -31,6 +33,7 @@ export default function ChatInterface({
   documentName,
   onReset,
   headerControls,
+  isLimitReached,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -133,20 +136,37 @@ export default function ChatInterface({
       </div>
       <div className="border-t p-4 bg-background/80 backdrop-blur-lg">
         <div className="max-w-4xl mx-auto">
-            <div className="flex md:hidden w-full mb-2">{headerControls}</div>
-            <form onSubmit={handleSubmit} className="flex items-center gap-4">
-            <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask anything about your document..."
-                className="flex-1 bg-card/80 rounded-full px-5 h-12 text-base border-border/50 focus:border-primary focus:ring-primary/50"
-                disabled={isLoading}
-            />
-            <Button type="submit" className="rounded-full h-12 w-12" size="icon" disabled={isLoading || !input.trim()}>
-                {isLoading ? <Loader className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                <span className="sr-only">Send</span>
-            </Button>
-            </form>
+            {isLimitReached ? (
+                <div className="text-center p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                    <h4 className="font-bold text-amber-600 dark:text-amber-400">Daily Limit Reached</h4>
+                    <p className="text-sm text-amber-700/80 dark:text-amber-500/80 mt-1">
+                        You've used all your free messages for today. Upgrade to Pro for unlimited messages.
+                    </p>
+                    <Button asChild size="sm" className="mt-4">
+                        <Link href="/app/settings">
+                            <Star className="mr-2 h-4 w-4" />
+                            Upgrade to Pro
+                        </Link>
+                    </Button>
+                </div>
+            ) : (
+              <>
+                <div className="flex md:hidden w-full mb-2">{headerControls}</div>
+                <form onSubmit={handleSubmit} className="flex items-center gap-4">
+                  <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask anything about your document..."
+                      className="flex-1 bg-card/80 rounded-full px-5 h-12 text-base border-border/50 focus:border-primary focus:ring-primary/50"
+                      disabled={isLoading}
+                  />
+                  <Button type="submit" className="rounded-full h-12 w-12" size="icon" disabled={isLoading || !input.trim()}>
+                      {isLoading ? <Loader className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                      <span className="sr-only">Send</span>
+                  </Button>
+                </form>
+              </>
+            )}
         </div>
       </div>
     </div>
