@@ -168,6 +168,33 @@ export type Database = {
           },
         ]
       }
+      payment_gateways: {
+        Row: {
+          created_at: string
+          icon_url: string | null
+          id: number
+          instructions: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          icon_url?: string | null
+          id?: number
+          instructions: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          icon_url?: string | null
+          id?: number
+          instructions?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_workspace_id: string | null

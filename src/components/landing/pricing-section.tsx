@@ -20,7 +20,7 @@ const defaultContent = {
             "Community support",
             ],
             cta: "Start for Free",
-            link: "/app",
+            link: "/auth/register",
             isPopular: false,
         },
         {
@@ -36,7 +36,7 @@ const defaultContent = {
             "Advanced AI models",
             ],
             cta: "Go Pro",
-            link: "/app",
+            link: "/auth/register",
             isPopular: true,
         },
     ]

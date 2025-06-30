@@ -31,8 +31,8 @@ const defaultLandingPageContent: Json = {
         headline: "Choose the Plan That's Right for You",
         subheadline: "Simple, transparent pricing. No hidden fees.",
         plans: [
-            { name: "Free", price: "$0", period: "/ month", description: "For individuals and small projects to get a taste of AI power.", features: ["3 PDF uploads / month", "50 questions / month", "2MB file size limit", "Community support"], cta: "Start for Free", link: "/app", isPopular: false },
-            { name: "Pro", price: "$19", period: "/ month", description: "For professionals and teams who need unlimited power.", features: ["Unlimited PDF uploads", "Unlimited questions", "32MB file size limit", "Priority email support", "Advanced AI models"], cta: "Go Pro", link: "/app", isPopular: true }
+            { name: "Free", price: "$0", period: "/ month", description: "For individuals and small projects to get a taste of AI power.", features: ["3 PDF uploads / month", "50 questions / month", "2MB file size limit", "Community support"], cta: "Start for Free", link: "/auth/register", isPopular: false },
+            { name: "Pro", price: "$19", period: "/ month", description: "For professionals and teams who need unlimited power.", features: ["Unlimited PDF uploads", "Unlimited questions", "32MB file size limit", "Priority email support", "Advanced AI models"], cta: "Go Pro", link: "/auth/register", isPopular: true }
         ]
     },
     faq: {

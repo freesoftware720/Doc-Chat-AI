@@ -1,8 +1,10 @@
 
+import Link from 'next/link';
 import { getProfile } from '@/app/actions/profile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SettingsForm } from './settings-form';
 import { ReferralCard } from './referral-card';
+import { Button } from '@/components/ui/button';
 
 export default async function SettingsPage() {
     const profile = await getProfile();
@@ -39,7 +41,13 @@ export default async function SettingsPage() {
                                     {(profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Free')}
                                 </p>
                             </div>
-                            <p className="font-bold text-2xl text-primary">{profile?.subscription_plan === 'Pro' ? '$19/mo' : '$0/mo'}</p>
+                            {profile?.subscription_plan !== 'Pro' ? (
+                                <Button asChild>
+                                    <Link href="/app/billing">Upgrade to Pro</Link>
+                                </Button>
+                            ) : (
+                                <p className="font-bold text-2xl text-primary">$19/mo</p>
+                            )}
                         </div>
                          {(profile?.pro_credits ?? 0) > 0 && (
                             <p className="text-xs text-muted-foreground mt-2">You have {profile.pro_credits} month(s) of Pro credits remaining.</p>

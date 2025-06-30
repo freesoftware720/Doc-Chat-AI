@@ -396,3 +396,93 @@ export async function transferDocumentOwnership(prevState: any, formData: FormDa
     revalidatePath('/app/super-admin/documents');
     return { success: `Document successfully transferred to ${newOwnerEmail}.` };
 }
+
+// --- Payment Gateway Management Actions ---
+
+export async function getPaymentGateways() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+    const { data, error } = await serviceSupabase
+        .from('payment_gateways')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching payment gateways:', error);
+        throw new Error('Failed to fetch payment gateways.');
+    }
+    return data || [];
+}
+
+export type PaymentGateway = Awaited<ReturnType<typeof getPaymentGateways>>[0];
+
+export async function createPaymentGateway(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const rawData = {
+        name: formData.get('name') as string,
+        instructions: formData.get('instructions') as string,
+        icon_url: formData.get('icon_url') as string || null,
+        is_active: formData.get('is_active') === 'on',
+    };
+    
+    if (!rawData.name || !rawData.instructions) {
+        return { error: 'Name and Instructions are required.' };
+    }
+
+    const { error } = await serviceSupabase.from('payment_gateways').insert(rawData);
+
+    if (error) {
+        return { error: `Failed to create payment gateway: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/payments');
+    return { success: 'Payment gateway created successfully.' };
+}
+
+export async function updatePaymentGateway(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    
+    const id = formData.get('id') as string;
+    const rawData = {
+        name: formData.get('name') as string,
+        instructions: formData.get('instructions') as string,
+        icon_url: formData.get('icon_url') as string || null,
+        is_active: formData.get('is_active') === 'on',
+    };
+
+    if (!id) return { error: 'Missing gateway ID.' };
+
+    const { error } = await serviceSupabase
+        .from('payment_gateways')
+        .update(rawData)
+        .eq('id', id);
+
+    if (error) {
+        return { error: `Failed to update payment gateway: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/payments');
+    return { success: 'Payment gateway updated successfully.' };
+}
+
+export async function deletePaymentGateway(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const id = formData.get('id') as string;
+    if (!id) return { error: 'Missing gateway ID.' };
+
+    const { error } = await serviceSupabase
+        .from('payment_gateways')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        return { error: `Failed to delete payment gateway: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/payments');
+    return { success: 'Payment gateway deleted successfully.' };
+}

@@ -18,6 +18,7 @@ const superAdminNavItems = [
   { href: '/app/super-admin/documents', label: 'Documents' },
   { href: '/app/super-admin/referrals', label: 'Referrals' },
   { href: '/app/super-admin/settings', label: 'App Settings' },
+  { href: '/app/super-admin/payments', label: 'Payments' },
 ];
 
 function SuperAdminLayoutSkeleton() {
@@ -85,8 +86,8 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
                 <p className="text-muted-foreground mt-1">Manage the entire application and all users.</p>
             </header>
 
-            <Tabs value={pathname} className="w-full">
-                <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+            <Tabs value={pathname.startsWith('/app/super-admin/payments') ? '/app/super-admin/payments' : pathname} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 max-w-4xl">
                     {superAdminNavItems.map(item => (
                         <TabsTrigger key={item.href} value={item.href} asChild>
                            <Link href={item.href}>{item.label}</Link>
