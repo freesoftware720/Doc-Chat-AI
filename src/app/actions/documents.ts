@@ -3,7 +3,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { logAuditEvent } from './workspace';
 import type { TablesInsert } from '@/lib/supabase/database.types';
 
 // Helper function to dynamically import and use pdf-parse
@@ -23,9 +22,6 @@ export async function processDocument(
   if (!user) {
     throw new Error('You must be logged in to upload a document.');
   }
-
-  // The document limit check based on workspaces has been removed to simplify the logic.
-  // This can be re-implemented later based on user subscription plans if needed.
 
   // Download the file from storage to parse it
   const { data: blob, error: downloadError } = await supabase.storage
@@ -58,11 +54,10 @@ export async function processDocument(
   if (insertError) {
     // If insert fails, clean up the stored file
     await supabase.storage.from('documents').remove([storagePath]);
-    await logAuditEvent('document.upload.failed', { reason: 'db_insert_failed', fileName, error: insertError.message });
+    console.error("Error saving document metadata:", insertError.message);
     throw new Error('Failed to save document metadata to database.');
   }
 
-  await logAuditEvent('document.upload.success', { documentId: document.id, fileName });
   revalidatePath('/app');
   revalidatePath('/app/uploads');
   return document;
@@ -128,11 +123,9 @@ export async function deleteDocument(prevState: any, formData: FormData) {
         .eq('id', documentId);
     
     if (dbError) {
-        await logAuditEvent('document.delete.failed', { documentId, fileName: docName, error: dbError.message });
         return { error: 'Failed to delete document from database.' };
     }
 
-    await logAuditEvent('document.delete.success', { documentId, fileName: docName });
     revalidatePath('/app');
     revalidatePath('/app/uploads');
     revalidatePath('/app/super-admin/documents');

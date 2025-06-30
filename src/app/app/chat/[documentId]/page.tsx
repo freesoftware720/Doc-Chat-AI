@@ -6,7 +6,6 @@ import { ChatPageClient } from "./chat-page-client";
 import type { Message } from "@/components/chat-interface";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TriangleAlert } from "lucide-react";
-import { logAuditEvent } from "@/app/actions/workspace";
 
 export default async function ChatWithDocumentPage({ params }: { params: { documentId: string } }) {
     const supabase = createClient();
@@ -27,9 +26,6 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
         console.error("Document not found or access denied:", docError);
         redirect('/app');
     }
-
-    // Log the audit event for accessing the chat page
-    await logAuditEvent('document.chat.viewed', { documentId: document.id, documentName: document.name });
 
     const { data: { publicUrl } } = supabase.storage
       .from('documents')
