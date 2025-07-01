@@ -1,20 +1,19 @@
+
 import { getProfile } from "@/app/actions/profile";
-import { getActivePaymentGateways } from "@/app/actions/billing";
+import { getActivePaymentGateways, getActivePlans } from "@/app/actions/billing";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
+import { Check } from "lucide-react";
 
 export default async function BillingPage() {
     const profile = await getProfile();
     const gateways = await getActivePaymentGateways();
-
-    const proPlanDetails = {
-        name: "Pro Plan",
-        price: "$19/month",
-        description: "Unlock unlimited access and advanced features."
-    };
+    const plans = await getActivePlans();
+    const paidPlans = plans.filter(p => p.price > 0);
 
     return (
         <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
@@ -47,10 +46,38 @@ export default async function BillingPage() {
             {profile?.subscription_plan !== 'Pro' && (
                 <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
                     <CardHeader>
-                        <CardTitle>Upgrade to Pro</CardTitle>
-                        <CardDescription>{proPlanDetails.description} - <strong>{proPlanDetails.price}</strong></CardDescription>
+                        <CardTitle>Upgrade Your Plan</CardTitle>
+                        <CardDescription>Choose a plan below to unlock more features.</CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {/* Plans List */}
+                        <div className="grid md:grid-cols-2 gap-6 mb-8">
+                            {paidPlans.map(plan => (
+                                <Card key={plan.id} className="flex flex-col">
+                                    <CardHeader>
+                                        <CardTitle>{plan.name}</CardTitle>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-3xl font-bold">{plan.currency_symbol}{plan.price}</span>
+                                            <span className="text-muted-foreground">{plan.period}</span>
+                                        </div>
+                                        <CardDescription>{plan.description}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1">
+                                        <ul className="space-y-2">
+                                            {plan.features.map(feature => (
+                                                <li key={feature} className="flex items-start gap-2">
+                                                    <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                                    <span className="text-sm text-muted-foreground">{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                        
+                        {/* Payment Gateways */}
+                        <h3 className="text-lg font-semibold mb-2">Payment Methods</h3>
                         {gateways.length > 0 ? (
                              <Accordion type="single" collapsible className="w-full">
                                 {gateways.map(gateway => (

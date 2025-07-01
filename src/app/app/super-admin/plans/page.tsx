@@ -1,25 +1,24 @@
 
-import { getAllUsersWithDetails, getAllPlans } from "@/app/actions/super-admin";
+import { getAllPlans } from "@/app/actions/super-admin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UsersTable } from "./users-table";
+import { PlansTable } from "./plans-table";
 
 export const dynamic = 'force-dynamic';
 
-export default async function SuperAdminUsersPage() {
-    const users = await getAllUsersWithDetails();
+export default async function SuperAdminPlansPage() {
     const plans = await getAllPlans();
 
     return (
         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
             <CardHeader>
-                <CardTitle>User Management</CardTitle>
+                <CardTitle>Billing Plan Management</CardTitle>
                 <CardDescription>
-                    View and manage all users across the platform.
+                    Create, edit, and manage the subscription plans available to users.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <UsersTable users={users} plans={plans} />
+                <PlansTable plans={plans} />
             </CardContent>
         </Card>
-    )
+    );
 }

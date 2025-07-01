@@ -150,6 +150,48 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          created_at: string
+          currency: string
+          currency_symbol: string
+          description: string | null
+          features: string[]
+          id: number
+          is_active: boolean
+          is_popular: boolean
+          name: string
+          period: string | null
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          currency_symbol?: string
+          description?: string | null
+          features?: string[]
+          id?: number
+          is_active?: boolean
+          is_popular?: boolean
+          name: string
+          period?: string | null
+          price: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          currency_symbol?: string
+          description?: string | null
+          features?: string[]
+          id?: number
+          is_active?: boolean
+          is_popular?: boolean
+          name?: string
+          period?: string | null
+          price?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

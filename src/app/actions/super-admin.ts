@@ -4,7 +4,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { serviceSupabase } from '@/lib/supabase/service';
 import { revalidatePath } from 'next/cache';
-import type { TablesUpdate } from '@/lib/supabase/database.types';
+import type { TablesUpdate, TablesInsert } from '@/lib/supabase/database.types';
 
 export async function isSuperAdmin() {
     const supabase = createClient();
@@ -485,4 +485,97 @@ export async function deletePaymentGateway(prevState: any, formData: FormData) {
 
     revalidatePath('/app/super-admin/payments');
     return { success: 'Payment gateway deleted successfully.' };
+}
+
+// --- Plan Management Actions ---
+
+export async function getAllPlans() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+    const { data, error } = await serviceSupabase
+        .from('plans')
+        .select('*')
+        .order('price');
+
+    if (error) {
+        console.error('Error fetching plans:', error);
+        throw new Error('Failed to fetch plans.');
+    }
+    return data || [];
+}
+
+export type Plan = Awaited<ReturnType<typeof getAllPlans>>[0];
+
+export async function createPlan(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const rawData = {
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        price: parseFloat(formData.get('price') as string),
+        currency: formData.get('currency') as string,
+        currency_symbol: formData.get('currency_symbol') as string,
+        period: formData.get('period') as string,
+        features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
+        is_active: formData.get('is_active') === 'on',
+        is_popular: formData.get('is_popular') === 'on',
+    };
+
+    const { error } = await serviceSupabase.from('plans').insert(rawData as TablesInsert<'plans'>);
+
+    if (error) {
+        return { error: `Failed to create plan: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/plans');
+    revalidatePath('/'); // Revalidate landing page
+    revalidatePath('/app/billing'); // Revalidate billing page
+    return { success: 'Plan created successfully.' };
+}
+
+export async function updatePlan(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const id = formData.get('id') as string;
+    const rawData = {
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        price: parseFloat(formData.get('price') as string),
+        currency: formData.get('currency') as string,
+        currency_symbol: formData.get('currency_symbol') as string,
+        period: formData.get('period') as string,
+        features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
+        is_active: formData.get('is_active') === 'on',
+        is_popular: formData.get('is_popular') === 'on',
+    };
+
+    const { error } = await serviceSupabase.from('plans').update(rawData as TablesUpdate<'plans'>).eq('id', id);
+
+    if (error) {
+        return { error: `Failed to update plan: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/plans');
+    revalidatePath('/');
+    revalidatePath('/app/billing');
+    return { success: 'Plan updated successfully.' };
+}
+
+export async function deletePlan(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const id = formData.get('id') as string;
+
+    const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
+
+    if (error) {
+        return { error: `Failed to delete plan: ${error.message}` };
+    }
+
+    revalidatePath('/app/super-admin/plans');
+    revalidatePath('/');
+    revalidatePath('/app/billing');
+    return { success: 'Plan deleted successfully.' };
 }

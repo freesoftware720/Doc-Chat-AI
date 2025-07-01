@@ -16,6 +16,7 @@ const superAdminNavItems = [
   { href: '/app/super-admin', label: 'Overview' },
   { href: '/app/super-admin/users', label: 'Users' },
   { href: '/app/super-admin/documents', label: 'Documents' },
+  { href: '/app/super-admin/plans', label: 'Plans' },
   { href: '/app/super-admin/referrals', label: 'Referrals' },
   { href: '/app/super-admin/settings', label: 'App Settings' },
   { href: '/app/super-admin/payments', label: 'Payments' },
@@ -78,6 +79,10 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
       )
   }
 
+  // Find the base path for the active tab.
+  // e.g., /app/super-admin/plans/edit/1 -> /app/super-admin/plans
+  const activeTabValue = superAdminNavItems.find(item => pathname.startsWith(item.href))?.href || '/app/super-admin';
+
   return (
     <Suspense fallback={<SuperAdminLayoutSkeleton />}>
         <div className="p-4 md:p-6 space-y-6">
@@ -86,8 +91,8 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
                 <p className="text-muted-foreground mt-1">Manage the entire application and all users.</p>
             </header>
 
-            <Tabs value={pathname.startsWith('/app/super-admin/payments') ? '/app/super-admin/payments' : pathname} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 max-w-4xl">
+            <Tabs value={activeTabValue} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 max-w-6xl">
                     {superAdminNavItems.map(item => (
                         <TabsTrigger key={item.href} value={item.href} asChild>
                            <Link href={item.href}>{item.label}</Link>

@@ -5,7 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { format } from "date-fns";
 import { MoreHorizontal, UserX, CheckCircle, Loader2 } from "lucide-react";
-import type { UserWithDetails } from "@/app/actions/super-admin";
+import type { UserWithDetails, Plan } from "@/app/actions/super-admin";
 import { updateUserPlan, updateUserStatus } from "@/app/actions/super-admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 type User = UserWithDetails;
 
-function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: boolean, onOpenChange: (open: boolean) => void }) {
+function PlanManagementDialog({ user, plans, open, onOpenChange }: { user: User, plans: Plan[], open: boolean, onOpenChange: (open: boolean) => void }) {
     const [state, formAction] = useActionState(updateUserPlan, null);
     const { toast } = useToast();
 
@@ -62,8 +62,9 @@ function PlanManagementDialog({ user, open, onOpenChange }: { user: User, open: 
                                 <SelectValue placeholder="Select a plan" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Free">Free</SelectItem>
-                                <SelectItem value="Pro">Pro</SelectItem>
+                                {plans.map(plan => (
+                                    <SelectItem key={plan.id} value={plan.name}>{plan.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -136,7 +137,7 @@ function StatusManagementDialog({ user, open, onOpenChange, desiredStatus }: { u
 
 
 
-export function UsersTable({ users }: { users: User[] }) {
+export function UsersTable({ users, plans }: { users: User[], plans: Plan[] }) {
     const [dialog, setDialog] = useState<{ type: 'plan' | 'ban' | 'unban'; user: User | null }>({ type: 'plan', user: null });
     
     const handleCloseDialog = () => setDialog({ ...dialog, user: null });
@@ -219,7 +220,7 @@ export function UsersTable({ users }: { users: User[] }) {
                     </TableBody>
                 </Table>
             </div>
-            {dialog.user && dialog.type === 'plan' && <PlanManagementDialog user={dialog.user} open={!!dialog.user} onOpenChange={handleCloseDialog} />}
+            {dialog.user && dialog.type === 'plan' && <PlanManagementDialog user={dialog.user} plans={plans} open={!!dialog.user} onOpenChange={handleCloseDialog} />}
             {dialog.user && dialog.type === 'ban' && <StatusManagementDialog user={dialog.user} open={!!dialog.user} onOpenChange={handleCloseDialog} desiredStatus="banned" />}
             {dialog.user && dialog.type === 'unban' && <StatusManagementDialog user={dialog.user} open={!!dialog.user} onOpenChange={handleCloseDialog} desiredStatus="active" />}
         </>

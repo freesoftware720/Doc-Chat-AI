@@ -1,6 +1,26 @@
+
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import type { Tables } from '@/lib/supabase/database.types';
+
+export type Plan = Tables<'plans'>;
+
+export async function getActivePlans(): Promise<Plan[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price');
+
+    if (error) {
+        console.error("Error fetching plans:", error);
+        return [];
+    }
+
+    return data;
+}
 
 export async function getActivePaymentGateways() {
     const supabase = createClient();

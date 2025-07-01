@@ -27,14 +27,6 @@ const defaultLandingPageContent: Json = {
             { icon: "ShieldCheck", title: "Secure & Private by Design", description: "Your data is encrypted and confidential. Chat with your documents with complete peace of mind." }
         ]
     },
-    pricing: {
-        headline: "Choose the Plan That's Right for You",
-        subheadline: "Simple, transparent pricing. No hidden fees.",
-        plans: [
-            { name: "Free", price: "$0", period: "/ month", description: "For individuals and small projects to get a taste of AI power.", features: ["3 PDF uploads / month", "50 questions / month", "2MB file size limit", "Community support"], cta: "Start for Free", link: "/auth/register", isPopular: false },
-            { name: "Pro", price: "$19", period: "/ month", description: "For professionals and teams who need unlimited power.", features: ["Unlimited PDF uploads", "Unlimited questions", "32MB file size limit", "Priority email support", "Advanced AI models"], cta: "Go Pro", link: "/auth/register", isPopular: true }
-        ]
-    },
     faq: {
         headline: "Frequently Asked Questions",
         subheadline: "Have questions? We've got answers. If you can't find what you're looking for, feel free to contact us.",
@@ -143,15 +135,6 @@ export async function updateAppSettings(prevState: any, data: any) {
 
     try {
         const landingPageContent = data.landing_page_content;
-
-        // The form sends the pricing features as a single string, so we convert it back to an array.
-        if (landingPageContent?.pricing?.plans) {
-            landingPageContent.pricing.plans.forEach((plan: any) => {
-                if (plan.features && typeof plan.features === 'string') {
-                    plan.features = (plan.features as string).split('\n').filter(f => f.trim() !== '');
-                }
-            });
-        }
         
         // Handle animated hero text array
         if (landingPageContent?.hero?.headline_animated_texts) {

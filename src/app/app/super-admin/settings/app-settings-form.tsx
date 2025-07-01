@@ -40,23 +40,6 @@ const featuresContentSchema = z.object({
     items: z.array(featureItemSchema),
 });
 
-const pricingPlanSchema = z.object({
-    name: z.string().min(1, "Plan name is required."),
-    price: z.string().min(1, "Price is required."),
-    period: z.string().min(1, "Period is required."),
-    description: z.string().min(1, "Description is required."),
-    features: z.string(), // Handled as a string and converted to array on the server
-    cta: z.string().min(1, "CTA text is required."),
-    link: z.string().min(1, "CTA link is required."),
-    isPopular: z.boolean(),
-});
-
-const pricingContentSchema = z.object({
-    headline: z.string().min(1, "Headline is required."),
-    subheadline: z.string().min(1, "Subheadline is required."),
-    plans: z.array(pricingPlanSchema),
-});
-
 const faqItemSchema = z.object({
     question: z.string().min(1, "Question is required."),
     answer: z.string().min(1, "Answer is required."),
@@ -76,7 +59,6 @@ const legalPageSchema = z.object({
 const landingPageContentSchema = z.object({
     hero: heroContentSchema,
     features: featuresContentSchema,
-    pricing: pricingContentSchema,
     faq: faqContentSchema,
     legal_pages: z.object({
         privacy: legalPageSchema,
@@ -110,13 +92,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
           ...defaultLpContent.hero,
           headline_animated_texts: (defaultLpContent.hero?.headline_animated_texts || []).map((text: string) => ({ value: text }))
       },
-      pricing: {
-          ...defaultLpContent.pricing,
-          plans: (defaultLpContent.pricing?.plans || []).map((plan: any) => ({
-              ...plan,
-              features: (plan.features || []).join('\n'),
-          }))
-      },
       legal_pages: defaultLpContent.legal_pages || {
         privacy: { title: "", content: "" },
         terms: { title: "", content: "" },
@@ -139,7 +114,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   
   const { fields: animatedTextFields, append: appendAnimatedText, remove: removeAnimatedText } = useFieldArray({ control: form.control, name: "landing_page_content.hero.headline_animated_texts" });
   const { fields: featureFields, append: appendFeature, remove: removeFeature } = useFieldArray({ control: form.control, name: "landing_page_content.features.items" });
-  const { fields: planFields, append: appendPlan, remove: removePlan } = useFieldArray({ control: form.control, name: "landing_page_content.pricing.plans" });
   const { fields: faqFields, append: appendFaq, remove: removeFaq } = useFieldArray({ control: form.control, name: "landing_page_content.faq.items" });
 
   useEffect(() => {
@@ -225,20 +199,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                             ))}
                         </div>
                         <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendFeature({icon: 'Sparkles', title: '', description: ''})}><PlusCircle className="mr-2 h-4 w-4"/>Add Feature</Button>
-                    </CardContent></Card>
-                    <Separator />
-                    {/* Pricing Section */}
-                    <Card><CardHeader><h3 className="text-lg font-medium">Pricing Section</h3></CardHeader><CardContent className="space-y-4">
-                        <FormField control={form.control} name="landing_page_content.pricing.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.pricing.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormLabel>Pricing Plans</FormLabel>
-                        <div className="space-y-4">
-                            {planFields.map((field, index) => (
-                                <div key={field.id} className="p-4 border rounded-lg space-y-3 relative"><div className="grid grid-cols-3 gap-4"><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.name`} render={({ field }) => (<FormItem><FormLabel>Plan Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.price`} render={({ field }) => (<FormItem><FormLabel>Price</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.period`} render={({ field }) => (<FormItem><FormLabel>Period</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/></div><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.features`} render={({ field }) => (<FormItem><FormLabel>Features</FormLabel><FormControl><Textarea {...field} /></FormControl><FormDescription>Enter one feature per line.</FormDescription><FormMessage /></FormItem>)}/><div className="grid grid-cols-2 gap-4"><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.cta`} render={({ field }) => (<FormItem><FormLabel>CTA Text</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.link`} render={({ field }) => (<FormItem><FormLabel>CTA Link</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/></div><FormField control={form.control} name={`landing_page_content.pricing.plans.${index}.isPopular`} render={({ field }) => (<FormItem className="flex flex-row items-center gap-2 pt-2"><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl><FormLabel>Is Popular?</FormLabel></FormItem>)}/>
-                                <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removePlan(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
-                            ))}
-                        </div>
-                        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendPlan({name: '', price: '', period: '', description: '', features: '', cta: '', link: '', isPopular: false})}><PlusCircle className="mr-2 h-4 w-4"/>Add Plan</Button>
                     </CardContent></Card>
                     <Separator />
                     {/* FAQ Section */}
