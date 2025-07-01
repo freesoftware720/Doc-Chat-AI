@@ -172,7 +172,7 @@ export function UsersTable({ users, plans }: { users: User[], plans: Plan[] }) {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger>
-                                                <Badge variant={user.status === 'banned' ? 'destructive' : 'outline'}>
+                                                <Badge variant={user.status === 'banned' ? 'destructive' : 'default'}>
                                                     {user.status === 'banned' ? <UserX className="h-3 w-3 mr-1"/> : <CheckCircle className="h-3 w-3 mr-1"/>}
                                                     {user.status || 'active'}
                                                 </Badge>
