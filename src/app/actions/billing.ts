@@ -15,11 +15,11 @@ export async function getActivePlans(): Promise<Plan[]> {
         .order('price');
 
     if (error) {
-        console.error("Error fetching plans:", error);
+        console.error("Error fetching plans:", error.message);
         return [];
     }
 
-    return data;
+    return data || [];
 }
 
 export async function getActivePaymentGateways() {
@@ -31,9 +31,9 @@ export async function getActivePaymentGateways() {
         .order('name');
     
     if (error) {
-        console.error("Error fetching payment gateways:", error);
+        console.error("Error fetching payment gateways:", error.message);
         return [];
     }
     
-    return data;
+    return data || [];
 }
