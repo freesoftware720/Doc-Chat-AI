@@ -579,3 +579,104 @@ export async function deletePlan(prevState: any, formData: FormData) {
     revalidatePath('/app/billing');
     return { success: 'Plan deleted successfully.' };
 }
+
+// --- Subscription Request Management Actions ---
+
+export async function getSubscriptionRequests() {
+    if (!serviceSupabase) throw new Error("Service client not initialized.");
+
+    const { data, error } = await serviceSupabase
+        .from('subscription_requests')
+        .select(`
+            *,
+            profiles (full_name, email:raw_user_meta_data->>'email'),
+            plans (name),
+            payment_gateways (name)
+        `)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error("Error fetching subscription requests:", error);
+        throw new Error('Failed to fetch subscription requests.');
+    }
+    
+    // The join returns nested objects, which is great. Let's flatten it a bit for easier use.
+    return data.map(req => ({
+        ...req,
+        user_name: req.profiles?.full_name || 'N/A',
+        user_email: (req.profiles as any)?.email || 'N/A',
+        plan_name: req.plans?.name || 'N/A',
+        gateway_name: req.payment_gateways?.name || 'N/A',
+    }));
+}
+
+export type SubscriptionRequestWithDetails = Awaited<ReturnType<typeof getSubscriptionRequests>>[0];
+
+export async function approveSubscriptionRequest(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+
+    const requestId = parseInt(formData.get('requestId') as string, 10);
+    const userId = formData.get('userId') as string;
+    const planName = formData.get('planName') as string;
+    
+    const { data: adminUser } = await createClient().auth.getUser();
+
+    // 1. Update user's profile to the new plan
+    const { error: profileError } = await serviceSupabase
+        .from('profiles')
+        .update({ subscription_plan: planName })
+        .eq('id', userId);
+
+    if (profileError) {
+        return { error: `Failed to update user profile: ${profileError.message}` };
+    }
+    
+    // 2. Update the request status to 'approved'
+    const { error: requestError } = await serviceSupabase
+        .from('subscription_requests')
+        .update({
+            status: 'approved',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: adminUser.user?.id,
+        })
+        .eq('id', requestId);
+
+    if (requestError) {
+        // Attempt to revert profile change if this fails
+        // This is a simple rollback, a real-world app might use a transaction
+        await serviceSupabase.from('profiles').update({ subscription_plan: 'Free' }).eq('id', userId);
+        return { error: `Failed to update request status: ${requestError.message}` };
+    }
+
+    revalidatePath('/app/super-admin/subscriptions');
+    revalidatePath('/app/billing');
+    return { success: "Subscription approved successfully." };
+}
+
+export async function rejectSubscriptionRequest(prevState: any, formData: FormData) {
+    if (!serviceSupabase) return { error: "Service client not initialized." };
+    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    
+    const requestId = parseInt(formData.get('requestId') as string, 10);
+    const reason = formData.get('reason') as string;
+    const { data: adminUser } = await createClient().auth.getUser();
+    
+    const { error } = await serviceSupabase
+        .from('subscription_requests')
+        .update({
+            status: 'rejected',
+            rejection_reason: reason,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: adminUser.user?.id,
+        })
+        .eq('id', requestId);
+        
+    if (error) {
+        return { error: `Failed to reject request: ${error.message}` };
+    }
+    
+    revalidatePath('/app/super-admin/subscriptions');
+    revalidatePath('/app/billing');
+    return { success: "Subscription rejected." };
+}
