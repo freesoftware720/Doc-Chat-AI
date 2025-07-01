@@ -186,4 +186,3 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
         </>
     );
 }
-
