@@ -82,7 +82,9 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
 
   // Find the base path for the active tab.
   // e.g., /app/super-admin/plans/edit/1 -> /app/super-admin/plans
-  const activeTabValue = superAdminNavItems.find(item => pathname.startsWith(item.href))?.href || '/app/super-admin';
+  // Sort by href length descending to find the most specific match first.
+  const sortedNavItems = [...superAdminNavItems].sort((a, b) => b.href.length - a.href.length);
+  const activeTabValue = sortedNavItems.find(item => pathname.startsWith(item.href))?.href || '/app/super-admin';
 
   return (
     <Suspense fallback={<SuperAdminLayoutSkeleton />}>
@@ -106,5 +108,3 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
     </Suspense>
   );
 }
-
-    
