@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
@@ -22,18 +23,16 @@ export async function getSuperAdminDashboardStats() {
         { count: userCount, error: userError },
         { count: docCount, error: docError },
         { count: msgCount, error: msgError },
-        { count: wsCount, error: wsError },
         { count: refCount, error: refError },
     ] = await Promise.all([
         serviceSupabase.from('profiles').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('documents').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('messages').select('*', { count: 'exact', head: true }),
-        serviceSupabase.from('workspaces').select('*', { count: 'exact', head: true }),
         serviceSupabase.from('referrals').select('*', { count: 'exact', head: true }),
     ]);
 
-    if (userError || docError || msgError || wsError || refError) {
-        console.error({ userError, docError, msgError, wsError, refError });
+    if (userError || docError || msgError || refError) {
+        console.error({ userError, docError, msgError, refError });
         throw new Error("Failed to fetch super admin dashboard stats.");
     }
     
@@ -41,7 +40,6 @@ export async function getSuperAdminDashboardStats() {
         users: userCount ?? 0,
         documents: docCount ?? 0,
         messages: msgCount ?? 0,
-        workspaces: wsCount ?? 0,
         referrals: refCount ?? 0,
     };
 }
@@ -103,7 +101,7 @@ export async function getAnalyticsData() {
 export async function getAllUsersWithDetails() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
 
-    const { data: users, error: usersError } = await serviceSupabase.auth.admin.listUsers();
+    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
     if (usersError) throw new Error(`Failed to fetch users: ${usersError.message}`);
 
     const { data: profiles, error: profilesError } = await serviceSupabase
@@ -129,7 +127,7 @@ export async function getAllUsersWithDetails() {
 
     const profilesMap = new Map(profiles.map(p => [p.id, p]));
 
-    return users.users.map(user => {
+    return users.map(user => {
         const profile = profilesMap.get(user.id);
         return {
             id: user.id,
@@ -241,7 +239,7 @@ export async function getAllReferralDetails() {
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
     
     // 4. Fetch all user emails in one go.
-    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
+    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
     if (usersError) {
         throw new Error('Failed to fetch user emails for referrals');
     }
@@ -314,7 +312,7 @@ export async function getAllDocumentsWithDetails() {
     const userIds = [...new Set(documents.map(d => d.user_id))];
     if (userIds.length === 0) return [];
 
-    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers();
+    const { data: { users }, error: usersError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
     if (usersError) throw new Error(`Failed to fetch users: ${usersError.message}`);
 
     const userMap = new Map(users.map(u => [u.id, { email: u.email, fullName: u.user_metadata.full_name }]));
@@ -375,7 +373,7 @@ export async function transferDocumentOwnership(prevState: any, formData: FormDa
     const newOwnerEmail = formData.get('newOwnerEmail') as string;
 
     // Find the new owner
-    const { data: { users }, error: userError } = await serviceSupabase.auth.admin.listUsers();
+    const { data: { users }, error: userError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
     if (userError) return { error: "Could not fetch user list." };
     
     const newOwner = users.find(u => u.email === newOwnerEmail);
@@ -585,29 +583,67 @@ export async function deletePlan(prevState: any, formData: FormData) {
 export async function getSubscriptionRequests() {
     if (!serviceSupabase) throw new Error("Service client not initialized.");
 
-    const { data, error } = await serviceSupabase
+    // 1. Fetch all requests with simple joins
+    const { data: requests, error: requestsError } = await serviceSupabase
         .from('subscription_requests')
         .select(`
             *,
-            profiles (full_name, email:raw_user_meta_data->>'email'),
             plans (name),
             payment_gateways (name)
         `)
         .order('created_at', { ascending: false });
-    
-    if (error) {
-        console.error("Error fetching subscription requests:", error);
-        throw new Error('Failed to fetch subscription requests.');
+
+    if (requestsError) {
+        console.error("Error fetching subscription requests:", requestsError.message);
+        throw new Error(`Failed to fetch subscription requests: ${requestsError.message}`);
     }
-    
-    // The join returns nested objects, which is great. Let's flatten it a bit for easier use.
-    return data.map(req => ({
-        ...req,
-        user_name: req.profiles?.full_name || 'N/A',
-        user_email: (req.profiles as any)?.email || 'N/A',
-        plan_name: req.plans?.name || 'N/A',
-        gateway_name: req.payment_gateways?.name || 'N/A',
-    }));
+    if (!requests || requests.length === 0) {
+        return [];
+    }
+
+    // 2. Collect unique user IDs
+    const userIds = [...new Set(requests.map(r => r.user_id))];
+    if (userIds.length === 0) {
+        return [];
+    }
+
+    // 3. Fetch profiles and user data in parallel
+    const [
+        { data: profiles, error: profilesError },
+        { data: { users }, error: usersError }
+    ] = await Promise.all([
+        serviceSupabase.from('profiles').select('id, full_name').in('id', userIds),
+        serviceSupabase.auth.admin.listUsers({ perPage: 1000 })
+    ]);
+
+    if (profilesError) {
+        console.error("Error fetching profiles for requests:", profilesError.message);
+        throw new Error(`Failed to fetch user profiles for subscription requests: ${profilesError.message}`);
+    }
+    if (usersError) {
+        console.error("Error fetching users for requests:", usersError.message);
+        throw new Error(`Failed to fetch user data for subscription requests: ${usersError.message}`);
+    }
+
+    // 4. Create maps for efficient lookup
+    const profilesMap = new Map(profiles?.map(p => [p.id, p]));
+    const usersMap = new Map(users.map(u => [u.id, u]));
+
+    // 5. Combine data
+    const result = requests.map(req => {
+        const profile = profilesMap.get(req.user_id);
+        const user = usersMap.get(req.user_id);
+
+        return {
+            ...req,
+            user_name: profile?.full_name || 'N/A',
+            user_email: user?.email || 'N/A',
+            plan_name: (req.plans as { name: string })?.name || 'N/A',
+            gateway_name: (req.payment_gateways as { name: string })?.name || 'N/A',
+        };
+    });
+
+    return result;
 }
 
 export type SubscriptionRequestWithDetails = Awaited<ReturnType<typeof getSubscriptionRequests>>[0];
