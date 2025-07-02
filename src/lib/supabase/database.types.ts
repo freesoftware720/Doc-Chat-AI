@@ -15,31 +15,40 @@ export type Database = {
           chat_limit_free_user: number
           feature_chat_templates_enabled: boolean
           feature_multi_pdf_enabled: boolean
+          feature_video_ads_enabled: boolean
           homepage_announcement_message: string | null
           id: number
           landing_page_content: Json | null
           logo_url: string | null
           updated_at: string | null
+          video_ad_skip_timer: number
+          video_ad_url: string | null
         }
         Insert: {
           chat_limit_free_user?: number
           feature_chat_templates_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
+          feature_video_ads_enabled?: boolean
           homepage_announcement_message?: string | null
           id: number
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          video_ad_skip_timer?: number
+          video_ad_url?: string | null
         }
         Update: {
           chat_limit_free_user?: number
           feature_chat_templates_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
+          feature_video_ads_enabled?: boolean
           homepage_announcement_message?: string | null
           id?: number
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          video_ad_skip_timer?: number
+          video_ad_url?: string | null
         }
         Relationships: []
       }
@@ -472,5 +481,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
-
-    

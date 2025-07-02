@@ -1,18 +1,18 @@
 
 "use client";
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, PlusCircle, ArrowRight } from 'lucide-react';
+import { FileText, ArrowRight } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/database.types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import PdfUploader from './pdf-uploader';
 import { createClient } from '@/lib/supabase/client';
 import { processDocument } from '@/app/actions/documents';
 import { useToast } from '@/hooks/use-toast';
+import { useAdModal } from '@/hooks/use-ad-modal';
 
 type Document = Tables<'documents'>;
 
@@ -27,6 +27,13 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
   const supabase = createClient();
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showAd } = useAdModal();
+
+  const handleChatClick = (docId: string) => {
+    showAd(() => {
+        router.push(`/app/chat/${docId}`);
+    });
+  };
 
   const handlePdfUpload = async (file: File) => {
     if (documents.some(d => d.name === file.name)) {
@@ -37,7 +44,6 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
     setIsUploading(true);
     setError(null);
     
-    // Client-side validation for file type
     if (file.type !== 'application/pdf') {
         const errMessage = 'File type not allowed. Please upload a PDF.';
         setError(errMessage);
@@ -61,7 +67,10 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
       const newDocument = await processDocument(file.name, filePath);
       
       toast({ title: "Upload Successful", description: `"${file.name}" has been processed.` });
-      router.push(`/app/chat/${newDocument.id}`);
+      
+      showAd(() => {
+        router.push(`/app/chat/${newDocument.id}`);
+      });
 
     } catch (error: any) {
       console.error("Upload failed:", error);
@@ -101,7 +110,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
                     <ul className="space-y-2">
                       {documents.slice(0, 3).map(doc => (
                         <li key={doc.id}>
-                          <Link href={`/app/chat/${doc.id}`} className="block">
+                          <button onClick={() => handleChatClick(doc.id)} className="w-full">
                             <div className="flex items-center justify-between p-3 rounded-lg border transition-colors hover:bg-muted/50">
                                 <div className="flex items-center gap-3 overflow-hidden">
                                     <FileText className="h-5 w-5 text-primary flex-shrink-0" />
@@ -109,7 +118,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
                                 </div>
                                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
                             </div>
-                          </Link>
+                          </button>
                         </li>
                       ))}
                     </ul>

@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { BottomNav } from "@/components/bottom-nav";
 import { BannedUserPage } from "@/components/banned-user-page";
 import { getAppSettings } from "../actions/settings";
+import { AdProviderWrapper } from "@/components/ad-provider-wrapper";
 
 export default async function AppLayout({
   children,
@@ -52,30 +53,39 @@ export default async function AppLayout({
     }
     // If it's been more than 24 hours, creditsUsed remains 0, effectively resetting it for display.
   }
+
+  const isFreeUser = !profile?.subscription_plan || profile.subscription_plan === 'Free';
+  const adSettings = {
+    videoAdUrl: appSettings.video_ad_url,
+    videoAdSkipTimer: appSettings.video_ad_skip_timer,
+    adsEnabled: appSettings.feature_video_ads_enabled,
+  };
   
   return (
-    <SidebarProvider>
-      <AppSidebar 
-        user={user} 
-        plan={plan}
-        creditsUsed={creditsUsed}
-        creditLimit={creditLimit}
-      />
-      <SidebarInset className="flex flex-col h-screen overflow-hidden">
-        <div className="absolute inset-0 -z-10 h-full w-full bg-background">
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-0 dark:opacity-20"></div>
-          <div className="absolute inset-0 -z-20 overflow-hidden">
-            <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] animate-gradient-move-1 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute -bottom-40 -right-40 h-[40rem] w-[40rem] animate-gradient-move-2 rounded-full bg-accent/10 blur-3xl" />
+    <AdProviderWrapper settings={adSettings} isFreeUser={isFreeUser}>
+      <SidebarProvider>
+        <AppSidebar 
+          user={user} 
+          plan={plan}
+          creditsUsed={creditsUsed}
+          creditLimit={creditLimit}
+        />
+        <SidebarInset className="flex flex-col h-screen overflow-hidden">
+          <div className="absolute inset-0 -z-10 h-full w-full bg-background">
+            <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-0 dark:opacity-20"></div>
+            <div className="absolute inset-0 -z-20 overflow-hidden">
+              <div className="absolute -left-40 -top-40 h-[40rem] w-[40rem] animate-gradient-move-1 rounded-full bg-primary/10 blur-3xl" />
+              <div className="absolute -bottom-40 -right-40 h-[40rem] w-[40rem] animate-gradient-move-2 rounded-full bg-accent/10 blur-3xl" />
+            </div>
           </div>
-        </div>
-        <AppHeader />
-        <div className="relative flex-1 overflow-y-auto pb-20 md:pb-0">
-          {children}
-        </div>
-        <Toaster />
-        <BottomNav />
-      </SidebarInset>
-    </SidebarProvider>
+          <AppHeader />
+          <div className="relative flex-1 overflow-y-auto pb-20 md:pb-0">
+            {children}
+          </div>
+          <Toaster />
+          <BottomNav />
+        </SidebarInset>
+      </SidebarProvider>
+    </AdProviderWrapper>
   );
 }

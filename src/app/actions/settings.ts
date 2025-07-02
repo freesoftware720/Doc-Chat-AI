@@ -75,6 +75,9 @@ export async function getAppSettings(): Promise<AppSettings> {
         logo_url: null,
         landing_page_content: defaultLandingPageContent,
         updated_at: new Date().toISOString(),
+        feature_video_ads_enabled: false,
+        video_ad_url: null,
+        video_ad_skip_timer: 5,
     };
 
     // If no settings row is found (e.g., on first run), create it.
@@ -148,6 +151,9 @@ export async function updateAppSettings(prevState: any, data: any) {
             homepage_announcement_message: data.homepage_announcement_message || null,
             logo_url: data.logo_url || null,
             landing_page_content: landingPageContent,
+            feature_video_ads_enabled: data.feature_video_ads_enabled,
+            video_ad_url: data.video_ad_url || null,
+            video_ad_skip_timer: data.video_ad_skip_timer,
             updated_at: new Date().toISOString(),
         };
 
