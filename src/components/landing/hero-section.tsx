@@ -138,7 +138,7 @@ const UiMockup = () => {
         >
           <motion.div variants={itemVariants} style={{ transform: "translateZ(20px)" }}>
             <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
-              <span>example-annual-report.pdf</span>
+              <span>Doc-Chat-Ai.pdf</span>
             </div>
           </motion.div>
           
