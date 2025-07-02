@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
@@ -42,6 +42,9 @@ export function VideoAdModal({ adCode, skipTimer, onAdCompleted }: VideoAdModalP
       >
         <DialogHeader className="p-4 border-b">
           <DialogTitle>Advertisement</DialogTitle>
+          <DialogDescription className="sr-only">
+            A video ad is displayed. You can skip it after the timer ends.
+          </DialogDescription>
         </DialogHeader>
         <div className="aspect-video bg-black flex items-center justify-center">
             {/* This div will render the ad network's script */}

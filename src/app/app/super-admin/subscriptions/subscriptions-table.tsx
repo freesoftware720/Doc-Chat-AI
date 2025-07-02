@@ -166,6 +166,9 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Request Details</DialogTitle>
+                            <DialogDescription>
+                                This dialog shows the complete details for the selected subscription request.
+                            </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-2 text-sm">
                             <p><strong>User:</strong> {dialogState.request.user_name} ({dialogState.request.user_email})</p>
