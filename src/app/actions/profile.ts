@@ -3,8 +3,11 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import type { Tables } from '@/lib/supabase/database.types';
 
-export async function getProfile() {
+export type ProfileWithEmail = Tables<'profiles'> & { email?: string };
+
+export async function getProfile(): Promise<ProfileWithEmail | null> {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
@@ -20,7 +23,10 @@ export async function getProfile() {
         return null;
     }
 
-    return profile;
+    return {
+        ...profile,
+        email: user.email,
+    };
 }
 
 export async function getDashboardStats() {

@@ -12,14 +12,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { updateProfile } from "@/app/actions/profile";
-import type { Tables } from "@/lib/supabase/database.types";
+import type { ProfileWithEmail } from "@/app/actions/profile";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email(),
 });
-
-type Profile = Tables<'profiles'>;
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,7 +27,7 @@ function SubmitButton() {
   )
 }
 
-export function SettingsForm({ profile }: { profile: Profile | null }) {
+export function SettingsForm({ profile }: { profile: ProfileWithEmail | null }) {
   const [state, formAction] = useActionState(updateProfile, undefined);
   const { toast } = useToast();
 
@@ -38,7 +35,6 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: profile?.full_name || "",
-      email: profile?.id ? "" : "", // Email from auth, not profile table
     },
   });
 
@@ -46,7 +42,6 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
     if (profile) {
       form.reset({
         fullName: profile.full_name || "",
-        email: profile.id ? "" : "",
       });
     }
   }, [profile, form]);
@@ -70,7 +65,7 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your Name" {...field} />
+                <Input placeholder="Your Name" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,7 +74,7 @@ export function SettingsForm({ profile }: { profile: Profile | null }) {
          <FormItem>
             <FormLabel>Email Address</FormLabel>
             <FormControl>
-                <Input type="email" value={profile?.id ? "Loading..." : "Not available"} disabled />
+                <Input type="email" value={profile?.email || ""} disabled />
             </FormControl>
             <p className="text-xs text-muted-foreground">You cannot change your email address.</p>
         </FormItem>
