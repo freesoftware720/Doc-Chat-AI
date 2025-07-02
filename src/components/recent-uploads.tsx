@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -60,7 +59,9 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
       
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+            duplex: 'half'
+        });
 
       if (uploadError) throw new Error(`Storage error: ${uploadError.message}`);
 
