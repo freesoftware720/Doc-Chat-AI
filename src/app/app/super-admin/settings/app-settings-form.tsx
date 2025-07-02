@@ -70,6 +70,8 @@ const landingPageContentSchema = z.object({
 
 const formSchema = z.object({
   chat_limit_free_user: z.coerce.number().min(0, "Limit must be a positive number."),
+  upload_limit_mb_free: z.coerce.number().min(1, "Limit must be at least 1MB."),
+  upload_limit_mb_pro: z.coerce.number().min(1, "Limit must be at least 1MB."),
   feature_chat_templates_enabled: z.boolean().default(false),
   feature_multi_pdf_enabled: z.boolean().default(false),
   homepage_announcement_message: z.string().nullable(),
@@ -107,6 +109,8 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       chat_limit_free_user: settings.chat_limit_free_user,
+      upload_limit_mb_free: settings.upload_limit_mb_free,
+      upload_limit_mb_pro: settings.upload_limit_mb_pro,
       feature_chat_templates_enabled: settings.feature_chat_templates_enabled,
       feature_multi_pdf_enabled: settings.feature_multi_pdf_enabled,
       homepage_announcement_message: settings.homepage_announcement_message || "",
@@ -153,6 +157,8 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                     <div className="space-y-6">
                         <h3 className="text-lg font-medium">Usage Quotas</h3>
                         <FormField control={form.control} name="chat_limit_free_user" render={({ field }) => (<FormItem><FormLabel>Chat Limit for Free Users</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max number of messages a free user can send daily.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="upload_limit_mb_free" render={({ field }) => (<FormItem><FormLabel>Upload Limit for Free Users (MB)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max file size for free users.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="upload_limit_mb_pro" render={({ field }) => (<FormItem><FormLabel>Upload Limit for Pro Users (MB)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max file size for Pro users.</FormDescription><FormMessage /></FormItem>)}/>
                     </div>
                 </AccordionContent>
             </AccordionItem>

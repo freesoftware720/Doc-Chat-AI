@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -18,9 +19,10 @@ type Document = Tables<'documents'>;
 interface RecentUploadsProps {
   documents: Document[];
   getStartedAction: () => Promise<void>;
+  uploadLimitMb: number;
 }
 
-export function RecentUploads({ documents, getStartedAction }: RecentUploadsProps) {
+export function RecentUploads({ documents, getStartedAction, uploadLimitMb }: RecentUploadsProps) {
   const router = useRouter();
   const { toast } = useToast();
   const supabase = createClient();
@@ -42,6 +44,15 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
     
     setIsUploading(true);
     setError(null);
+
+    const fileSizeMb = file.size / (1024 * 1024);
+    if (fileSizeMb > uploadLimitMb) {
+        const errMessage = `File size of ${fileSizeMb.toFixed(2)}MB exceeds your ${uploadLimitMb}MB limit.`;
+        setError(errMessage);
+        toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
+        setIsUploading(false);
+        return;
+    }
     
     if (file.type !== 'application/pdf') {
         const errMessage = 'File type not allowed. Please upload a PDF.';
@@ -87,7 +98,7 @@ export function RecentUploads({ documents, getStartedAction }: RecentUploadsProp
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
       <div className="lg:col-span-1 space-y-6 flex flex-col">
-        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} />
+        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} uploadLimitMb={uploadLimitMb} />
       </div>
       <div className="lg:col-span-2 h-full min-h-0">
         <AnimatePresence mode="wait">

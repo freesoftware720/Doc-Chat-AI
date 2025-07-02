@@ -21,6 +21,8 @@ export type Database = {
           landing_page_content: Json | null
           logo_url: string | null
           updated_at: string | null
+          upload_limit_mb_free: number
+          upload_limit_mb_pro: number
           video_ad_code: string | null
           video_ad_skip_timer: number
         }
@@ -34,6 +36,8 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          upload_limit_mb_free?: number
+          upload_limit_mb_pro?: number
           video_ad_code?: string | null
           video_ad_skip_timer?: number
         }
@@ -47,6 +51,8 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          upload_limit_mb_free?: number
+          upload_limit_mb_pro?: number
           video_ad_code?: string | null
           video_ad_skip_timer?: number
         }

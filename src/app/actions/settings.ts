@@ -78,6 +78,8 @@ export async function getAppSettings(): Promise<AppSettings> {
         feature_video_ads_enabled: false,
         video_ad_code: null,
         video_ad_skip_timer: 5,
+        upload_limit_mb_free: 5,
+        upload_limit_mb_pro: 100,
     };
 
     // If no settings row is found (e.g., on first run), create it.
@@ -154,6 +156,8 @@ export async function updateAppSettings(prevState: any, data: any) {
             feature_video_ads_enabled: data.feature_video_ads_enabled,
             video_ad_code: data.video_ad_code || null,
             video_ad_skip_timer: data.video_ad_skip_timer,
+            upload_limit_mb_free: data.upload_limit_mb_free,
+            upload_limit_mb_pro: data.upload_limit_mb_pro,
             updated_at: new Date().toISOString(),
         };
 

@@ -14,7 +14,12 @@ import type { Tables } from '@/lib/supabase/database.types';
 
 type Document = Tables<'documents'>;
 
-export function UploadsClientPage({ documents }: { documents: Document[] }) {
+interface UploadsClientPageProps {
+  documents: Document[];
+  uploadLimitMb: number;
+}
+
+export function UploadsClientPage({ documents, uploadLimitMb }: UploadsClientPageProps) {
     const { showAd } = useAdModal();
     const router = useRouter();
 
@@ -31,7 +36,7 @@ export function UploadsClientPage({ documents }: { documents: Document[] }) {
             <p className="text-muted-foreground mt-1">Manage your uploaded documents here.</p>
         </header>
 
-        <UploadHandler />
+        <UploadHandler uploadLimitMb={uploadLimitMb} />
         
         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
             <CardHeader>

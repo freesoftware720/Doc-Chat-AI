@@ -9,9 +9,10 @@ interface PdfUploaderProps {
   onPdfUpload: (file: File) => void;
   isUploading: boolean;
   error: string | null;
+  uploadLimitMb: number;
 }
 
-export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUploaderProps) {
+export default function PdfUploader({ onPdfUpload, isUploading, error, uploadLimitMb }: PdfUploaderProps) {
   const [internalError, setInternalError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +107,7 @@ export default function PdfUploader({ onPdfUpload, isUploading, error }: PdfUplo
                 Drag & drop or <span className="text-primary font-bold">browse</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                PDF (up to 32MB)
+                PDF (up to {uploadLimitMb}MB)
                 </p>
             </>
             )}
