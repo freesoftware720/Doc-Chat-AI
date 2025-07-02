@@ -8,12 +8,15 @@ import type { Database } from './database.types'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !serviceRoleKey || serviceRoleKey === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
+if (!supabaseUrl || supabaseUrl === 'YOUR_SUPABASE_URL' || !serviceRoleKey || serviceRoleKey === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
+    const warningMessage = "Supabase service client not initialized due to missing or placeholder credentials. Super admin features that require database modification will not work. Please check your .env.local file.";
     if (process.env.NODE_ENV === 'production') {
-        throw new Error("Supabase URL or service role key is missing or is still a placeholder. This is required for admin functionality.");
+        throw new Error(warningMessage);
     }
-    console.warn("Supabase service role client not initialized. Super admin features will not work.");
+    console.warn(warningMessage);
 }
 
 // Initialize a separate client that can be used for service-level operations
-export const serviceSupabase = serviceRoleKey ? createClient<Database>(supabaseUrl!, serviceRoleKey) : null;
+export const serviceSupabase = (supabaseUrl && serviceRoleKey && supabaseUrl !== 'YOUR_SUPABASE_URL' && serviceRoleKey !== 'YOUR_SUPABASE_SERVICE_ROLE_KEY') 
+    ? createClient<Database>(supabaseUrl, serviceRoleKey) 
+    : null;

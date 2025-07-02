@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'YOUR_SUPABASE_URL') {
+    console.warn("Supabase environment variables are missing or are placeholders. The application will continue without authentication features, but API calls to Supabase will fail. Please check your .env.local file.");
     return response
   }
 
@@ -24,18 +25,30 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          response.cookies.set({ name, value, ...options })
+          try {
+            request.cookies.set({ name, value, ...options })
+            response = NextResponse.next({
+              request: { headers: request.headers },
+            })
+            response.cookies.set({ name, value, ...options })
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          response.cookies.set({ name, value: '', ...options })
+          try {
+            request.cookies.set({ name, value: '', ...options })
+            response = NextResponse.next({
+              request: { headers: request.headers },
+            })
+            response.cookies.set({ name, value: '', ...options })
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
       },
     }

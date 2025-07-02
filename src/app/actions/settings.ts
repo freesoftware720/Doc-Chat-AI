@@ -116,16 +116,23 @@ export async function getAppSettings(): Promise<AppSettings> {
         return defaultSettings;
     }
     
-    // Ensure landing_page_content is not null and contains all sections
-    if (!data.landing_page_content) {
-        data.landing_page_content = defaultLandingPageContent;
-    } else {
-        const content = data.landing_page_content as any;
-        if (!content.legal_pages) {
-            content.legal_pages = defaultLandingPageContent.legal_pages;
-        }
-    }
+    // Robustly merge landing page content with defaults to prevent client-side errors
+    const loadedContent = (data.landing_page_content || {}) as any;
+    const defaultContent = (defaultLandingPageContent || {}) as any;
+    const loadedLegal = loadedContent.legal_pages || {};
+    const defaultLegal = defaultContent.legal_pages || {};
 
+    data.landing_page_content = {
+      hero: { ...defaultContent.hero, ...(loadedContent.hero || {}) },
+      features: { ...defaultContent.features, ...(loadedContent.features || {}) },
+      faq: { ...defaultContent.faq, ...(loadedContent.faq || {}) },
+      legal_pages: {
+        privacy: { ...defaultLegal.privacy, ...(loadedLegal.privacy || {}) },
+        terms: { ...defaultLegal.terms, ...(loadedLegal.terms || {}) },
+        about: { ...defaultLegal.about, ...(loadedLegal.about || {}) },
+        contact: { ...defaultLegal.contact, ...(loadedLegal.contact || {}) },
+      },
+    };
 
     return data;
 }
