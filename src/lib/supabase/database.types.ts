@@ -21,8 +21,8 @@ export type Database = {
           landing_page_content: Json | null
           logo_url: string | null
           updated_at: string | null
+          video_ad_code: string | null
           video_ad_skip_timer: number
-          video_ad_url: string | null
         }
         Insert: {
           chat_limit_free_user?: number
@@ -34,8 +34,8 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          video_ad_code?: string | null
           video_ad_skip_timer?: number
-          video_ad_url?: string | null
         }
         Update: {
           chat_limit_free_user?: number
@@ -47,8 +47,8 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           updated_at?: string | null
+          video_ad_code?: string | null
           video_ad_skip_timer?: number
-          video_ad_url?: string | null
         }
         Relationships: []
       }

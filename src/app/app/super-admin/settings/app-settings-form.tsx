@@ -76,7 +76,7 @@ const formSchema = z.object({
   logo_url: z.string().url({ message: "Please enter a valid URL." }).or(z.literal("")).nullable(),
   landing_page_content: landingPageContentSchema,
   feature_video_ads_enabled: z.boolean().default(false),
-  video_ad_url: z.string().url({ message: "Please enter a valid URL." }).or(z.literal("")).nullable(),
+  video_ad_code: z.string().nullable(),
   video_ad_skip_timer: z.coerce.number().min(0, "Timer must be a positive number."),
 });
 
@@ -113,7 +113,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
       logo_url: settings.logo_url || "",
       landing_page_content: preparedLpContent,
       feature_video_ads_enabled: settings.feature_video_ads_enabled,
-      video_ad_url: settings.video_ad_url || "",
+      video_ad_code: settings.video_ad_code || "",
       video_ad_skip_timer: settings.video_ad_skip_timer,
     },
   });
@@ -160,10 +160,10 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             <AccordionItem value="monetization">
                 <AccordionTrigger className="text-xl font-headline">Video Ad Settings</AccordionTrigger>
                  <AccordionContent className="pt-6 space-y-6">
-                    <FormField control={form.control} name="feature_video_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Video Ads for Free Users</FormLabel><FormDescription>Show a video ad when free users upload or start a chat.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                    <FormField control={form.control} name="feature_video_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Video Ads for Free Users</FormLabel><FormDescription>Show an ad when free users upload or start a chat.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <FormField control={form.control} name="video_ad_url" render={({ field }) => (<FormItem><FormLabel>Video Ad URL</FormLabel><FormControl><Input placeholder="https://www.youtube.com/embed/your-video-id" {...field} value={field.value ?? ''} /></FormControl><FormDescription>Must be an embeddable URL (e.g., from YouTube).</FormDescription><FormMessage /></FormItem>)}/>
                       <FormField control={form.control} name="video_ad_skip_timer" render={({ field }) => (<FormItem><FormLabel>Ad Skip Timer (seconds)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>How long users must wait before skipping the ad.</FormDescription><FormMessage /></FormItem>)}/>
+                      <FormField control={form.control} name="video_ad_code" render={({ field }) => (<FormItem><FormLabel>Video Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your ad network code here..." {...field} value={field.value ?? ''} rows={6} /></FormControl><FormDescription>Paste your ad network script here (e.g., from AdSense or Adsterra).</FormDescription><FormMessage /></FormItem>)}/>
                     </div>
                  </AccordionContent>
             </AccordionItem>

@@ -13,7 +13,7 @@ const AdModalContext = createContext<AdModalContextType | undefined>(undefined);
 interface AdProviderProps {
   children: ReactNode;
   settings: {
-    videoAdUrl: string | null;
+    videoAdCode: string | null;
     videoAdSkipTimer: number;
     adsEnabled: boolean;
   };
@@ -25,7 +25,7 @@ export function AdProvider({ children, settings, isFreeUser }: AdProviderProps) 
   const [onCompleteCallback, setOnCompleteCallback] = useState<(() => void) | null>(null);
 
   const showAd = (onComplete: () => void) => {
-    if (isFreeUser && settings.adsEnabled && settings.videoAdUrl) {
+    if (isFreeUser && settings.adsEnabled && settings.videoAdCode) {
       setOnCompleteCallback(() => onComplete);
       setIsVisible(true);
     } else {
@@ -44,9 +44,9 @@ export function AdProvider({ children, settings, isFreeUser }: AdProviderProps) 
   return (
     <AdModalContext.Provider value={{ showAd }}>
       {children}
-      {isVisible && (
+      {isVisible && settings.videoAdCode && (
         <VideoAdModal
-          videoUrl={settings.videoAdUrl!}
+          adCode={settings.videoAdCode}
           skipTimer={settings.videoAdSkipTimer}
           onAdCompleted={handleAdCompleted}
         />

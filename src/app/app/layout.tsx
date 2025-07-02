@@ -56,7 +56,7 @@ export default async function AppLayout({
 
   const isFreeUser = !profile?.subscription_plan || profile.subscription_plan === 'Free';
   const adSettings = {
-    videoAdUrl: appSettings.video_ad_url,
+    videoAdCode: appSettings.video_ad_code,
     videoAdSkipTimer: appSettings.video_ad_skip_timer,
     adsEnabled: appSettings.feature_video_ads_enabled,
   };

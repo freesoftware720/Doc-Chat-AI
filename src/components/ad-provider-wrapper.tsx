@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 interface AdProviderWrapperProps {
   children: ReactNode;
   settings: {
-    videoAdUrl: string | null;
+    videoAdCode: string | null;
     videoAdSkipTimer: number;
     adsEnabled: boolean;
   };
