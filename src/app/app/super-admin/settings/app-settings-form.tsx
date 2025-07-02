@@ -187,37 +187,37 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                 <AccordionContent className="space-y-6 pt-6">
                     {/* Hero Section */}
                     <Card><CardHeader><h3 className="text-lg font-medium">Hero Section</h3></CardHeader><CardContent className="space-y-4">
-                        <FormField control={form.control} name="landing_page_content.hero.headline_part_1" render={({ field }) => (<FormItem><FormLabel>Headline (Part 1)</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>The text before the animated part.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.headline_part_1" render={({ field }) => (<FormItem><FormLabel>Headline (Part 1)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormDescription>The text before the animated part.</FormDescription><FormMessage /></FormItem>)}/>
                         
                         <div>
                             <FormLabel>Headline (Animated Words)</FormLabel>
                             <FormDescription>These words will cycle in the headline.</FormDescription>
                             <div className="space-y-2 mt-2">
                                 {animatedTextFields.map((field, index) => (
-                                    <div key={field.id} className="flex items-center gap-2"><FormField control={form.control} name={`landing_page_content.hero.headline_animated_texts.${index}.value`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><Button type="button" variant="ghost" size="icon" onClick={() => removeAnimatedText(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
+                                    <div key={field.id} className="flex items-center gap-2"><FormField control={form.control} name={`landing_page_content.hero.headline_animated_texts.${index}.value`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/><Button type="button" variant="ghost" size="icon" onClick={() => removeAnimatedText(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
                                 ))}
                             </div>
                             <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => appendAnimatedText({value: ''})}><PlusCircle className="mr-2 h-4 w-4"/>Add Word</Button>
                         </div>
                         
-                        <FormField control={form.control} name="landing_page_content.hero.headline_part_2" render={({ field }) => (<FormItem><FormLabel>Headline (Part 2)</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>The text after the animated part.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.headline_part_2" render={({ field }) => (<FormItem><FormLabel>Headline (Part 2)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormDescription>The text after the animated part.</FormDescription><FormMessage /></FormItem>)}/>
                         
                         <Separator />
                         
-                        <FormField control={form.control} name="landing_page_content.hero.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.hero.cta_button" render={({ field }) => (<FormItem><FormLabel>Button Text</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.hero.cta_secondary" render={({ field }) => (<FormItem><FormLabel>Secondary CTA Text</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>e.g., "No credit card required"</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.cta_button" render={({ field }) => (<FormItem><FormLabel>Button Text</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.hero.cta_secondary" render={({ field }) => (<FormItem><FormLabel>Secondary CTA Text</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormDescription>e.g., "No credit card required"</FormDescription><FormMessage /></FormItem>)}/>
                     </CardContent></Card>
 
                     <Separator />
                     {/* Features Section */}
                     <Card><CardHeader><h3 className="text-lg font-medium">Features Section</h3></CardHeader><CardContent className="space-y-4">
-                        <FormField control={form.control} name="landing_page_content.features.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.features.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.features.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.features.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
                         <FormLabel>Feature Items</FormLabel>
                         <div className="space-y-4">
                             {featureFields.map((field, index) => (
-                                <div key={field.id} className="p-4 border rounded-lg space-y-3 relative"><FormField control={form.control} name={`landing_page_content.features.items.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon Name</FormLabel><FormControl><Input {...field} /></FormControl><FormDescription>Use any icon name from lucide-react.</FormDescription><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.features.items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.features.items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                <div key={field.id} className="p-4 border rounded-lg space-y-3 relative"><FormField control={form.control} name={`landing_page_content.features.items.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon Name</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormDescription>Use any icon name from lucide-react.</FormDescription><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.features.items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.features.items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
                                 <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeFeature(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
                             ))}
                         </div>
@@ -226,12 +226,12 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                     <Separator />
                     {/* FAQ Section */}
                     <Card><CardHeader><h3 className="text-lg font-medium">FAQ Section</h3></CardHeader><CardContent className="space-y-4">
-                        <FormField control={form.control} name="landing_page_content.faq.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-                        <FormField control={form.control} name="landing_page_content.faq.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.faq.headline" render={({ field }) => (<FormItem><FormLabel>Headline</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="landing_page_content.faq.subheadline" render={({ field }) => (<FormItem><FormLabel>Subheadline</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
                         <FormLabel>FAQ Items</FormLabel>
                         <div className="space-y-4">
                             {faqFields.map((field, index) => (
-                                <div key={field.id} className="p-4 border rounded-lg space-y-3 relative"><FormField control={form.control} name={`landing_page_content.faq.items.${index}.question`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.faq.items.${index}.answer`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                                <div key={field.id} className="p-4 border rounded-lg space-y-3 relative"><FormField control={form.control} name={`landing_page_content.faq.items.${index}.question`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/><FormField control={form.control} name={`landing_page_content.faq.items.${index}.answer`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)}/>
                                 <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></div>
                             ))}
                         </div>
@@ -246,29 +246,29 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                     <Card>
                         <CardHeader><h3 className="text-lg font-medium">Privacy Policy</h3></CardHeader>
                         <CardContent className="space-y-4">
-                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.privacy.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} rows={10} /></FormControl><FormMessage /></FormItem>)} />
                         </CardContent>
                     </Card>
                      <Card>
                         <CardHeader><h3 className="text-lg font-medium">Terms of Service</h3></CardHeader>
                         <CardContent className="space-y-4">
-                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.terms.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} rows={10} /></FormControl><FormMessage /></FormItem>)} />
                         </CardContent>
                     </Card>
                      <Card>
                         <CardHeader><h3 className="text-lg font-medium">About Us</h3></CardHeader>
                         <CardContent className="space-y-4">
-                            <FormField control={form.control} name="landing_page_content.legal_pages.about.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="landing_page_content.legal_pages.about.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.about.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.about.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} rows={10} /></FormControl><FormMessage /></FormItem>)} />
                         </CardContent>
                     </Card>
                      <Card>
                         <CardHeader><h3 className="text-lg font-medium">Contact Us</h3></CardHeader>
                         <CardContent className="space-y-4">
-                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={10} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="landing_page_content.legal_pages.contact.content" render={({ field }) => (<FormItem><FormLabel>Page Content (Markdown)</FormLabel><FormControl><Textarea {...field} value={field.value ?? ''} rows={10} /></FormControl><FormMessage /></FormItem>)} />
                         </CardContent>
                     </Card>
                 </AccordionContent>
