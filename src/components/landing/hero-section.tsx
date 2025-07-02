@@ -92,6 +92,22 @@ const UiMockup = () => {
     x.set(0);
     y.set(0);
   };
+  
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.5,
+        delayChildren: 1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  };
 
   return (
     <motion.div
@@ -101,7 +117,7 @@ const UiMockup = () => {
         transformStyle: "preserve-3d",
         perspective: "1000px",
       }}
-      className="relative gsap-hero-el"
+      className="relative"
     >
       <motion.div
         style={{
@@ -114,30 +130,36 @@ const UiMockup = () => {
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
 
         <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
           style={{ transformStyle: "preserve-3d" }}
           className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto"
         >
-          <motion.div style={{ transform: "translateZ(20px)" }}>
+          <motion.div variants={itemVariants} style={{ transform: "translateZ(20px)" }}>
             <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
-              <span>example.pdf</span>
+              <span>example-annual-report.pdf</span>
             </div>
           </motion.div>
           
-          <motion.div style={{ transform: "translateZ(40px)" }} className="mt-3">
+          <motion.div variants={itemVariants} style={{ transform: "translateZ(40px)" }} className="mt-3">
             <div className="border-dashed border-2 border-border/50 rounded-xl p-6 flex flex-col items-center justify-center text-center">
               <File className="w-8 h-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mt-2">Drop PDF here or click to upload</p>
+              <p className="text-sm text-muted-foreground mt-2">Document uploaded successfully!</p>
             </div>
           </motion.div>
 
-          <motion.div style={{ transform: "translateZ(30px)" }} className="mt-4 space-y-2 flex flex-col">
+          <motion.div variants={itemVariants} style={{ transform: "translateZ(30px)" }} className="mt-4 space-y-2 flex flex-col">
             <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
               <p>What are the main findings from the report?</p>
             </div>
-            <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
-              <p>The main findings from the report are that the company achieved a 20% increase in revenue compared to the previous year, with significant growth in the European and Asian markets.</p>
-            </div>
           </motion.div>
+
+           <motion.div variants={itemVariants} style={{ transform: "translateZ(30px)" }} className="mt-2 space-y-2 flex flex-col">
+              <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
+                <p>The main findings are a 20% revenue increase, with significant growth in European and Asian markets.</p>
+              </div>
+           </motion.div>
         </motion.div>
       </motion.div>
     </motion.div>
@@ -145,7 +167,6 @@ const UiMockup = () => {
 };
 
 export function HeroSection({ content: rawContent }: { content?: any }) {
-  // This merge logic is the fix. It handles null or undefined rawContent gracefully.
   const content = { ...defaultContent, ...rawContent };
 
   const animatedTexts = (content.headline_animated_texts || []).map((item: any) =>
