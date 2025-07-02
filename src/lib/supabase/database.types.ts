@@ -12,14 +12,20 @@ export type Database = {
     Tables: {
       app_settings: {
         Row: {
+          banner_ad_code: string | null
           chat_limit_free_user: number
+          feature_banner_ads_enabled: boolean
           feature_chat_templates_enabled: boolean
+          feature_in_feed_ads_enabled: boolean
           feature_multi_pdf_enabled: boolean
+          feature_multiplex_ads_enabled: boolean
           feature_video_ads_enabled: boolean
           homepage_announcement_message: string | null
           id: number
+          in_feed_ad_code: string | null
           landing_page_content: Json | null
           logo_url: string | null
+          multiplex_ad_code: string | null
           updated_at: string | null
           upload_limit_mb_free: number
           upload_limit_mb_pro: number
@@ -27,14 +33,20 @@ export type Database = {
           video_ad_skip_timer: number
         }
         Insert: {
+          banner_ad_code?: string | null
           chat_limit_free_user?: number
+          feature_banner_ads_enabled?: boolean
           feature_chat_templates_enabled?: boolean
+          feature_in_feed_ads_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
+          feature_multiplex_ads_enabled?: boolean
           feature_video_ads_enabled?: boolean
           homepage_announcement_message?: string | null
           id: number
+          in_feed_ad_code?: string | null
           landing_page_content?: Json | null
           logo_url?: string | null
+          multiplex_ad_code?: string | null
           updated_at?: string | null
           upload_limit_mb_free?: number
           upload_limit_mb_pro?: number
@@ -42,14 +54,20 @@ export type Database = {
           video_ad_skip_timer?: number
         }
         Update: {
+          banner_ad_code?: string | null
           chat_limit_free_user?: number
+          feature_banner_ads_enabled?: boolean
           feature_chat_templates_enabled?: boolean
+          feature_in_feed_ads_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
+          feature_multiplex_ads_enabled?: boolean
           feature_video_ads_enabled?: boolean
           homepage_announcement_message?: string | null
           id?: number
+          in_feed_ad_code?: string | null
           landing_page_content?: Json | null
           logo_url?: string | null
+          multiplex_ad_code?: string | null
           updated_at?: string | null
           upload_limit_mb_free?: number
           upload_limit_mb_pro?: number

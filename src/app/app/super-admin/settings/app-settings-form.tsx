@@ -80,6 +80,12 @@ const formSchema = z.object({
   feature_video_ads_enabled: z.boolean().default(false),
   video_ad_code: z.string().nullable(),
   video_ad_skip_timer: z.coerce.number().min(0, "Timer must be a positive number."),
+  feature_banner_ads_enabled: z.boolean().default(false),
+  banner_ad_code: z.string().nullable(),
+  feature_multiplex_ads_enabled: z.boolean().default(false),
+  multiplex_ad_code: z.string().nullable(),
+  feature_in_feed_ads_enabled: z.boolean().default(false),
+  in_feed_ad_code: z.string().nullable(),
 });
 
 
@@ -108,17 +114,14 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      chat_limit_free_user: settings.chat_limit_free_user,
-      upload_limit_mb_free: settings.upload_limit_mb_free,
-      upload_limit_mb_pro: settings.upload_limit_mb_pro,
-      feature_chat_templates_enabled: settings.feature_chat_templates_enabled,
-      feature_multi_pdf_enabled: settings.feature_multi_pdf_enabled,
+      ...settings,
       homepage_announcement_message: settings.homepage_announcement_message || "",
       logo_url: settings.logo_url || "",
       landing_page_content: preparedLpContent,
-      feature_video_ads_enabled: settings.feature_video_ads_enabled,
       video_ad_code: settings.video_ad_code || "",
-      video_ad_skip_timer: settings.video_ad_skip_timer,
+      banner_ad_code: settings.banner_ad_code || "",
+      multiplex_ad_code: settings.multiplex_ad_code || "",
+      in_feed_ad_code: settings.in_feed_ad_code || "",
     },
   });
   
@@ -164,13 +167,41 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             </AccordionItem>
             {/* Monetization */}
             <AccordionItem value="monetization">
-                <AccordionTrigger className="text-xl font-headline">Video Ad Settings</AccordionTrigger>
-                 <AccordionContent className="pt-6 space-y-6">
-                    <FormField control={form.control} name="feature_video_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Video Ads for Free Users</FormLabel><FormDescription>Show an ad when free users upload or start a chat.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <FormField control={form.control} name="video_ad_skip_timer" render={({ field }) => (<FormItem><FormLabel>Ad Skip Timer (seconds)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>How long users must wait before skipping the ad.</FormDescription><FormMessage /></FormItem>)}/>
-                      <FormField control={form.control} name="video_ad_code" render={({ field }) => (<FormItem><FormLabel>Video Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your ad network code here..." {...field} value={field.value ?? ''} rows={6} /></FormControl><FormDescription>Paste your ad network script here (e.g., from AdSense or Adsterra).</FormDescription><FormMessage /></FormItem>)}/>
-                    </div>
+                <AccordionTrigger className="text-xl font-headline">Monetization & Ads</AccordionTrigger>
+                 <AccordionContent className="pt-6 space-y-8">
+                    {/* Video Ads */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Video Ad Settings</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                           <FormField control={form.control} name="feature_video_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Video Ads for Free Users</FormLabel><FormDescription>Show an ad when free users upload or start a chat.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <FormField control={form.control} name="video_ad_skip_timer" render={({ field }) => (<FormItem><FormLabel>Ad Skip Timer (seconds)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>How long users must wait before skipping the ad.</FormDescription><FormMessage /></FormItem>)}/>
+                                <FormField control={form.control} name="video_ad_code" render={({ field }) => (<FormItem><FormLabel>Video Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your ad network code here..." {...field} value={field.value ?? ''} rows={6} /></FormControl><FormDescription>Paste your ad network script here (e.g., from AdSense or Adsterra).</FormDescription><FormMessage /></FormItem>)}/>
+                            </div>
+                        </CardContent>
+                    </Card>
+                     {/* Display Ads */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Display Ad Settings</CardTitle>
+                             <FormDescription>Manage banner, in-feed, and other display ad units.</FormDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {/* Banner Ads */}
+                            <FormField control={form.control} name="feature_banner_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Banner Ads</FormLabel><FormDescription>Show a banner ad on dashboard pages.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                            <FormField control={form.control} name="banner_ad_code" render={({ field }) => (<FormItem><FormLabel>Banner Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your banner ad code here..." {...field} value={field.value ?? ''} rows={4} /></FormControl><FormMessage /></FormItem>)}/>
+                            <Separator />
+                            {/* In-Feed Ads */}
+                            <FormField control={form.control} name="feature_in_feed_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable In-Feed Ads</FormLabel><FormDescription>Show ads within content lists (e.g., document list).</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                            <FormField control={form.control} name="in_feed_ad_code" render={({ field }) => (<FormItem><FormLabel>In-Feed Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your in-feed ad code here..." {...field} value={field.value ?? ''} rows={4} /></FormControl><FormMessage /></FormItem>)}/>
+                            <Separator />
+                            {/* Multiplex Ads */}
+                            <FormField control={form.control} name="feature_multiplex_ads_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Multiplex Ads</FormLabel><FormDescription>Show a grid-style ad unit on the dashboard.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                            <FormField control={form.control} name="multiplex_ad_code" render={({ field }) => (<FormItem><FormLabel>Multiplex Ad Code</FormLabel><FormControl><Textarea placeholder="Paste your multiplex ad code here..." {...field} value={field.value ?? ''} rows={4} /></FormControl><FormMessage /></FormItem>)}/>
+                        </CardContent>
+                    </Card>
                  </AccordionContent>
             </AccordionItem>
             {/* Branding */}

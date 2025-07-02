@@ -1,6 +1,7 @@
 
 "use client";
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdModal } from '@/hooks/use-ad-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { FileText, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { UploadHandler } from './upload-handler';
 import { DeleteDocumentButton } from './delete-document-button';
+import { AdRenderer } from '@/components/ad-renderer';
 import type { Tables } from '@/lib/supabase/database.types';
 
 type Document = Tables<'documents'>;
@@ -17,9 +19,13 @@ type Document = Tables<'documents'>;
 interface UploadsClientPageProps {
   documents: Document[];
   uploadLimitMb: number;
+  adProps: {
+    showInFeedAd: boolean;
+    inFeedAdCode: string | null;
+  }
 }
 
-export function UploadsClientPage({ documents, uploadLimitMb }: UploadsClientPageProps) {
+export function UploadsClientPage({ documents, uploadLimitMb, adProps }: UploadsClientPageProps) {
     const { showAd } = useAdModal();
     const router = useRouter();
 
@@ -28,6 +34,48 @@ export function UploadsClientPage({ documents, uploadLimitMb }: UploadsClientPag
             router.push(`/app/chat/${docId}`);
         });
     };
+    
+    // In-feed ads will be inserted every 3 items.
+    const IN_FEED_AD_INTERVAL = 3;
+
+    const tableRows = documents.reduce((acc, doc, index) => {
+        acc.push(
+            <TableRow key={doc.id}>
+                <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="truncate">{doc.name}</span>
+                    </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                    {format(new Date(doc.created_at), 'PPP')}
+                </TableCell>
+                <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleChatClick(doc.id)}>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Chat
+                        </Button>
+                        <DeleteDocumentButton documentId={doc.id} />
+                    </div>
+                </TableCell>
+            </TableRow>
+        );
+
+        if (adProps.showInFeedAd && (index + 1) % IN_FEED_AD_INTERVAL === 0 && (index + 1) < documents.length) {
+            acc.push(
+                 <TableRow key={`ad-${index}`} className="hover:bg-card">
+                    <TableCell colSpan={3} className="p-0">
+                        <div className="p-4">
+                           <AdRenderer adCode={adProps.inFeedAdCode} />
+                        </div>
+                    </TableCell>
+                </TableRow>
+            );
+        }
+
+        return acc;
+    }, [] as React.ReactNode[]);
 
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -57,28 +105,7 @@ export function UploadsClientPage({ documents, uploadLimitMb }: UploadsClientPag
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {documents.map(doc => (
-                                    <TableRow key={doc.id}>
-                                        <TableCell className="font-medium">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="h-4 w-4 text-primary" />
-                                                <span className="truncate">{doc.name}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {format(new Date(doc.created_at), 'PPP')}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => handleChatClick(doc.id)}>
-                                                    <MessageSquare className="h-4 w-4 mr-2" />
-                                                    Chat
-                                                </Button>
-                                                <DeleteDocumentButton documentId={doc.id} />
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {tableRows}
                             </TableBody>
                         </Table>
                     </div>

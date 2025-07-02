@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { BannedUserPage } from "@/components/banned-user-page";
 import { getAppSettings } from "../actions/settings";
 import { AdProviderWrapper } from "@/components/ad-provider-wrapper";
+import { AdRenderer } from "@/components/ad-renderer";
 
 export default async function AppLayout({
   children,
@@ -60,6 +61,7 @@ export default async function AppLayout({
     videoAdSkipTimer: appSettings.video_ad_skip_timer,
     adsEnabled: appSettings.feature_video_ads_enabled,
   };
+  const showBannerAd = isFreeUser && appSettings.feature_banner_ads_enabled && appSettings.banner_ad_code;
   
   return (
     <AdProviderWrapper settings={adSettings} isFreeUser={isFreeUser}>
@@ -80,6 +82,13 @@ export default async function AppLayout({
           </div>
           <AppHeader />
           <div className="relative flex-1 overflow-y-auto pb-20 md:pb-0">
+             {showBannerAd && (
+              <div className="p-2 md:p-4 lg:p-6">
+                  <div className="bg-card/60 backdrop-blur-md border border-white/10 rounded-lg p-2 flex justify-center">
+                    <AdRenderer adCode={appSettings.banner_ad_code} />
+                  </div>
+              </div>
+            )}
             {children}
           </div>
           <Toaster />
