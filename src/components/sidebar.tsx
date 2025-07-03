@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
+  Star,
 } from "lucide-react";
 import {
   Sidebar,
@@ -105,6 +106,19 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             </div>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+             <SidebarMenuButton 
+                href="/app/review" 
+                asChild 
+                tooltip="Leave a Review"
+                isActive={pathname === "/app/review"}
+            >
+              <Link href="/app/review">
+                <Star />
+                <span>Leave a Review</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
            <SidebarMenuItem>
              <SidebarMenuButton 
                 href="/app/settings" 

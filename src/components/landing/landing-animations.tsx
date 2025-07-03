@@ -62,6 +62,21 @@ export function LandingAnimations() {
           toggleActions: 'play none none none',
         },
       });
+      
+      // Staggered fade-in for review cards
+      gsap.from('.gsap-review-card', {
+        scrollTrigger: {
+          trigger: '.gsap-review-card',
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+        },
+        opacity: 0,
+        y: 60,
+        ease: 'power3.out',
+        duration: 1,
+        stagger: 0.1
+      });
+
 
       // Staggered fade-in for FAQ items
       gsap.from('.gsap-faq-item', {

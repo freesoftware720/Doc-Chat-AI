@@ -9,12 +9,15 @@ import { FaqSection } from '@/components/landing/faq-section';
 import { getAppSettings } from './actions/settings';
 import { getActivePlans } from './actions/billing';
 import { LandingAnimations } from '@/components/landing/landing-animations';
+import { ReviewsSection } from '@/components/landing/reviews-section';
+import { getTopReviews } from './actions/reviews';
 
 export default async function LandingPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const settings = await getAppSettings();
   const plans = await getActivePlans();
+  const reviews = await getTopReviews();
   const content = settings.landing_page_content as any;
 
 
@@ -34,6 +37,7 @@ export default async function LandingPage() {
           <HeroSection content={content?.hero} />
           <FeaturesSection content={content?.features} />
           <PricingSection plans={plans} />
+          <ReviewsSection reviews={reviews} />
           <FaqSection content={content?.faq} />
         </main>
       </div>

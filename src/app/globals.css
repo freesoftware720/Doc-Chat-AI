@@ -101,3 +101,28 @@
   animation: blink 1s step-end infinite;
   font-weight: 500;
 }
+
+/* Embla Carousel Styles */
+.embla {
+  overflow: hidden;
+}
+.embla__container {
+  display: flex;
+}
+.embla__slide {
+  flex: 0 0 30%;
+  min-width: 0;
+  padding-left: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .embla__slide {
+    flex: 0 0 45%;
+  }
+}
+
+@media (max-width: 768px) {
+  .embla__slide {
+    flex: 0 0 80%;
+  }
+}
