@@ -656,6 +656,10 @@ export async function approveSubscriptionRequest(prevState: any, formData: FormD
     const userId = formData.get('userId') as string;
     const planName = formData.get('planName') as string;
     
+    if (!planName || planName === 'N/A') {
+        return { error: 'Invalid plan associated with this request. The plan may have been deleted or the database schema needs a refresh.' };
+    }
+
     const { data: adminUser } = await createClient().auth.getUser();
 
     // 1. Update user's profile to the new plan
@@ -702,7 +706,7 @@ export async function rejectSubscriptionRequest(prevState: any, formData: FormDa
         .from('subscription_requests')
         .update({
             status: 'rejected',
-            rejection_reason: reason,
+            rejection_reason: reason || null,
             reviewed_at: new Date().toISOString(),
             reviewed_by: adminUser.user?.id,
         })
