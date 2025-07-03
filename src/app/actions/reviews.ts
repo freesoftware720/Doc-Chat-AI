@@ -24,7 +24,10 @@ export async function getTopReviews(): Promise<ReviewWithProfile[]> {
         .limit(10);
 
     if (error) {
-        console.error("Error fetching top reviews:", error.message);
+        const hint = error.message.includes('relationship') 
+            ? 'HINT: This error can occur if the database schema is out of sync. Please try reloading the schema in your Supabase dashboard under API > "Reload schema".' 
+            : '';
+        console.error(`Error fetching top reviews: "${error.message}". ${hint}`);
         return [];
     }
 
