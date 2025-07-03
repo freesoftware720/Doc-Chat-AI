@@ -8,7 +8,7 @@ import { FileText, ArrowRight } from 'lucide-react';
 import type { Tables } from '@/lib/supabase/database.types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import PdfUploader from './pdf-uploader';
+import FileUploader from './file-uploader';
 import { createClient } from '@/lib/supabase/client';
 import { processDocument } from '@/app/actions/documents';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,7 @@ export function RecentUploads({ documents, getStartedAction, uploadLimitMb }: Re
     });
   };
 
-  const handlePdfUpload = async (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (documents.some(d => d.name === file.name)) {
       toast({ variant: "destructive", title: "Duplicate File", description: "A document with this name already exists." });
       return;
@@ -48,14 +48,6 @@ export function RecentUploads({ documents, getStartedAction, uploadLimitMb }: Re
     const fileSizeMb = file.size / (1024 * 1024);
     if (fileSizeMb > uploadLimitMb) {
         const errMessage = `File size of ${fileSizeMb.toFixed(2)}MB exceeds your ${uploadLimitMb}MB limit.`;
-        setError(errMessage);
-        toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
-        setIsUploading(false);
-        return;
-    }
-    
-    if (file.type !== 'application/pdf') {
-        const errMessage = 'File type not allowed. Please upload a PDF.';
         setError(errMessage);
         toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
         setIsUploading(false);
@@ -98,7 +90,7 @@ export function RecentUploads({ documents, getStartedAction, uploadLimitMb }: Re
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
       <div className="lg:col-span-1 space-y-6 flex flex-col">
-        <PdfUploader onPdfUpload={handlePdfUpload} isUploading={isUploading} error={error} uploadLimitMb={uploadLimitMb} />
+        <FileUploader onFileUpload={handleFileUpload} isUploading={isUploading} error={error} uploadLimitMb={uploadLimitMb} />
       </div>
       <div className="lg:col-span-2 h-full min-h-0">
         <AnimatePresence mode="wait">

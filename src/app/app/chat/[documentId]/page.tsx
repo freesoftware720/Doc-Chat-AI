@@ -17,7 +17,7 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
 
     const { data: document, error: docError } = await supabase
         .from('documents')
-        .select('id, name, storage_path')
+        .select('id, name')
         .eq('id', params.documentId)
         .eq('user_id', user.id)
         .single();
@@ -25,25 +25,6 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
     if (docError || !document) {
         console.error("Document not found or access denied:", docError);
         redirect('/app');
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('documents')
-      .getPublicUrl(document.storage_path);
-    
-    if (!publicUrl) {
-      console.error("Could not get public URL for document:", document.storage_path);
-      return (
-        <div className="flex h-full items-center justify-center p-4">
-            <Alert variant="destructive" className="max-w-lg">
-                <TriangleAlert className="h-4 w-4" />
-                <AlertTitle>Error Loading Document</AlertTitle>
-                <AlertDescription>
-                    Could not generate a public URL for the PDF. Please ensure you have a public Supabase Storage bucket named "documents" and that the file exists.
-                </AlertDescription>
-            </Alert>
-        </div>
-      )
     }
 
     let initialMessages = [];
@@ -87,7 +68,6 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
             documentId={document.id}
             documentName={document.name}
             initialMessages={formattedMessages}
-            pdfUrl={publicUrl}
         />
     );
 }

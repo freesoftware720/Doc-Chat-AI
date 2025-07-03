@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PdfUploader from '@/components/pdf-uploader';
+import FileUploader from '@/components/file-uploader';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@/lib/supabase/client';
 import { processDocument } from '@/app/actions/documents';
@@ -15,22 +15,13 @@ export function UploadHandler({ uploadLimitMb }: { uploadLimitMb: number }) {
     const supabase = createClient();
     const router = useRouter();
 
-    const handlePdfUpload = async (file: File) => {
+    const handleFileUpload = async (file: File) => {
         setIsUploading(true);
         setError(null);
         
         const fileSizeMb = file.size / (1024 * 1024);
         if (fileSizeMb > uploadLimitMb) {
             const errMessage = `File size of ${fileSizeMb.toFixed(2)}MB exceeds your ${uploadLimitMb}MB limit.`;
-            setError(errMessage);
-            toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
-            setIsUploading(false);
-            return;
-        }
-
-        // Client-side validation for file type
-        if (file.type !== 'application/pdf') {
-            const errMessage = 'File type not allowed. Please upload a PDF.';
             setError(errMessage);
             toast({ variant: "destructive", title: "Upload Failed", description: errMessage });
             setIsUploading(false);
@@ -66,8 +57,8 @@ export function UploadHandler({ uploadLimitMb }: { uploadLimitMb: number }) {
     };
 
     return (
-        <PdfUploader 
-            onPdfUpload={handlePdfUpload}
+        <FileUploader 
+            onFileUpload={handleFileUpload}
             isUploading={isUploading}
             error={error}
             uploadLimitMb={uploadLimitMb}

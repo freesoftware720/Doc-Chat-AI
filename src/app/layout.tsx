@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Doc-Chat AI',
-  description: 'Chat with your PDF documents using AI.',
+  description: 'Chat with your documents using AI.',
 };
 
 export default function RootLayout({

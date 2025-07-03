@@ -40,7 +40,7 @@ function ConversionFunnel({ data }: { data: ConversionFunnelData }) {
             isFirst: true,
         },
         {
-            title: "Uploaded First PDF",
+            title: "Uploaded First Document",
             count: data.uploadedFirstDoc,
             conversion: calculateConversion(data.uploadedFirstDoc, data.signedUp),
         },

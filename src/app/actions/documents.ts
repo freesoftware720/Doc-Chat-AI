@@ -12,6 +12,27 @@ async function getPdfContent(fileBuffer: Buffer): Promise<string> {
   return data.text;
 }
 
+async function getFileContent(fileBuffer: Buffer, fileType: string): Promise<string> {
+    if (fileType === 'application/pdf') {
+        const pdf = (await import('pdf-parse')).default;
+        const data = await pdf(fileBuffer);
+        return data.text;
+    } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const mammoth = (await import('mammoth')).default;
+        const data = await mammoth.extractRawText({ buffer: fileBuffer });
+        return data.value;
+    } else if (fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+        const xlsx = (await import('xlsx')).default;
+        const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        return xlsx.utils.sheet_to_csv(sheet);
+    } else if (fileType === 'text/plain') {
+        return fileBuffer.toString('utf-8');
+    }
+    return 'Unsupported file type';
+}
+
 export async function processDocument(
   fileName: string,
   storagePath: string
@@ -33,7 +54,7 @@ export async function processDocument(
   }
 
   const buffer = Buffer.from(await blob.arrayBuffer());
-  const content = await getPdfContent(buffer);
+  const content = await getFileContent(buffer, blob.type);
   const fileSize = blob.size;
 
   // Insert document metadata and content into the database

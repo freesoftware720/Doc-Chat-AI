@@ -1,10 +1,10 @@
 'use server';
 /**
- * @fileOverview A PDF analysis AI agent that chunks documents to handle large files.
+ * @fileOverview A file analysis AI agent that chunks documents to handle large files.
  *
- * - analyzePdf - A function that handles the PDF analysis process.
- * - AnalyzePdfInput - The input type for the analyzePdf function.
- * - AnalyzePdfOutput - The return type for the analyzePdf function.
+ * - analyzeFile - A function that handles the file analysis process.
+ * - AnalyzeFileInput - The input type for the analyzeFile function.
+ * - AnalyzeFileOutput - The return type for the analyzeFile function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -12,35 +12,35 @@ import {z} from 'zod';
 import {
   defaultSystemPrompt,
   relevanceCheckPrompt,
-} from './pdf-analyzer-config';
+} from './file-analyzer-config';
 
-const AnalyzePdfInputSchema = z.object({
+const AnalyzeFileInputSchema = z.object({
   documentContent: z
     .string()
     .describe('The full text content of the document.'),
   query: z.string().describe('The question about the document content.'),
 });
-export type AnalyzePdfInput = z.infer<typeof AnalyzePdfInputSchema>;
+export type AnalyzeFileInput = z.infer<typeof AnalyzeFileInputSchema>;
 
-const AnalyzePdfOutputSchema = z.object({
+const AnalyzeFileOutputSchema = z.object({
   answer: z
     .string()
     .describe('The answer to the question about the document content.'),
 });
-export type AnalyzePdfOutput = z.infer<typeof AnalyzePdfOutputSchema>;
+export type AnalyzeFileOutput = z.infer<typeof AnalyzeFileOutputSchema>;
 
-export async function analyzePdf(
-  input: AnalyzePdfInput
-): Promise<AnalyzePdfOutput> {
-  return analyzePdfFlow(input);
+export async function analyzeFile(
+  input: AnalyzeFileInput
+): Promise<AnalyzeFileOutput> {
+  return analyzeFileFlow(input);
 }
 
-// The main flow for analyzing the PDF
-const analyzePdfFlow = ai.defineFlow(
+// The main flow for analyzing the file
+const analyzeFileFlow = ai.defineFlow(
   {
-    name: 'analyzePdfFlow',
-    inputSchema: AnalyzePdfInputSchema,
-    outputSchema: AnalyzePdfOutputSchema,
+    name: 'analyzeFileFlow',
+    inputSchema: AnalyzeFileInputSchema,
+    outputSchema: AnalyzeFileOutputSchema,
   },
   async ({documentContent, query}) => {
     // 1. Chunk the document content. This is a simple strategy.
@@ -83,7 +83,7 @@ const analyzePdfFlow = ai.defineFlow(
         system: systemPrompt,
         prompt: `Context:\n---\n${context}\n---\n\nUser Question: ${query}\n\nAnswer:`,
         output: {
-            schema: AnalyzePdfOutputSchema,
+            schema: AnalyzeFileOutputSchema,
         },
         config: {
             temperature: 0.2,

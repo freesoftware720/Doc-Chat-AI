@@ -6,16 +6,16 @@ import ChatInterface from '@/components/chat-interface';
 import type { Message } from '@/components/chat-interface';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText } from 'lucide-react';
 
 interface ChatPageClientProps {
     documentId: string;
     documentName: string;
     initialMessages: Message[];
-    pdfUrl: string;
 }
 
-export function ChatPageClient({ documentId, documentName, initialMessages, pdfUrl }: ChatPageClientProps) {
+export function ChatPageClient({ documentId, documentName, initialMessages }: ChatPageClientProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [isLoading, setIsLoading] = useState(false);
     const [isLimitReached, setIsLimitReached] = useState(false);
@@ -100,11 +100,15 @@ export function ChatPageClient({ documentId, documentName, initialMessages, pdfU
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full p-4">
             <Card className="h-full hidden lg:flex flex-col bg-card/60 backdrop-blur-md border-white/10 shadow-lg overflow-hidden rounded-2xl">
-                 <iframe 
-                    src={pdfUrl} 
-                    className="w-full h-full border-0" 
-                    title={documentName}
-                />
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        {documentName}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 text-center text-muted-foreground">
+                    <p>File content is processed on the server.</p>
+                </CardContent>
             </Card>
             <div className="h-full lg:col-span-1">
                  <ChatInterface

@@ -114,7 +114,7 @@ export function UploadsClientPage({ documents, uploadLimitMb, adProps }: Uploads
                         <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Documents Uploaded</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Upload your first PDF to start chatting with it.
+                            Upload your first document to start chatting with it.
                         </p>
                     </div>
                 )}

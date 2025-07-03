@@ -5,7 +5,7 @@ import { ai } from '@/ai/genkit';
 import {
   defaultSystemPrompt,
   relevanceCheckPrompt,
-} from '@/ai/flows/pdf-analyzer-config';
+} from '@/ai/flows/file-analyzer-config';
 import { getAppSettings } from '@/app/actions/settings';
 import type { TablesInsert, TablesUpdate } from '@/lib/supabase/database.types';
 
