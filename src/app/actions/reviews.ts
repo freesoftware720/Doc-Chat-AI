@@ -26,10 +26,10 @@ export async function getTopReviews(): Promise<ReviewWithProfile[]> {
 
     if (error) {
         let hint = '';
-        if (error.code === '42P01' || error.message.includes('relation "public.users" does not exist')) {
-            hint = 'HINT: This is a database schema error caused by an incorrect table relationship. Please run the corrective SQL script provided in the conversation to fix your table relationships, then reload the schema in your Supabase dashboard.';
+        if (error.code === '42P01') { // 42P01 is "undefined_table"
+             hint = 'HINT: A required table (e.g., "reviews") is missing. Please run the full SQL script provided in the conversation to create all necessary tables, then reload the schema in your Supabase dashboard.';
         } else if (error.message.includes('relationship')) {
-             hint = 'HINT: This error can occur if the database schema is out of sync. Please try reloading the schema in your Supabase dashboard under API > "Reload schema".';
+             hint = 'HINT: The relationship between "reviews" and "profiles" is incorrect. Please run the full SQL script provided to fix this, then reload the schema.';
         }
         console.error(`Error fetching top reviews: "${error.message}". ${hint}`);
         return [];
@@ -84,7 +84,6 @@ export async function submitReview(prevState: any, formData: FormData) {
             user_id: user.id,
             rating: rating,
             content: content,
-            updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
 
     if (error) {
