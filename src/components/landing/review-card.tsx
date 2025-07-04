@@ -1,3 +1,4 @@
+
 'use client';
 
 import { motion } from 'framer-motion';
@@ -13,7 +14,7 @@ export function ReviewCard({ review }: { review: ReviewWithProfile }) {
 
     return (
         <div className="gsap-review-card p-2 h-full">
-            <Card className="h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10 overflow-hidden">
+            <Card className="h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10 overflow-hidden transition-colors duration-300 hover:border-primary">
                 <CardContent className="p-6 md:p-8 flex flex-col h-full">
                     <div className="flex items-center gap-4 mb-4">
                         <Avatar>

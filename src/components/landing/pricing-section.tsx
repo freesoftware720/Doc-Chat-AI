@@ -37,7 +37,7 @@ export function PricingSection({ plans = [] }: { plans: Plan[] }) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map((plan: Plan) => (
-            <Card key={plan.id} className={`rounded-2xl shadow-2xl bg-gradient-to-br from-card/60 to-card/20 border-white/20 flex flex-col gsap-pricing-card ${plan.is_popular ? "shadow-primary/20 border-primary/50" : "shadow-primary/10"}`}>
+            <Card key={plan.id} className={`rounded-2xl shadow-2xl bg-gradient-to-br from-card/60 to-card/20 flex flex-col gsap-pricing-card transition-colors duration-300 ${plan.is_popular ? "border-primary/50 shadow-primary/20 hover:border-primary" : "border-white/20 shadow-primary/10 hover:border-primary"}`}>
               <CardHeader className="p-8">
                 {plan.is_popular && <div className="text-xs font-bold uppercase text-primary tracking-widest mb-2">Most Popular</div>}
                 <CardTitle className="text-3xl font-headline tracking-tight">{plan.name}</CardTitle>

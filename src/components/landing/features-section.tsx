@@ -47,7 +47,7 @@ export function FeaturesSection({ content = defaultContent }: { content?: typeof
                 key={index}
                 className="gsap-feature-card"
                 >
-                <Card className="h-full rounded-2xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/20 transition-all duration-300 hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-1">
+                <Card className="h-full rounded-2xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/20 transition-all duration-300 hover:shadow-primary/20 hover:scale-[1.03] hover:-translate-y-1 hover:border-primary">
                     <CardHeader className="flex flex-col items-center text-center p-8">
                     <div className="p-4 bg-primary/10 rounded-full w-fit mb-4">
                         <IconComponent className="h-10 w-10 text-primary" />
