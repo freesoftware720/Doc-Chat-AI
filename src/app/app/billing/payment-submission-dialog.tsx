@@ -3,7 +3,6 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import type { Plan, PaymentGateway } from "@/app/actions/super-admin";
 import { createSubscriptionRequest } from "@/app/actions/subscriptions";
 import ReactMarkdown from "react-markdown";
@@ -43,15 +41,14 @@ export function PaymentSubmissionDialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [state, formAction] = useActionState(createSubscriptionRequest, null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (state?.success) {
       toast({ title: "Success", description: state.success });
-      // The dialog will be closed automatically when the parent page re-renders
-      // after the revalidatePath call in the server action completes.
-      // This prevents the "form not connected" error.
+      setIsSuccess(true);
     }
     if (state?.error) {
       toast({
@@ -62,49 +59,76 @@ export function PaymentSubmissionDialog({
     }
   }, [state, toast]);
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    // Reset form state if dialog is closed
+    if (!isOpen) {
+        setTimeout(() => {
+            setIsSuccess(false);
+        }, 200); // delay to allow for fade-out animation
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <form action={formAction}>
-          <input type="hidden" name="planId" value={plan.id} />
-          <input type="hidden" name="gatewayId" value={gateway.id} />
-          <DialogHeader>
-            <DialogTitle>Pay with {gateway.name}</DialogTitle>
-            <DialogDescription>
-              Follow the instructions below to upgrade to the {plan.name} plan.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="my-4 space-y-4">
-            <div>
-                <Label>Instructions</Label>
-                <div className="prose dark:prose-invert prose-sm max-w-none text-muted-foreground p-3 rounded-md border bg-muted/50 mt-1">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{gateway.instructions}</ReactMarkdown>
-                </div>
+        {isSuccess ? (
+          <>
+            <DialogHeader>
+                <DialogTitle>Request Submitted!</DialogTitle>
+                <DialogDescription>
+                    Your upgrade request has been sent for review. You will be notified upon approval.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="text-center py-8 flex flex-col items-center gap-4">
+                <CheckCircle className="h-16 w-16 text-green-500" />
+                <p className="text-lg font-medium">{state?.success}</p>
             </div>
-            <div>
-                <Label htmlFor="transactionId">Transaction ID / Reference</Label>
-                <Input
-                    id="transactionId"
-                    name="transactionId"
-                    placeholder="Enter your payment reference here"
-                    required
-                />
-                 <p className="text-xs text-muted-foreground mt-1">This is required to verify your payment.</p>
+            <DialogFooter>
+                <Button onClick={() => handleOpenChange(false)} className="w-full">Done</Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <form action={formAction}>
+            <input type="hidden" name="planId" value={plan.id} />
+            <input type="hidden" name="gatewayId" value={gateway.id} />
+            <DialogHeader>
+              <DialogTitle>Pay with {gateway.name}</DialogTitle>
+              <DialogDescription>
+                Follow the instructions below to upgrade to the {plan.name} plan.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4 space-y-4">
+              <div>
+                  <Label>Instructions</Label>
+                  <div className="prose dark:prose-invert prose-sm max-w-none text-muted-foreground p-3 rounded-md border bg-muted/50 mt-1">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{gateway.instructions}</ReactMarkdown>
+                  </div>
+              </div>
+              <div>
+                  <Label htmlFor="transactionId">Transaction ID / Reference</Label>
+                  <Input
+                      id="transactionId"
+                      name="transactionId"
+                      placeholder="Enter your payment reference here"
+                      required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">This is required to verify your payment.</p>
+              </div>
             </div>
-          </div>
-          <DialogFooter className="sm:justify-between sm:gap-4">
-            <p className="text-sm text-muted-foreground text-center sm:text-left mt-2 sm:mt-0">
-                Total: <strong>{plan.currency_symbol}{plan.price}</strong>
-            </p>
-            <div className="flex gap-2 justify-end">
-                <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
-                <SubmitButton />
-            </div>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="sm:justify-between sm:gap-4">
+              <p className="text-sm text-muted-foreground text-center sm:text-left mt-2 sm:mt-0">
+                  Total: <strong>{plan.currency_symbol}{plan.price}</strong>
+              </p>
+              <div className="flex gap-2 justify-end">
+                  <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
+                  <SubmitButton />
+              </div>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
-    

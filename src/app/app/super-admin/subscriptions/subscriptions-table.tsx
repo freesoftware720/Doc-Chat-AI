@@ -4,14 +4,13 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { format, formatDistanceToNow } from "date-fns";
-import { MoreHorizontal, Loader2, Check, X, Clock, HelpCircle, Eye } from "lucide-react";
+import { MoreHorizontal, Loader2, Check, X, Clock, HelpCircle, Eye, CheckCircle } from "lucide-react";
 import { approveSubscriptionRequest, rejectSubscriptionRequest, type SubscriptionRequestWithDetails } from "@/app/actions/super-admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,55 +36,76 @@ function ActionDialog({
 }) {
     const action = type === 'approve' ? approveSubscriptionRequest : rejectSubscriptionRequest;
     const [state, formAction] = useActionState(action, null);
+    const [isSuccess, setIsSuccess] = useState(false);
     const { toast } = useToast();
 
     function SubmitButton() {
         const { pending } = useFormStatus();
         return (
-            <AlertDialogAction type="submit" disabled={pending} variant={type === 'reject' ? 'destructive' : 'default'}>
+            <Button type="submit" disabled={pending} variant={type === 'reject' ? 'destructive' : 'default'}>
                 {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : (type === 'approve' ? 'Approve' : 'Reject')}
-            </AlertDialogAction>
+            </Button>
         );
     }
     
     useEffect(() => {
         if (state?.success) {
             toast({ title: "Success", description: state.success });
-            // The dialog will be closed automatically when the parent page re-renders
-            // after the revalidatePath call in the server action completes.
-            // This prevents the "form not connected" error.
+            setIsSuccess(true);
         } else if (state?.error) {
             toast({ variant: "destructive", title: "Error", description: state.error });
         }
     }, [state, toast]);
 
+    const handleOpenChange = (isOpen: boolean) => {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+            setTimeout(() => setIsSuccess(false), 200); // Reset on close
+        }
+    };
+
     return (
-        <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent>
-                <form action={formAction}>
-                    <input type="hidden" name="requestId" value={request.id} />
-                    <input type="hidden" name="userId" value={request.user_id} />
-                    <input type="hidden" name="planName" value={request.plan_name} />
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure you want to {type} this request?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            User: {request.user_name} ({request.user_email})<br/>
-                            Plan: {request.plan_name}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    {type === 'reject' && (
-                        <div className="py-4">
-                            <Label htmlFor="reason">Reason for rejection (optional)</Label>
-                            <Textarea id="reason" name="reason" placeholder="e.g., Transaction ID not found." />
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogContent>
+                {isSuccess ? (
+                     <>
+                        <DialogHeader>
+                            <DialogTitle>Success!</DialogTitle>
+                        </DialogHeader>
+                        <div className="text-center py-8 flex flex-col items-center gap-4">
+                           <CheckCircle className="h-16 w-16 text-green-500" />
+                           <p className="text-lg font-medium">{state?.success}</p>
                         </div>
-                    )}
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <SubmitButton />
-                    </AlertDialogFooter>
-                </form>
-            </AlertDialogContent>
-        </AlertDialog>
+                        <DialogFooter>
+                            <Button onClick={() => handleOpenChange(false)} className="w-full">Done</Button>
+                        </DialogFooter>
+                    </>
+                ) : (
+                    <form action={formAction}>
+                        <input type="hidden" name="requestId" value={request.id} />
+                        <input type="hidden" name="userId" value={request.user_id} />
+                        <input type="hidden" name="planName" value={request.plan_name} />
+                        <DialogHeader>
+                            <DialogTitle>Are you sure you want to {type} this request?</DialogTitle>
+                            <DialogDescription>
+                                User: {request.user_name} ({request.user_email})<br/>
+                                Plan: {request.plan_name}
+                            </DialogDescription>
+                        </DialogHeader>
+                        {type === 'reject' && (
+                            <div className="py-4">
+                                <Label htmlFor="reason">Reason for rejection (optional)</Label>
+                                <Textarea id="reason" name="reason" placeholder="e.g., Transaction ID not found." />
+                            </div>
+                        )}
+                        <DialogFooter className="mt-4">
+                            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
+                            <SubmitButton />
+                        </DialogFooter>
+                    </form>
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -183,7 +203,7 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                             {dialogState.request.status === 'rejected' && <p><strong>Rejection Reason:</strong> {dialogState.request.rejection_reason || 'N/A'}</p>}
                         </div>
                          <DialogFooter>
-                            <DialogClose asChild><Button type="button" variant="outline">Close</Button></DialogClose>
+                             <Button type="button" variant="outline" onClick={handleCloseDialog}>Close</Button>
                          </DialogFooter>
                     </DialogContent>
                 </Dialog>
