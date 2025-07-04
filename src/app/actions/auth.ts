@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 import { serviceSupabase } from '@/lib/supabase/service'
-import { logAuditEvent } from './workspace'
 
 export async function login(prevState: any, formData: FormData) {
   try {
