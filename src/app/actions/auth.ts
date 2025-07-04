@@ -26,6 +26,9 @@ export async function login(prevState: any, formData: FormData) {
     revalidatePath('/', 'layout')
     redirect('/app')
   } catch (e: any) {
+    if (e.message.includes('NEXT_REDIRECT')) {
+      throw e;
+    }
     console.error('Login action failed:', e);
     return { error: `An unexpected error occurred: ${e.message}` };
   }
@@ -158,6 +161,9 @@ export async function resetPassword(prevState: any, formData: FormData) {
 
     redirect('/app')
   } catch (e: any) {
+    if (e.message.includes('NEXT_REDIRECT')) {
+      throw e;
+    }
     console.error('Reset password action failed:', e);
     return { error: `An unexpected error occurred: ${e.message}` };
   }
