@@ -138,7 +138,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                   type="submit"
                   asChild
                   tooltip="Logout"
-                  className="hover:bg-destructive/15 hover:text-destructive hover:[text-shadow:none]"
+                  className="hover:bg-destructive/35 hover:border-destructive hover:text-destructive-foreground hover:[text-shadow:none]"
                 >
                     <button className="w-full">
                         <LogOut />
