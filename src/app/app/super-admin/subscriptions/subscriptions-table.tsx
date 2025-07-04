@@ -51,11 +51,13 @@ function ActionDialog({
     useEffect(() => {
         if (state?.success) {
             toast({ title: "Success", description: state.success });
-            onOpenChange(false);
+            // The dialog will be closed automatically when the parent page re-renders
+            // after the revalidatePath call in the server action completes.
+            // This prevents the "form not connected" error.
         } else if (state?.error) {
             toast({ variant: "destructive", title: "Error", description: state.error });
         }
-    }, [state, toast, onOpenChange]);
+    }, [state, toast]);
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>

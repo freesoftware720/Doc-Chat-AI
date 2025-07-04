@@ -49,7 +49,9 @@ export function PaymentSubmissionDialog({
   useEffect(() => {
     if (state?.success) {
       toast({ title: "Success", description: state.success });
-      setOpen(false);
+      // The dialog will be closed automatically when the parent page re-renders
+      // after the revalidatePath call in the server action completes.
+      // This prevents the "form not connected" error.
     }
     if (state?.error) {
       toast({
@@ -105,5 +107,4 @@ export function PaymentSubmissionDialog({
     </Dialog>
   );
 }
-
     
