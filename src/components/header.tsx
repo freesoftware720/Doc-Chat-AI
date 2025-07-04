@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
@@ -66,14 +66,16 @@ export function Header({ user }: { user: User | null }) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="flex flex-col p-0">
-                <div className="p-4 border-b">
-                    <SheetClose asChild>
-                      <Link href="/" className="flex items-center space-x-2">
-                          <Logo className="h-7 w-7" />
-                          <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
-                      </Link>
-                    </SheetClose>
-                </div>
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                  <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
+                  <SheetClose asChild>
+                    <Link href="/" className="flex items-center space-x-2">
+                        <Logo className="h-7 w-7" />
+                        <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
+                    </Link>
+                  </SheetClose>
+                </SheetHeader>
                 
                 {isLandingPage && (
                   <nav className="flex flex-col gap-4 p-4">
