@@ -95,13 +95,18 @@ export default function SuperAdminLayout({ children }: { children: ReactNode }) 
             </header>
 
             <Tabs value={activeTabValue} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 max-w-6xl">
-                    {superAdminNavItems.map(item => (
-                        <TabsTrigger key={item.href} value={item.href} asChild>
-                           <Link href={item.href}>{item.label}</Link>
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
+                <div className="relative">
+                    <div className="w-full overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <TabsList className="inline-flex h-auto items-center justify-start">
+                            {superAdminNavItems.map(item => (
+                                <TabsTrigger key={item.href} value={item.href} asChild className="whitespace-nowrap">
+                                   <Link href={item.href}>{item.label}</Link>
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
+                    <div className="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+                </div>
                 <div className="mt-6">{children}</div>
             </Tabs>
         </div>
