@@ -73,6 +73,7 @@ export async function getDashboardStats() {
 
 
 export async function updateProfile(prevState: any, formData: FormData) {
+  try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -93,4 +94,8 @@ export async function updateProfile(prevState: any, formData: FormData) {
 
     revalidatePath('/app/settings');
     return { success: 'Profile updated successfully.' };
+  } catch (e: any) {
+    console.error('Update profile action failed:', e);
+    return { error: `An unexpected error occurred: ${e.message}` };
+  }
 }

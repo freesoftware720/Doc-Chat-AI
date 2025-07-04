@@ -6,6 +6,7 @@ import type { TablesInsert } from '@/lib/supabase/database.types';
 import { revalidatePath } from 'next/cache';
 
 export async function createSubscriptionRequest(prevState: any, formData: FormData) {
+  try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -51,6 +52,10 @@ export async function createSubscriptionRequest(prevState: any, formData: FormDa
 
     revalidatePath('/app/billing');
     return { success: 'Your subscription request has been submitted for review.' };
+  } catch (e: any) {
+    console.error('Create subscription request action failed:', e);
+    return { error: `An unexpected error occurred: ${e.message}` };
+  }
 }
 
 

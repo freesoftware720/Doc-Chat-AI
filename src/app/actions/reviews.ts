@@ -61,6 +61,7 @@ export async function getUserReview() {
 }
 
 export async function submitReview(prevState: any, formData: FormData) {
+  try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -94,4 +95,8 @@ export async function submitReview(prevState: any, formData: FormData) {
     revalidatePath('/app/review');
     revalidatePath('/'); // Revalidate landing page to show new review if it's in top 10
     return { success: 'Thank you for your review!' };
+  } catch (e: any) {
+    console.error('Submit review action failed:', e);
+    return { error: `An unexpected error occurred: ${e.message}` };
+  }
 }

@@ -105,6 +105,7 @@ export async function getDocuments() {
 }
 
 export async function deleteDocument(prevState: any, formData: FormData) {
+  try {
     const documentId = formData.get('documentId') as string;
     
     const supabase = createClient();
@@ -151,4 +152,8 @@ export async function deleteDocument(prevState: any, formData: FormData) {
     revalidatePath('/app/uploads');
     revalidatePath('/app/super-admin/documents');
     return { success: `Document "${docName}" deleted successfully.` };
+  } catch (e: any) {
+    console.error('Delete document action failed:', e);
+    return { error: `An unexpected error occurred: ${e.message}` };
+  }
 }
