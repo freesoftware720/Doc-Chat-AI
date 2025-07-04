@@ -351,7 +351,7 @@ export type Database = {
             foreignKeyName: "reviews_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -540,3 +540,5 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
+
+    

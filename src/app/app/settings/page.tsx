@@ -46,7 +46,9 @@ export default async function SettingsPage() {
                                     <Link href="/app/billing">Upgrade to Pro</Link>
                                 </Button>
                             ) : (
-                                <p className="font-bold text-2xl text-primary">$19/mo</p>
+                                 <Button asChild>
+                                    <Link href="/app/billing">Manage Billing</Link>
+                                </Button>
                             )}
                         </div>
                          {(profile?.pro_credits ?? 0) > 0 && (
@@ -61,3 +63,5 @@ export default async function SettingsPage() {
       </div>
     );
 }
+
+    
