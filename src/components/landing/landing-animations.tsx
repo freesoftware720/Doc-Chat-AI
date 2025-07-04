@@ -1,14 +1,14 @@
-
 'use client';
 
 import { useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
 export function LandingAnimations() {
   useLayoutEffect(() => {
+    // Register the plugin inside the effect to ensure it only runs on the client
+    gsap.registerPlugin(ScrollTrigger);
+    
     const ctx = gsap.context(() => {
       // Hero section load-in animation
       gsap.timeline()
