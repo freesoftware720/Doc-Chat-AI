@@ -146,56 +146,74 @@ export async function getAllUsersWithDetails() {
 export type UserWithDetails = Awaited<ReturnType<typeof getAllUsersWithDetails>>[0];
 
 export async function updateUserPlan(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
-    
-    const userId = formData.get('userId') as string;
-    const plan = formData.get('plan') as string;
+    try {
+        if (!serviceSupabase) {
+            throw new Error("Service client not initialized.");
+        }
+        if (!(await isSuperAdmin())) {
+            throw new Error("Permission denied.");
+        }
+        
+        const userId = formData.get('userId') as string;
+        const plan = formData.get('plan') as string;
 
-    const { error } = await serviceSupabase
-        .from('profiles')
-        .update({ subscription_plan: plan })
-        .eq('id', userId);
+        const { error } = await serviceSupabase
+            .from('profiles')
+            .update({ subscription_plan: plan })
+            .eq('id', userId);
 
-    if (error) {
-        return { error: `Failed to update plan: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to update plan: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/users');
+        return { success: 'User plan updated successfully.' };
+    } catch (e: any) {
+        console.error("Update user plan failed:", e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/users');
-    return { success: 'User plan updated successfully.' };
 }
 
 export async function updateUserStatus(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) {
+            throw new Error("Service client not initialized.");
+        }
+        if (!(await isSuperAdmin())) {
+            throw new Error("Permission denied.");
+        }
 
-    const userId = formData.get('userId') as string;
-    const status = formData.get('status') as string;
-    const banReason = formData.get('banReason') as string | null;
+        const userId = formData.get('userId') as string;
+        const status = formData.get('status') as string;
+        const banReason = formData.get('banReason') as string | null;
 
-    const dataToUpdate: TablesUpdate<'profiles'> = {
-      status: status,
-    };
+        const dataToUpdate: TablesUpdate<'profiles'> = {
+          status: status,
+        };
 
-    if (status === 'banned') {
-      dataToUpdate.ban_reason = banReason;
-      dataToUpdate.banned_at = new Date().toISOString();
-    } else {
-      dataToUpdate.ban_reason = null;
-      dataToUpdate.banned_at = null;
+        if (status === 'banned') {
+          dataToUpdate.ban_reason = banReason;
+          dataToUpdate.banned_at = new Date().toISOString();
+        } else {
+          dataToUpdate.ban_reason = null;
+          dataToUpdate.banned_at = null;
+        }
+
+        const { error } = await serviceSupabase
+          .from('profiles')
+          .update(dataToUpdate)
+          .eq('id', userId);
+
+        if (error) {
+            throw new Error(`Failed to update status: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/users');
+        return { success: `User status set to ${status}.` };
+    } catch (e: any) {
+        console.error("Update user status failed:", e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    const { error } = await serviceSupabase
-      .from('profiles')
-      .update(dataToUpdate)
-      .eq('id', userId);
-
-    if (error) {
-        return { error: `Failed to update status: ${error.message}` };
-    }
-
-    revalidatePath('/app/super-admin/users');
-    return { success: `User status set to ${status}.` };
 }
 
 export async function getAllReferralDetails() {
@@ -327,72 +345,82 @@ export async function getAllDocumentsWithDetails() {
 export type DocumentWithUserDetails = Awaited<ReturnType<typeof getAllDocumentsWithDetails>>[0];
 
 export async function deleteDocumentAsAdmin(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
-    
-    const documentId = formData.get('documentId') as string;
-    
-    const { data: doc, error: fetchError } = await serviceSupabase
-        .from('documents')
-        .select('storage_path, name')
-        .eq('id', documentId)
-        .single();
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
+        
+        const documentId = formData.get('documentId') as string;
+        
+        const { data: doc, error: fetchError } = await serviceSupabase
+            .from('documents')
+            .select('storage_path, name')
+            .eq('id', documentId)
+            .single();
 
-    if (fetchError || !doc) {
-        return { error: 'Document not found.' };
+        if (fetchError || !doc) {
+            throw new Error('Document not found.');
+        }
+        
+        // Delete from storage
+        const { error: storageError } = await serviceSupabase.storage
+            .from('documents')
+            .remove([doc.storage_path]);
+
+        if (storageError) {
+            console.error("Admin delete: Storage deletion failed", storageError);
+        }
+
+        // Delete from database
+        const { error: dbError } = await serviceSupabase
+            .from('documents')
+            .delete()
+            .eq('id', documentId);
+        
+        if (dbError) {
+            throw new Error('Failed to delete document from database.');
+        }
+
+        revalidatePath('/app/super-admin/documents');
+        return { success: `Document "${doc.name}" deleted successfully.` };
+    } catch (e: any) {
+        console.error('Delete document as admin failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-    
-    // Delete from storage
-    const { error: storageError } = await serviceSupabase.storage
-        .from('documents')
-        .remove([doc.storage_path]);
-
-    if (storageError) {
-        console.error("Admin delete: Storage deletion failed", storageError);
-    }
-
-    // Delete from database
-    const { error: dbError } = await serviceSupabase
-        .from('documents')
-        .delete()
-        .eq('id', documentId);
-    
-    if (dbError) {
-        return { error: 'Failed to delete document from database.' };
-    }
-
-    revalidatePath('/app/super-admin/documents');
-    return { success: `Document "${doc.name}" deleted successfully.` };
 }
 
 export async function transferDocumentOwnership(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
-    
-    const documentId = formData.get('documentId') as string;
-    const newOwnerEmail = formData.get('newOwnerEmail') as string;
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
+        
+        const documentId = formData.get('documentId') as string;
+        const newOwnerEmail = formData.get('newOwnerEmail') as string;
 
-    // Find the new owner
-    const { data: { users }, error: userError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
-    if (userError) return { error: "Could not fetch user list." };
-    
-    const newOwner = users.find(u => u.email === newOwnerEmail);
-    if (!newOwner) {
-        return { error: `User with email "${newOwnerEmail}" not found.` };
+        // Find the new owner
+        const { data: { users }, error: userError } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 });
+        if (userError) throw new Error("Could not fetch user list.");
+        
+        const newOwner = users.find(u => u.email === newOwnerEmail);
+        if (!newOwner) {
+            throw new Error(`User with email "${newOwnerEmail}" not found.`);
+        }
+
+        // Update document owner
+        const { error: updateError } = await serviceSupabase
+            .from('documents')
+            .update({ user_id: newOwner.id })
+            .eq('id', documentId);
+        
+        if (updateError) {
+            throw new Error(`Failed to transfer document: ${updateError.message}`);
+        }
+
+        revalidatePath('/app/super-admin/documents');
+        return { success: `Document successfully transferred to ${newOwnerEmail}.` };
+    } catch (e: any) {
+        console.error("Transfer document ownership failed:", e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    // Update document owner
-    const { error: updateError } = await serviceSupabase
-        .from('documents')
-        .update({ user_id: newOwner.id })
-        .eq('id', documentId);
-    
-    if (updateError) {
-        return { error: `Failed to transfer document: ${updateError.message}` };
-    }
-
-    revalidatePath('/app/super-admin/documents');
-    return { success: `Document successfully transferred to ${newOwnerEmail}.` };
 }
 
 // --- Payment Gateway Management Actions ---
@@ -414,75 +442,90 @@ export async function getPaymentGateways() {
 export type PaymentGateway = Awaited<ReturnType<typeof getPaymentGateways>>[0];
 
 export async function createPaymentGateway(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-    const rawData = {
-        name: formData.get('name') as string,
-        instructions: formData.get('instructions') as string,
-        icon_url: formData.get('icon_url') as string || null,
-        is_active: formData.get('is_active') === 'on',
-    };
-    
-    if (!rawData.name || !rawData.instructions) {
-        return { error: 'Name and Instructions are required.' };
+        const rawData = {
+            name: formData.get('name') as string,
+            instructions: formData.get('instructions') as string,
+            icon_url: formData.get('icon_url') as string || null,
+            is_active: formData.get('is_active') === 'on',
+        };
+        
+        if (!rawData.name || !rawData.instructions) {
+            throw new Error('Name and Instructions are required.');
+        }
+
+        const { error } = await serviceSupabase.from('payment_gateways').insert(rawData);
+
+        if (error) {
+            throw new Error(`Failed to create payment gateway: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/payments');
+        return { success: 'Payment gateway created successfully.' };
+    } catch (e: any) {
+        console.error('Create payment gateway failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    const { error } = await serviceSupabase.from('payment_gateways').insert(rawData);
-
-    if (error) {
-        return { error: `Failed to create payment gateway: ${error.message}` };
-    }
-
-    revalidatePath('/app/super-admin/payments');
-    return { success: 'Payment gateway created successfully.' };
 }
 
 export async function updatePaymentGateway(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
-    
-    const id = formData.get('id') as string;
-    const rawData = {
-        name: formData.get('name') as string,
-        instructions: formData.get('instructions') as string,
-        icon_url: formData.get('icon_url') as string || null,
-        is_active: formData.get('is_active') === 'on',
-    };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
+        
+        const id = formData.get('id') as string;
+        const rawData = {
+            name: formData.get('name') as string,
+            instructions: formData.get('instructions') as string,
+            icon_url: formData.get('icon_url') as string || null,
+            is_active: formData.get('is_active') === 'on',
+        };
 
-    if (!id) return { error: 'Missing gateway ID.' };
+        if (!id) throw new Error('Missing gateway ID.');
 
-    const { error } = await serviceSupabase
-        .from('payment_gateways')
-        .update(rawData)
-        .eq('id', id);
+        const { error } = await serviceSupabase
+            .from('payment_gateways')
+            .update(rawData)
+            .eq('id', id);
 
-    if (error) {
-        return { error: `Failed to update payment gateway: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to update payment gateway: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/payments');
+        return { success: 'Payment gateway updated successfully.' };
+    } catch (e: any) {
+        console.error('Update payment gateway failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/payments');
-    return { success: 'Payment gateway updated successfully.' };
 }
 
 export async function deletePaymentGateway(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-    const id = formData.get('id') as string;
-    if (!id) return { error: 'Missing gateway ID.' };
+        const id = formData.get('id') as string;
+        if (!id) throw new Error('Missing gateway ID.');
 
-    const { error } = await serviceSupabase
-        .from('payment_gateways')
-        .delete()
-        .eq('id', id);
+        const { error } = await serviceSupabase
+            .from('payment_gateways')
+            .delete()
+            .eq('id', id);
 
-    if (error) {
-        return { error: `Failed to delete payment gateway: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to delete payment gateway: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/payments');
+        return { success: 'Payment gateway deleted successfully.' };
+    } catch (e: any) {
+        console.error('Delete payment gateway failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/payments');
-    return { success: 'Payment gateway deleted successfully.' };
 }
 
 // --- Plan Management Actions ---
@@ -504,78 +547,93 @@ export async function getAllPlans() {
 export type Plan = Awaited<ReturnType<typeof getAllPlans>>[0];
 
 export async function createPlan(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-    const rawData = {
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        price: parseFloat(formData.get('price') as string),
-        currency: formData.get('currency') as string,
-        currency_symbol: formData.get('currency_symbol') as string,
-        period: formData.get('period') as string,
-        features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
-        is_active: formData.get('is_active') === 'on',
-        is_popular: formData.get('is_popular') === 'on',
-    };
+        const rawData = {
+            name: formData.get('name') as string,
+            description: formData.get('description') as string,
+            price: parseFloat(formData.get('price') as string),
+            currency: formData.get('currency') as string,
+            currency_symbol: formData.get('currency_symbol') as string,
+            period: formData.get('period') as string,
+            features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
+            is_active: formData.get('is_active') === 'on',
+            is_popular: formData.get('is_popular') === 'on',
+        };
 
-    const { error } = await serviceSupabase.from('plans').insert(rawData as TablesInsert<'plans'>);
+        const { error } = await serviceSupabase.from('plans').insert(rawData as TablesInsert<'plans'>);
 
-    if (error) {
-        return { error: `Failed to create plan: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to create plan: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/plans');
+        revalidatePath('/'); // Revalidate landing page
+        revalidatePath('/app/billing'); // Revalidate billing page
+        return { success: 'Plan created successfully.' };
+    } catch (e: any) {
+        console.error('Create plan failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/plans');
-    revalidatePath('/'); // Revalidate landing page
-    revalidatePath('/app/billing'); // Revalidate billing page
-    return { success: 'Plan created successfully.' };
 }
 
 export async function updatePlan(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-    const id = formData.get('id') as string;
-    const rawData = {
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        price: parseFloat(formData.get('price') as string),
-        currency: formData.get('currency') as string,
-        currency_symbol: formData.get('currency_symbol') as string,
-        period: formData.get('period') as string,
-        features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
-        is_active: formData.get('is_active') === 'on',
-        is_popular: formData.get('is_popular') === 'on',
-    };
+        const id = formData.get('id') as string;
+        const rawData = {
+            name: formData.get('name') as string,
+            description: formData.get('description') as string,
+            price: parseFloat(formData.get('price') as string),
+            currency: formData.get('currency') as string,
+            currency_symbol: formData.get('currency_symbol') as string,
+            period: formData.get('period') as string,
+            features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
+            is_active: formData.get('is_active') === 'on',
+            is_popular: formData.get('is_popular') === 'on',
+        };
 
-    const { error } = await serviceSupabase.from('plans').update(rawData as TablesUpdate<'plans'>).eq('id', id);
+        const { error } = await serviceSupabase.from('plans').update(rawData as TablesUpdate<'plans'>).eq('id', id);
 
-    if (error) {
-        return { error: `Failed to update plan: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to update plan: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/plans');
+        revalidatePath('/');
+        revalidatePath('/app/billing');
+        return { success: 'Plan updated successfully.' };
+    } catch (e: any) {
+        console.error('Update plan failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/plans');
-    revalidatePath('/');
-    revalidatePath('/app/billing');
-    return { success: 'Plan updated successfully.' };
 }
 
 export async function deletePlan(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) throw new Error("Service client not initialized.");
+        if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-    const id = formData.get('id') as string;
+        const id = formData.get('id') as string;
 
-    const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
+        const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
 
-    if (error) {
-        return { error: `Failed to delete plan: ${error.message}` };
+        if (error) {
+            throw new Error(`Failed to delete plan: ${error.message}`);
+        }
+
+        revalidatePath('/app/super-admin/plans');
+        revalidatePath('/');
+        revalidatePath('/app/billing');
+        return { success: 'Plan deleted successfully.' };
+    } catch (e: any) {
+        console.error('Delete plan failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    revalidatePath('/app/super-admin/plans');
-    revalidatePath('/');
-    revalidatePath('/app/billing');
-    return { success: 'Plan deleted successfully.' };
 }
 
 // --- Subscription Request Management Actions ---
@@ -649,74 +707,91 @@ export async function getSubscriptionRequests() {
 export type SubscriptionRequestWithDetails = Awaited<ReturnType<typeof getSubscriptionRequests>>[0];
 
 export async function approveSubscriptionRequest(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
+    try {
+        if (!serviceSupabase) {
+            throw new Error("Service client not initialized.");
+        }
+        if (!(await isSuperAdmin())) {
+            throw new Error("Permission denied.");
+        }
 
-    const requestId = parseInt(formData.get('requestId') as string, 10);
-    const userId = formData.get('userId') as string;
-    const planName = formData.get('planName') as string;
-    
-    if (!planName || planName === 'N/A') {
-        return { error: 'Invalid plan associated with this request. The plan may have been deleted or the database schema needs a refresh.' };
+        const requestId = parseInt(formData.get('requestId') as string, 10);
+        const userId = formData.get('userId') as string;
+        const planName = formData.get('planName') as string;
+        
+        if (!planName || planName === 'N/A') {
+            throw new Error('Invalid plan associated with this request. The plan may have been deleted or the database schema needs a refresh.');
+        }
+
+        const { data: adminUser } = await createClient().auth.getUser();
+
+        // 1. Update user's profile to the new plan
+        const { error: profileError } = await serviceSupabase
+            .from('profiles')
+            .update({ subscription_plan: planName })
+            .eq('id', userId);
+
+        if (profileError) {
+            throw new Error(`Failed to update user profile: ${profileError.message}`);
+        }
+        
+        // 2. Update the request status to 'approved'
+        const { error: requestError } = await serviceSupabase
+            .from('subscription_requests')
+            .update({
+                status: 'approved',
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: adminUser.user?.id,
+            })
+            .eq('id', requestId);
+
+        if (requestError) {
+            // Attempt to revert profile change if this fails
+            await serviceSupabase.from('profiles').update({ subscription_plan: 'Free' }).eq('id', userId);
+            throw new Error(`Failed to update request status: ${requestError.message}`);
+        }
+
+        revalidatePath('/app/super-admin/subscriptions');
+        revalidatePath('/app/billing');
+        return { success: "Subscription approved successfully." };
+    } catch (e: any) {
+        console.error('Approve subscription request failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-
-    const { data: adminUser } = await createClient().auth.getUser();
-
-    // 1. Update user's profile to the new plan
-    const { error: profileError } = await serviceSupabase
-        .from('profiles')
-        .update({ subscription_plan: planName })
-        .eq('id', userId);
-
-    if (profileError) {
-        return { error: `Failed to update user profile: ${profileError.message}` };
-    }
-    
-    // 2. Update the request status to 'approved'
-    const { error: requestError } = await serviceSupabase
-        .from('subscription_requests')
-        .update({
-            status: 'approved',
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: adminUser.user?.id,
-        })
-        .eq('id', requestId);
-
-    if (requestError) {
-        // Attempt to revert profile change if this fails
-        // This is a simple rollback, a real-world app might use a transaction
-        await serviceSupabase.from('profiles').update({ subscription_plan: 'Free' }).eq('id', userId);
-        return { error: `Failed to update request status: ${requestError.message}` };
-    }
-
-    revalidatePath('/app/super-admin/subscriptions');
-    revalidatePath('/app/billing');
-    return { success: "Subscription approved successfully." };
 }
 
 export async function rejectSubscriptionRequest(prevState: any, formData: FormData) {
-    if (!serviceSupabase) return { error: "Service client not initialized." };
-    if (!(await isSuperAdmin())) return { error: "Permission denied." };
-    
-    const requestId = parseInt(formData.get('requestId') as string, 10);
-    const reason = formData.get('reason') as string;
-    const { data: adminUser } = await createClient().auth.getUser();
-    
-    const { error } = await serviceSupabase
-        .from('subscription_requests')
-        .update({
-            status: 'rejected',
-            rejection_reason: reason || null,
-            reviewed_at: new Date().toISOString(),
-            reviewed_by: adminUser.user?.id,
-        })
-        .eq('id', requestId);
+    try {
+        if (!serviceSupabase) {
+            throw new Error("Service client not initialized.");
+        }
+        if (!(await isSuperAdmin())) {
+            throw new Error("Permission denied.");
+        }
         
-    if (error) {
-        return { error: `Failed to reject request: ${error.message}` };
+        const requestId = parseInt(formData.get('requestId') as string, 10);
+        const reason = formData.get('reason') as string;
+        const { data: adminUser } = await createClient().auth.getUser();
+        
+        const { error } = await serviceSupabase
+            .from('subscription_requests')
+            .update({
+                status: 'rejected',
+                rejection_reason: reason || null,
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: adminUser.user?.id,
+            })
+            .eq('id', requestId);
+            
+        if (error) {
+            throw new Error(`Failed to reject request: ${error.message}`);
+        }
+        
+        revalidatePath('/app/super-admin/subscriptions');
+        revalidatePath('/app/billing');
+        return { success: "Subscription rejected." };
+    } catch (e: any) {
+        console.error('Reject subscription request failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
     }
-    
-    revalidatePath('/app/super-admin/subscriptions');
-    revalidatePath('/app/billing');
-    return { success: "Subscription rejected." };
 }
