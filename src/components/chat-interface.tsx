@@ -3,7 +3,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { Send, User, Bot, Loader, ArrowLeft, FileText, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,54 +82,48 @@ export default function ChatInterface({
       </div>
       <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto space-y-8">
-          <AnimatePresence>
-            {messages.map((message, index) => {
-              const isStreaming = isLoading && message.role === 'assistant' && index === messages.length - 1;
+          {messages.map((message, index) => {
+            const isStreaming = isLoading && message.role === 'assistant' && index === messages.length - 1;
 
-              return (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className={cn("flex items-start gap-4", {
-                    "justify-end": message.role === "user",
-                  })}
+            return (
+              <div
+                key={message.id}
+                className={cn("flex items-start gap-4", {
+                  "justify-end": message.role === "user",
+                })}
+              >
+                {message.role === "assistant" && (
+                  <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
+                    <AvatarFallback className="bg-transparent">
+                        <Bot className="h-5 w-5"/>
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={cn(
+                    "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
+                    {
+                      "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
+                      "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
+                    },
+                    "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
+                  )}
                 >
-                  {message.role === "assistant" && (
-                    <Avatar className="h-9 w-9 bg-primary/10 border border-primary/20 text-primary">
-                      <AvatarFallback className="bg-transparent">
-                          <Bot className="h-5 w-5"/>
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={cn(
-                      "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
-                      {
-                        "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
-                        "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
-                      },
-                      "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
-                    )}
-                  >
-                    <p className="text-base whitespace-pre-wrap">
-                      {message.content}
-                      {isStreaming && <span className="typing-cursor" />}
-                    </p>
-                  </div>
-                  {message.role === "user" && (
-                    <Avatar className="h-9 w-9">
-                       <AvatarFallback>
-                          <User className="h-5 w-5"/>
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </motion.div>
-              )
-            })}
-          </AnimatePresence>
+                  <p className="text-base whitespace-pre-wrap">
+                    {message.content}
+                    {isStreaming && <span className="typing-cursor" />}
+                  </p>
+                </div>
+                {message.role === "user" && (
+                  <Avatar className="h-9 w-9">
+                      <AvatarFallback>
+                        <User className="h-5 w-5"/>
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            )
+          })}
           <div ref={messagesEndRef} />
         </div>
       </div>

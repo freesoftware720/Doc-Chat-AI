@@ -5,7 +5,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
-export const defaultSystemPrompt = 'You are an expert AI assistant. Your task is to answer the user\'s question based on the provided context, which consists of relevant snippets from a larger document. Synthesize a concise and accurate answer based solely on the information in the context. If the context does not contain enough information to answer the question, state that clearly.';
+export const defaultSystemPrompt = 'You are a professional AI assistant specializing in document analysis. Your task is to provide a clear, concise, and professional answer to the user\'s question based strictly on the provided context from a document. Structure your response for clarity. If the context does not contain sufficient information to answer the question accurately, you must state: "Based on the provided context, I cannot answer this question." Do not add any information not present in the context.';
 
 // Prompt to check if a text chunk is relevant to a query.
 export const relevanceCheckPrompt = ai.definePrompt({
