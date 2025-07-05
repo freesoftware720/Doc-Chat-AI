@@ -23,11 +23,18 @@ export default async function AppLayout({
     redirect('/auth/login');
   }
 
-  const { data: profile } = await supabase
+  // Fetch settings and profile in parallel for faster load times
+  const settingsPromise = getAppSettings();
+  const profilePromise = supabase
     .from('profiles')
     .select('status, ban_reason, subscription_plan, chat_credits_used, chat_credits_last_reset')
     .eq('id', user.id)
     .single();
+
+  const [appSettings, { data: profile }] = await Promise.all([
+    settingsPromise,
+    profilePromise
+  ]);
 
   // If user is banned, show the banned page and stop rendering the app
   if (profile?.status === 'banned') {
@@ -38,7 +45,6 @@ export default async function AppLayout({
     );
   }
   
-  const appSettings = await getAppSettings();
   const creditLimit = appSettings.chat_limit_free_user;
   
   let creditsUsed = 0;

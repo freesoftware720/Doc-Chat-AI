@@ -9,12 +9,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdRenderer } from '@/components/ad-renderer';
 
 export default async function AppPage() {
-  const recentDocuments = await getDocuments();
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('subscription_plan, pro_credits, full_name').eq('id', user!.id).single();
-  const settings = await getAppSettings();
 
+  // The layout will redirect if there's no user, but this is a safeguard.
+  if (!user) {
+    redirect('/auth/login');
+  }
+
+  // Fetch all necessary data in parallel to speed up page load.
+  const [recentDocuments, profileResult, settings] = await Promise.all([
+    getDocuments(),
+    supabase.from('profiles').select('subscription_plan, pro_credits, full_name').eq('id', user.id).single(),
+    getAppSettings()
+  ]);
+
+  const profile = profileResult.data;
+  
   const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
   const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
   
