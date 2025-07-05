@@ -15,11 +15,12 @@ export default async function UploadsPage() {
     const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
     const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
     const isFreeUser = !isPro;
+    const multiDocEnabled = settings.feature_multi_pdf_enabled;
 
     const adProps = {
         showInFeedAd: isFreeUser && settings.feature_in_feed_ads_enabled && !!settings.in_feed_ad_code,
         inFeedAdCode: settings.in_feed_ad_code,
     };
 
-    return <UploadsClientPage documents={documents} uploadLimitMb={uploadLimitMb} adProps={adProps} />;
+    return <UploadsClientPage documents={documents} uploadLimitMb={uploadLimitMb} adProps={adProps} isPro={isPro} multiDocEnabled={multiDocEnabled} />;
   }

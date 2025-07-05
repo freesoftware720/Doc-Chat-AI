@@ -1,18 +1,20 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdModal } from '@/hooks/use-ad-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileText, MessageSquare } from 'lucide-react';
+import { FileText, MessageSquare, Star, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { UploadHandler } from './upload-handler';
 import { DeleteDocumentButton } from './delete-document-button';
 import { AdRenderer } from '@/components/ad-renderer';
 import type { Tables } from '@/lib/supabase/database.types';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Document = Tables<'documents'>;
 
@@ -23,24 +25,58 @@ interface UploadsClientPageProps {
     showInFeedAd: boolean;
     inFeedAdCode: string | null;
   }
+  isPro: boolean;
+  multiDocEnabled: boolean;
 }
 
-export function UploadsClientPage({ documents, uploadLimitMb, adProps }: UploadsClientPageProps) {
+export function UploadsClientPage({ documents, uploadLimitMb, adProps, isPro, multiDocEnabled }: UploadsClientPageProps) {
     const { showAd } = useAdModal();
     const router = useRouter();
+    const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+    
+    const handleSelectDoc = (docId: string) => {
+        setSelectedDocs(prev => 
+            prev.includes(docId) ? prev.filter(id => id !== docId) : [...prev, docId]
+        );
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedDocs(documents.map(d => d.id));
+        } else {
+            setSelectedDocs([]);
+        }
+    };
+    
+    const isAllSelected = documents.length > 0 && selectedDocs.length === documents.length;
 
     const handleChatClick = (docId: string) => {
         showAd(() => {
             router.push(`/app/chat/${docId}`);
         });
     };
+
+    const handleMultiChatClick = () => {
+        if (!isPro || !multiDocEnabled || selectedDocs.length < 2) return;
+        const ids = selectedDocs.join(',');
+        showAd(() => {
+             router.push(`/app/chat/multi?ids=${ids}`);
+        });
+    }
     
     // In-feed ads will be inserted every 3 items.
     const IN_FEED_AD_INTERVAL = 3;
 
     const tableRows = documents.reduce((acc, doc, index) => {
         acc.push(
-            <TableRow key={doc.id}>
+            <TableRow key={doc.id} data-state={selectedDocs.includes(doc.id) ? "selected" : ""}>
+                <TableCell className="w-12">
+                     <Checkbox
+                        checked={selectedDocs.includes(doc.id)}
+                        onCheckedChange={() => handleSelectDoc(doc.id)}
+                        aria-label={`Select document ${doc.name}`}
+                    />
+                </TableCell>
                 <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-primary" />
@@ -65,7 +101,7 @@ export function UploadsClientPage({ documents, uploadLimitMb, adProps }: Uploads
         if (adProps.showInFeedAd && (index + 1) % IN_FEED_AD_INTERVAL === 0 && (index + 1) < documents.length) {
             acc.push(
                  <TableRow key={`ad-${index}`} className="hover:bg-card">
-                    <TableCell colSpan={3} className="p-0">
+                    <TableCell colSpan={4} className="p-0">
                         <div className="p-4">
                            <AdRenderer adCode={adProps.inFeedAdCode} />
                         </div>
@@ -88,10 +124,36 @@ export function UploadsClientPage({ documents, uploadLimitMb, adProps }: Uploads
         
         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
             <CardHeader>
-                <CardTitle>Document List</CardTitle>
-                <CardDescription>
-                    You have uploaded {documents.length} document(s).
-                </CardDescription>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                     <div>
+                        <CardTitle>{selectedDocs.length > 0 ? `${selectedDocs.length} Document${selectedDocs.length > 1 ? 's' : ''} Selected` : 'Document List'}</CardTitle>
+                        <CardDescription>
+                            You have uploaded {documents.length} document(s).
+                        </CardDescription>
+                    </div>
+                    {multiDocEnabled && selectedDocs.length > 1 && (
+                        isPro ? (
+                             <Button onClick={handleMultiChatClick}>
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Chat with Selected
+                            </Button>
+                        ) : (
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button disabled>
+                                            <Sparkles className="mr-2 h-4 w-4" />
+                                            Chat with Selected
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-400" /> This is a Pro feature</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                             </TooltipProvider>
+                        )
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 {documents.length > 0 ? (
@@ -99,6 +161,13 @@ export function UploadsClientPage({ documents, uploadLimitMb, adProps }: Uploads
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-12">
+                                         <Checkbox
+                                            checked={isAllSelected}
+                                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                            aria-label="Select all documents"
+                                        />
+                                    </TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead className="hidden md:table-cell">Uploaded On</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
