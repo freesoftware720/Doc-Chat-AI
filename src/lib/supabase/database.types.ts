@@ -196,6 +196,7 @@ export type Database = {
           name: string
           period: string | null
           price: number
+          type: "individual" | "team"
         }
         Insert: {
           created_at?: string
@@ -209,6 +210,7 @@ export type Database = {
           name: string
           period?: string | null
           price: number
+          type?: "individual" | "team"
         }
         Update: {
           created_at?: string
@@ -222,6 +224,7 @@ export type Database = {
           name?: string
           period?: string | null
           price?: number
+          type?: "individual" | "team"
         }
         Relationships: []
       }

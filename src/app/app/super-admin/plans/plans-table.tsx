@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function PlanForm({ plan, onOpenChange }: { plan?: Plan | null, onOpenChange: (open: boolean) => void }) {
     const isEditing = !!plan;
@@ -49,10 +50,22 @@ function PlanForm({ plan, onOpenChange }: { plan?: Plan | null, onOpenChange: (o
                     <Label htmlFor="name">Plan Name</Label>
                     <Input id="name" name="name" defaultValue={plan?.name || ""} required />
                 </div>
-                <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Input id="description" name="description" defaultValue={plan?.description || ""} />
+                 <div>
+                    <Label htmlFor="type">Plan Type</Label>
+                    <Select name="type" defaultValue={plan?.type || 'individual'}>
+                        <SelectTrigger id="type">
+                            <SelectValue placeholder="Select plan type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="individual">Individual</SelectItem>
+                            <SelectItem value="team">Team</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
+            </div>
+             <div>
+                <Label htmlFor="description">Description</Label>
+                <Input id="description" name="description" defaultValue={plan?.description || ""} />
             </div>
              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                  <div>
@@ -147,6 +160,7 @@ export function PlansTable({ plans }: { plans: Plan[] }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -158,6 +172,9 @@ export function PlansTable({ plans }: { plans: Plan[] }) {
                                 <TableCell className="font-medium">
                                     {plan.name}
                                     {plan.is_popular && <Badge variant="outline" className="ml-2 border-primary text-primary">Popular</Badge>}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary" className="capitalize">{plan.type}</Badge>
                                 </TableCell>
                                 <TableCell>
                                     {plan.currency_symbol}{plan.price} {plan.currency} {plan.period}
@@ -177,7 +194,7 @@ export function PlansTable({ plans }: { plans: Plan[] }) {
                             </TableRow>
                         ))}
                         {plans.length === 0 && (
-                            <TableRow><TableCell colSpan={4} className="h-24 text-center">No plans configured.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No plans configured.</TableCell></TableRow>
                         )}
                     </TableBody>
                 </Table>

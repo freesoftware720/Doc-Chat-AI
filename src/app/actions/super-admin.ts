@@ -561,6 +561,7 @@ export async function createPlan(prevState: any, formData: FormData) {
             features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
             is_active: formData.get('is_active') === 'on',
             is_popular: formData.get('is_popular') === 'on',
+            type: formData.get('type') as 'individual' | 'team',
         };
 
         const { error } = await serviceSupabase.from('plans').insert(rawData as TablesInsert<'plans'>);
@@ -595,6 +596,7 @@ export async function updatePlan(prevState: any, formData: FormData) {
             features: (formData.get('features') as string).split('\n').filter(f => f.trim() !== ''),
             is_active: formData.get('is_active') === 'on',
             is_popular: formData.get('is_popular') === 'on',
+            type: formData.get('type') as 'individual' | 'team',
         };
 
         const { error } = await serviceSupabase.from('plans').update(rawData as TablesUpdate<'plans'>).eq('id', id);
