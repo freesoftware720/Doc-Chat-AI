@@ -1,7 +1,6 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/toaster';
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -22,17 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable}`}>
+    <html lang="en" className={`dark ${inter.variable}`}>
       <body className="font-body antialiased min-h-screen bg-background flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
           {children}
           <Toaster />
-        </ThemeProvider>
         <SpeedInsights />
       </body>
     </html>
