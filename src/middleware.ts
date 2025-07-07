@@ -1,3 +1,4 @@
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -61,17 +62,34 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   const isAuthPage = pathname.startsWith('/auth')
+  const isSelectPlanPage = pathname === '/auth/select-plan'
   const isAppPage = pathname.startsWith('/app')
 
-  // Redirect logic
   if (user) {
-    // If user is logged in, redirect from auth pages to the app dashboard
-    if (isAuthPage) {
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_plan')
+        .eq('id', user.id)
+        .single();
+    const hasSelectedPlan = !!profile?.subscription_plan;
+    
+    // Redirect a user with no plan to the selection page if they access the app
+    if (!hasSelectedPlan && isAppPage) {
+      return NextResponse.redirect(new URL('/auth/select-plan', request.url));
+    }
+    
+    // Redirect a user with a plan away from the selection page
+    if (hasSelectedPlan && isSelectPlanPage) {
+        return NextResponse.redirect(new URL('/app', request.url));
+    }
+
+    // Redirect logged-in users from general auth pages to the app
+    if (isAuthPage && !isSelectPlanPage) {
       return NextResponse.redirect(new URL('/app', request.url))
     }
   } else {
-    // If user is not logged in, protect the app pages
-    if (isAppPage) {
+    // Redirect logged-out users from protected pages
+    if (isAppPage || isSelectPlanPage) {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
   }
