@@ -17,7 +17,7 @@ export function ReferralCard({ profile }: { profile: Profile | null }) {
     
     if (!profile) return null;
 
-    const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/register?ref=${profile.referral_code}`;
+    const referralLink = `https://chat-doc-ai.vercel.app/auth/register?ref=${profile.referral_code}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(referralLink).then(() => {

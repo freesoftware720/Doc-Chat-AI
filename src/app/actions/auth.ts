@@ -123,7 +123,7 @@ export async function sendPasswordResetEmail(prevState: any, formData: FormData)
     const email = formData.get('email') as string
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').origin}/auth/reset-password`,
+      redirectTo: `https://chat-doc-ai.vercel.app/auth/reset-password`,
     })
 
     if (error) {
@@ -174,7 +174,7 @@ export async function signInWithGithub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').origin}/auth/callback`,
+      redirectTo: `https://chat-doc-ai.vercel.app/auth/callback`,
     },
   })
 
@@ -192,7 +192,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').origin}/auth/callback`,
+            redirectTo: `https://chat-doc-ai.vercel.app/auth/callback`,
         },
     });
 
