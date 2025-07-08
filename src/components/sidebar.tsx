@@ -1,3 +1,4 @@
+
 'use client';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -74,7 +75,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                 href={item.href}
                 asChild
                 isActive={pathname === item.href || (item.href !== '/app' && pathname.startsWith(item.href + '/'))}
-                tooltip={item.label}
               >
                 <Link href={item.href}>
                   <item.icon />
@@ -90,7 +90,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                     href="/app/super-admin"
                     asChild
                     isActive={pathname.startsWith("/app/super-admin")}
-                    tooltip="Super Admin"
                 >
                     <Link href="/app/super-admin">
                         <ShieldCheck />
@@ -128,7 +127,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             <SidebarMenuButton
               href="/app/billing"
               asChild
-              tooltip="Upgrade"
               isActive={pathname === "/app/billing"}
             >
               <Link href="/app/billing">
@@ -141,7 +139,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             <SidebarMenuButton
               href="/app/affiliate"
               asChild
-              tooltip="Affiliate"
               isActive={pathname === "/app/affiliate"}
             >
               <Link href="/app/affiliate">
@@ -154,7 +151,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
              <SidebarMenuButton 
                 href="/app/review" 
                 asChild 
-                tooltip="Leave a Review"
                 isActive={pathname === "/app/review"}
             >
               <Link href="/app/review">
@@ -167,7 +163,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
              <SidebarMenuButton 
                 href="/app/settings" 
                 asChild 
-                tooltip="Settings"
                 isActive={pathname === "/app/settings"}
             >
               <Link href="/app/settings">
@@ -181,7 +176,6 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                 <SidebarMenuButton
                   type="submit"
                   asChild
-                  tooltip="Logout"
                   className="hover:bg-destructive/35 hover:border-destructive hover:text-destructive-foreground hover:[text-shadow:none]"
                 >
                     <button className="w-full">
