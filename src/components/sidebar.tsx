@@ -68,7 +68,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             <span className="font-bold font-headline text-xl group-data-[state=collapsed]:hidden">Doc-Chat AI</span>
           </Link>
         </SidebarHeader>
-        <SidebarMenu>
+        <SidebarMenu className="group-data-[state=collapsed]:items-center">
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
@@ -122,7 +122,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             </AvatarFallback>
           </Avatar>
         </div>
-        <SidebarMenu>
+        <SidebarMenu className="group-data-[state=collapsed]:items-center">
           <SidebarMenuItem>
             <SidebarMenuButton
               href="/app/billing"
