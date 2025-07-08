@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { AdRenderer } from './ad-renderer';
 
 interface VideoAdModalProps {
   adCode: string;
@@ -47,10 +48,9 @@ export function VideoAdModal({ adCode, skipTimer, onAdCompleted }: VideoAdModalP
           </DialogDescription>
         </DialogHeader>
         <div className="aspect-video bg-black flex items-center justify-center">
-            {/* This div will render the ad network's script */}
-            <div
-                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full" // Ensure iframes from ad networks are responsive
-                dangerouslySetInnerHTML={{ __html: adCode }}
+            <AdRenderer 
+              adCode={adCode} 
+              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
             />
         </div>
         <DialogFooter className="p-4 border-t">
