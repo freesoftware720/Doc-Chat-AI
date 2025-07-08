@@ -118,6 +118,11 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       ...settings,
+      chat_limit_free_user: settings.chat_limit_free_user || 50,
+      upload_limit_mb_free: settings.upload_limit_mb_free || 5,
+      upload_limit_mb_pro: settings.upload_limit_mb_pro || 100,
+      video_ad_skip_timer: settings.video_ad_skip_timer || 5,
+      daily_reward_clicks_required: settings.daily_reward_clicks_required || 10,
       homepage_announcement_message: settings.homepage_announcement_message || "",
       logo_url: settings.logo_url || "",
       landing_page_content: preparedLpContent,
