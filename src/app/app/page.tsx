@@ -12,12 +12,10 @@ export default async function AppPage() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // The layout will redirect if there's no user, but this is a safeguard.
   if (!user) {
     redirect('/auth/login');
   }
 
-  // Fetch all necessary data in parallel to speed up page load.
   const [recentDocuments, profileResult, settings] = await Promise.all([
     getDocuments(),
     supabase.from('profiles').select('subscription_plan, pro_credits, full_name').eq('id', user.id).single(),
@@ -29,39 +27,58 @@ export default async function AppPage() {
   const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
   const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
   
+  const showBannerAd = !isPro && settings.feature_banner_ads_enabled && !!settings.banner_ad_code;
   const showMultiplexAd = !isPro && settings.feature_multiplex_ads_enabled && !!settings.multiplex_ad_code;
+  const showInFeedAd = !isPro && settings.feature_in_feed_ads_enabled && !!settings.in_feed_ad_code;
+  const shouldShowAds = showBannerAd || showMultiplexAd || showInFeedAd;
 
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
 
-
   const handleGetStarted = async () => {
     'use server';
-    // Find the first document to start a chat with
     const documents = await getDocuments();
     if (documents.length > 0) {
       redirect(`/app/chat/${documents[0].id}`);
     } else {
-      // If no documents, stay on the page (the UI will prompt to upload)
-      // This could also redirect to /app/uploads
+      // Stay on page
     }
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6 h-full flex flex-col">
+    <div className="p-4 md:p-6 space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold font-headline">
         Welcome <span className="text-primary">{firstName}</span> to Doc-Chat AI
       </h1>
+      
       <DashboardStats />
-       {showMultiplexAd && (
-        <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
-            <CardHeader>
-                <CardTitle className="text-base font-semibold">Sponsored</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <AdRenderer adCode={settings.multiplex_ad_code} />
-            </CardContent>
-        </Card>
+      
+      {shouldShowAds && (
+        <div className="space-y-4">
+          <h2 className="text-base font-semibold text-muted-foreground ml-1">Sponsored Content</h2>
+          {showBannerAd && (
+            <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                <CardContent className="p-2">
+                    <AdRenderer adCode={settings.banner_ad_code} />
+                </CardContent>
+            </Card>
+          )}
+          {showMultiplexAd && (
+            <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                <CardContent className="p-4">
+                    <AdRenderer adCode={settings.multiplex_ad_code} />
+                </CardContent>
+            </Card>
+          )}
+          {showInFeedAd && (
+            <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                <CardContent className="p-2">
+                    <AdRenderer adCode={settings.in_feed_ad_code} />
+                </CardContent>
+            </Card>
+          )}
+        </div>
       )}
+
       <RecentUploads 
         documents={recentDocuments} 
         getStartedAction={handleGetStarted}
