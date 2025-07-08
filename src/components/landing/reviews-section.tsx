@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ReviewCard } from './review-card';
 import type { ReviewWithProfile } from '@/app/actions/reviews';
+import { cn } from '@/lib/utils';
 
 const defaultContent = {
     headline: "What Our Users Say",
@@ -12,9 +13,10 @@ const defaultContent = {
 };
 
 export function ReviewsSection({ reviews, content = defaultContent }: { reviews: ReviewWithProfile[], content?: typeof defaultContent }) {
-    const [emblaRef] = useEmblaCarousel({ loop: true, align: 'start' }, [
-        Autoplay({ delay: 4000, stopOnInteraction: true }),
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' }, [
+        Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true }),
     ]);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     if (!reviews || reviews.length === 0) {
         return null; // Don't render the section if there are no reviews
@@ -22,6 +24,16 @@ export function ReviewsSection({ reviews, content = defaultContent }: { reviews:
 
     // Duplicate reviews for a seamless loop effect, ensuring there are enough items
     const extendedReviews = reviews.length < 5 ? [...reviews, ...reviews, ...reviews] : reviews;
+
+    const handleMouseEnter = (index: number) => {
+        setHoveredIndex(index);
+        emblaApi?.plugins()?.autoplay?.stop();
+    };
+
+    const handleMouseLeave = () => {
+        setHoveredIndex(null);
+        emblaApi?.plugins()?.autoplay?.play();
+    };
 
     return (
         <section id="reviews" className="py-20 md:py-32">
@@ -34,7 +46,16 @@ export function ReviewsSection({ reviews, content = defaultContent }: { reviews:
             <div className="embla" ref={emblaRef}>
                 <div className="embla__container">
                     {extendedReviews.map((review, index) => (
-                        <div className="embla__slide" key={`${review.id}-${index}`}>
+                        <div 
+                            className={cn(
+                                "embla__slide transition-all duration-300 ease-in-out",
+                                hoveredIndex !== null && hoveredIndex !== index ? "blur-[2px] opacity-60" : "",
+                                hoveredIndex === index ? "scale-105 z-10" : ""
+                            )} 
+                            key={`${review.id}-${index}`}
+                            onMouseEnter={() => handleMouseEnter(index)}
+                            onMouseLeave={handleMouseLeave}
+                        >
                             <ReviewCard review={review} />
                         </div>
                     ))}
