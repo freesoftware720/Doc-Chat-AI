@@ -1,4 +1,3 @@
-
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -51,9 +50,8 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
 
   return (
     <Sidebar
-      variant="sidebar"
+      variant="floating"
       collapsible="icon"
-      className="border-r border-border/40 bg-card/40 backdrop-blur-lg"
     >
       <SidebarContent>
         <SidebarHeader>
