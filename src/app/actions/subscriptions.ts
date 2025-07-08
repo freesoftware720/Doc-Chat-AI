@@ -94,4 +94,35 @@ export async function getUserSubscriptionStatus() {
     };
 }
 
+export async function cancelSubscription(prevState: any, formData: FormData) {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: 'You must be logged in to cancel your subscription.' };
+    }
+
+    // Downgrade to Free plan and reset any referral credits.
+    const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_plan: 'Free', pro_credits: 0 })
+        .eq('id', user.id);
+
+    if (error) {
+        console.error("Error canceling subscription:", error.message);
+        return { error: 'Failed to cancel your subscription. Please contact support.' };
+    }
+
+    revalidatePath('/app/billing', 'page');
+    revalidatePath('/app/settings', 'page');
+    revalidatePath('/app', 'layout');
+    
+    return { success: 'Your subscription has been successfully canceled. You are now on the Free plan.' };
+
+  } catch (e: any) {
+    console.error('Cancel subscription action failed:', e);
+    return { error: `An unexpected error occurred: ${e.message}` };
+  }
+}
     

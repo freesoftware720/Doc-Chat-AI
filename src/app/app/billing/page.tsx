@@ -7,6 +7,7 @@ import { Check, Clock, AlertCircle } from "lucide-react";
 import { getUserSubscriptionStatus } from "@/app/actions/subscriptions";
 import { format } from "date-fns";
 import { PaymentSubmissionDialog } from "./payment-submission-dialog";
+import { CancelSubscriptionButton } from "./cancel-subscription-button";
 
 function StatusCard({ request }: { request: any }) {
     if (!request) return null;
@@ -63,13 +64,13 @@ export default async function BillingPage() {
     const paidPlans = plans.filter(p => p.price > 0);
 
     const currentPlanName = (profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Free');
-    const isPro = currentPlanName.startsWith('Pro');
+    const isPaidSubscriber = !!(profile?.subscription_plan && profile.subscription_plan !== 'Free');
 
     return (
         <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
             <header>
-                <h1 className="text-2xl md:text-3xl font-bold font-headline">Billing & Upgrade</h1>
-                <p className="text-muted-foreground mt-1">Manage your subscription and upgrade your plan.</p>
+                <h1 className="text-2xl md:text-3xl font-bold font-headline">Billing &amp; Plans</h1>
+                <p className="text-muted-foreground mt-1">Manage your subscription and change your plan.</p>
             </header>
             
             <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
@@ -84,12 +85,25 @@ export default async function BillingPage() {
                                 <p className="text-sm text-muted-foreground mt-1">You have {profile.pro_credits} month(s) of Pro credits remaining.</p>
                             )}
                         </div>
-                        <Badge variant={isPro ? 'default' : 'secondary'} className="text-lg px-4 py-1">
-                            {isPro ? 'Active' : 'Free Tier'}
+                        <Badge variant={isPaidSubscriber ? 'default' : 'secondary'} className="text-lg px-4 py-1">
+                            {isPaidSubscriber ? 'Active' : 'Free Tier'}
                         </Badge>
                     </div>
                 </CardContent>
             </Card>
+
+            {isPaidSubscriber && !hasPendingRequest && (
+                 <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Cancel Subscription</CardTitle>
+                        <CardDescription>You can cancel your subscription at any time.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">Downgrade to the Free plan. This action is effective immediately.</p>
+                        <CancelSubscriptionButton />
+                    </CardContent>
+                </Card>
+            )}
             
             {hasPendingRequest ? (
                 <StatusCard request={latestRequest} />
@@ -97,39 +111,44 @@ export default async function BillingPage() {
                 <>
                 {latestRequest?.status === 'rejected' && <StatusCard request={latestRequest} />}
 
-                {!isPro && (
-                    <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
-                        <CardHeader>
-                            <CardTitle>Upgrade Your Plan</CardTitle>
-                            <CardDescription>Choose a plan below to unlock more features.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-8">
-                                {paidPlans.map(plan => (
-                                    <div key={plan.id}>
-                                        <Card className="flex flex-col">
-                                            <CardHeader>
-                                                <CardTitle>{plan.name}</CardTitle>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-3xl font-bold">{plan.currency_symbol}{plan.price}</span>
-                                                    <span className="text-muted-foreground">{plan.period}</span>
-                                                </div>
-                                                <CardDescription>{plan.description}</CardDescription>
-                                            </CardHeader>
-                                            <CardContent className="flex-1">
-                                                <ul className="space-y-2">
-                                                    {plan.features.map(feature => (
-                                                        <li key={feature} className="flex items-start gap-2">
-                                                            <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                                            <span className="text-sm text-muted-foreground">{feature}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </CardContent>
-                                        </Card>
-                                        
+                <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Available Plans</CardTitle>
+                        <CardDescription>Choose a plan that fits your needs.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-8">
+                            {paidPlans.map(plan => {
+                                const isCurrentPlan = plan.name === profile?.subscription_plan;
+                                return (
+                                <div key={plan.id}>
+                                    <Card className="flex flex-col relative">
+                                        {isCurrentPlan && (
+                                            <Badge className="absolute top-4 right-4 z-10">Current Plan</Badge>
+                                        )}
+                                        <CardHeader>
+                                            <CardTitle>{plan.name}</CardTitle>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-3xl font-bold">{plan.currency_symbol}{plan.price}</span>
+                                                <span className="text-muted-foreground">{plan.period}</span>
+                                            </div>
+                                            <CardDescription>{plan.description}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="flex-1">
+                                            <ul className="space-y-2">
+                                                {plan.features.map(feature => (
+                                                    <li key={feature} className="flex items-start gap-2">
+                                                        <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                                        <span className="text-sm text-muted-foreground">{feature}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardContent>
+                                    </Card>
+                                    
+                                    {!isCurrentPlan && (
                                         <div className="mt-4">
-                                             <h3 className="text-base font-semibold mb-2 ml-1">Payment Methods:</h3>
+                                            <h3 className="text-base font-semibold mb-2 ml-1">Payment Methods:</h3>
                                             {gateways.length > 0 ? (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     {gateways.map(gateway => (
@@ -148,17 +167,14 @@ export default async function BillingPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                           
-                        </CardContent>
-                    </Card>
-                )}
+                                    )}
+                                </div>
+                            )})}
+                        </div>
+                    </CardContent>
+                </Card>
                 </>
             )}
         </div>
     );
 }
-
-    
