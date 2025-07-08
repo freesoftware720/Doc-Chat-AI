@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -358,7 +359,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 px-2 pt-2", className)}
       {...props}
     />
   )
@@ -373,7 +374,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("flex flex-col gap-2 px-2 pb-2", className)}
       {...props}
     />
   )
@@ -492,7 +493,7 @@ const SidebarMenu = React.forwardRef<
   <ul
     ref={ref}
     data-sidebar="menu"
-    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
+    className={cn("flex w-full min-w-0 flex-col gap-1 p-2", className)}
     {...props}
   />
 ))
@@ -517,7 +518,7 @@ const sidebarMenuButtonVariants = cva(
     variants: {
       variant: {
         default:
-          "data-[active=true]:font-medium data-[active=true]:border-primary/40 data-[active=true]:bg-primary/20 data-[active=true]:text-primary dark:data-[active=true]:text-white data-[active=true]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[active=true]:[text-shadow:0_0_8px_white] hover:border-primary/40 hover:bg-primary/20 hover:text-primary dark:hover:text-white hover:[text-shadow:0_0_8px_hsl(var(--primary))] dark:hover:[text-shadow:0_0_8px_white] data-[state=open]:border-primary/40 data-[state=open]:bg-primary/20 data-[state=open]:text-primary dark:data-[state=open]:text-white data-[state=open]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[state=open]:[text-shadow:0_0_8px_white]",
+          "data-[active=true]:font-medium data-[active=true]:border-primary/40 data-[active=true]:bg-primary/20 data-[active=true]:text-primary dark:data-[active=true]:text-white data-[active=true]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[active=true]:[text-shadow:0_0_8px_white] hover:border-primary/40 hover:bg-primary/20 hover:text-primary dark:hover:text-white hover:[text-shadow:0_0_8px_hsl(var(--primary))] dark:hover:[text-shadow:0_0_8px_white] data-[state=open]:border-primary/40 data-[state=open]:bg-primary/20 data-[state=open]:text-primary dark:data-[state=open]:text-white data-[state=open]:[text-shadow:0_0_8px_hsl(var(--primary))] dark:data-[state=open]:[text-shadow:0_0_8px_white] data-[active=true]:mx-[-0.5rem] data-[active=true]:px-2 data-[active=true]:rounded-r-none hover:mx-[-0.5rem] hover:px-2 hover:rounded-r-none data-[state=open]:mx-[-0.5rem] data-[state=open]:px-2 data-[state=open]:rounded-r-none",
         outline:
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
