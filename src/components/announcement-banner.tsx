@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Megaphone, X } from 'lucide-react';
@@ -44,22 +45,22 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
       transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
     },
     expanded: {
-      width: 'clamp(300px, 90vw, 400px)',
+      width: '380px',
       height: 'auto',
       borderRadius: '1.5rem', // rounded-2xl
-      transition: { 
-        type: 'spring',
-        damping: 20,
-        stiffness: 150,
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+      transition: {
+        type: 'tween', // Use a tween for smoother, non-bouncy animation
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1], // A very smooth ease-out curve
+        staggerChildren: 0.05,
+        delayChildren: 0.1,
       },
     },
   };
   
   const contentVariants = {
-      collapsed: { opacity: 0, y: 10, transition: { duration: 0.1 } },
-      expanded: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+      collapsed: { opacity: 0, y: 10, transition: { duration: 0.2 } },
+      expanded: { opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.1 } }, // Slight delay for content
   };
 
   return (
@@ -78,9 +79,8 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
             animate={isExpanded ? "expanded" : "collapsed"}
             className="overflow-hidden bg-primary/90 backdrop-blur-xl border border-white/20 shadow-2xl shadow-primary/20 cursor-pointer"
             onClick={() => !isExpanded && setIsExpanded(true)}
-            style={{ perspective: '800px' }}
           >
-            <AnimatePresence>
+            <AnimatePresence mode="wait" initial={false}>
                 {isExpanded ? (
                     <motion.div 
                         key="content"
@@ -89,11 +89,9 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
                         animate="expanded"
                         exit="collapsed"
                         className="p-5 flex flex-col h-full pointer-events-auto"
-                        style={{ transformStyle: 'preserve-3d' }}
                     >
-                        <motion.div 
+                        <div 
                             className="flex items-start gap-4 text-primary-foreground"
-                            style={{ transform: 'translateZ(40px)' }}
                         >
                             <div className="p-2 bg-white/10 rounded-full mt-1">
                                 <Megaphone className="h-6 w-6" />
@@ -109,7 +107,7 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
                             >
                                 <X className="h-4 w-4" />
                             </button>
-                        </motion.div>
+                        </div>
                     </motion.div>
                 ) : (
                     <motion.div
