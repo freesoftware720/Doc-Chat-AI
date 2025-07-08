@@ -2,6 +2,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { serviceSupabase } from '@/lib/supabase/service';
 import { revalidatePath } from 'next/cache';
 import type { TablesInsert } from '@/lib/supabase/database.types';
 
@@ -65,8 +66,13 @@ export async function processDocument(
     content: content,
     file_size: fileSize,
   };
+  
+  if (!serviceSupabase) {
+      throw new Error("Service client is not available. Cannot save document. Please check server environment variables.");
+  }
 
-  const { data: document, error: insertError } = await supabase
+  // Use the service client to insert into the DB, bypassing RLS for the insert.
+  const { data: document, error: insertError } = await serviceSupabase
     .from('documents')
     .insert(docToInsert)
     .select()
@@ -76,7 +82,7 @@ export async function processDocument(
     // If insert fails, clean up the stored file
     await supabase.storage.from('documents').remove([storagePath]);
     console.error("Error saving document metadata:", insertError.message);
-    throw new Error('Failed to save document metadata to database.');
+    throw new Error(`Failed to save document metadata to database. ${insertError.message}`);
   }
 
   revalidatePath('/app');
