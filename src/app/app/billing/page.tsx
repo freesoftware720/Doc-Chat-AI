@@ -64,7 +64,7 @@ export default async function BillingPage() {
     const paidPlans = plans.filter(p => p.price > 0);
 
     const currentPlanName = (profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic');
-    const isPaidSubscriber = !!(profile?.subscription_plan && profile.subscription_plan !== 'Basic');
+    const isPaidSubscriber = typeof profile?.subscription_plan === 'string' && profile.subscription_plan !== 'Basic';
 
     return (
         <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
