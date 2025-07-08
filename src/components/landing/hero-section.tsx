@@ -18,12 +18,17 @@ const defaultContent = {
 };
 
 const AnimatedText = ({ texts }: { texts: string[] }) => {
+  const [isMounted, setIsMounted] = useState(false);
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (!texts || texts.length === 0) return;
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !texts || texts.length === 0) return;
 
     if (isDeleting) {
       if (subIndex === 0) {
@@ -50,12 +55,13 @@ const AnimatedText = ({ texts }: { texts: string[] }) => {
     }, 150);
 
     return () => clearTimeout(timeout);
-  }, [subIndex, index, isDeleting, texts]);
-
-  if (!texts || texts.length === 0) {
-    return <span className="text-primary inline-block">documents</span>;
-  }
+  }, [subIndex, index, isDeleting, texts, isMounted]);
   
+  if (!isMounted) {
+      // Render the first word statically on server and initial client render to prevent hydration mismatch.
+      return <span className="text-primary inline-block">{texts?.[0] || 'documents'}</span>;
+  }
+
   return (
     <span className={cn("text-primary inline-block typing-cursor")}>
       {texts[index].substring(0, subIndex)}
@@ -166,7 +172,41 @@ const UiMockup = () => {
   );
 };
 
+// Placeholder for server render and initial client render
+const UiMockupPlaceholder = () => (
+    <div className="relative">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+        <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl shadow-primary/10 w-full max-w-md mx-auto">
+            <div className="bg-background/80 rounded-lg px-3 py-1.5 text-sm shadow-sm flex items-center">
+                <span>Doc-Chat-Ai.pdf</span>
+            </div>
+            <div className="mt-3">
+                <div className="border-dashed border-2 border-border/50 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+                    <File className="w-8 h-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mt-2">Document uploaded successfully!</p>
+                </div>
+            </div>
+            <div className="mt-4 space-y-2 flex flex-col">
+                <div className="bg-primary text-primary-foreground p-3 rounded-xl rounded-br-none max-w-[85%] self-end text-sm">
+                    <p>What are the main findings from the report?</p>
+                </div>
+            </div>
+            <div className="mt-2 space-y-2 flex flex-col">
+                <div className="bg-background/80 p-3 rounded-xl rounded-bl-none max-w-[95%] self-start text-sm text-muted-foreground">
+                    <p>The main findings are a 20% revenue increase, with significant growth in European and Asian markets.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
 export function HeroSection({ content: rawContent }: { content?: any }) {
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+      setIsMounted(true);
+  }, []);
+
   const content = { ...defaultContent, ...rawContent };
 
   const animatedTexts = (content.headline_animated_texts || []).map((item: any) =>
@@ -194,7 +234,7 @@ export function HeroSection({ content: rawContent }: { content?: any }) {
             <p className="text-sm text-muted-foreground">{content.cta_secondary}</p>
           </div>
         </div>
-        <UiMockup />
+        {isMounted ? <UiMockup /> : <UiMockupPlaceholder />}
       </div>
     </section>
   );
