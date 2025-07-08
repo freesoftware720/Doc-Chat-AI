@@ -63,7 +63,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
     >
       <SidebarContent>
         <SidebarHeader>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 group-data-[state=collapsed]:justify-center">
             <Logo className="w-7 h-7" />
             <span className="font-bold font-headline text-xl group-data-[state=collapsed]:hidden">Doc-Chat AI</span>
           </Link>
