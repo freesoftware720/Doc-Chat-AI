@@ -12,7 +12,7 @@ export function ReviewCard({ review }: { review: ReviewWithProfile }) {
 
     return (
         <div className="gsap-review-card p-2 h-full">
-            <Card className="relative h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10 overflow-hidden">
+            <Card className="marble-surface relative h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10">
                 <CardContent className="p-6 md:p-8 flex flex-col h-full">
                     <div className="flex items-center gap-4 mb-4">
                         <Avatar>
