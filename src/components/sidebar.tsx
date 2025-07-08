@@ -110,7 +110,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                 </div>
             </div>
         )}
-        <div className="flex items-center justify-between gap-2 p-2 border-t border-border/40">
+        <div className="flex items-center justify-between group-data-[state=collapsed]:justify-center gap-2 p-2 border-t border-border/40">
            <div className="flex-1 overflow-hidden group-data-[state=collapsed]:hidden">
              <p className="text-sm font-semibold truncate">{user?.user_metadata.full_name || user?.email}</p>
              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
