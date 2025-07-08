@@ -33,7 +33,7 @@ export async function getDashboardStats() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-        return { documents: 0, chats: 0, plan: 'Free' };
+        return { documents: 0, chats: 0, plan: 'Basic' };
     }
 
     // Run all data fetches in parallel for performance
@@ -62,7 +62,7 @@ export async function getDashboardStats() {
         console.error({ profileError, docsError, chatsError });
     }
 
-    const currentPlan = (profile?.pro_credits ?? 0) > 0 ? 'Pro (Credit)' : (profile?.subscription_plan ?? 'Free');
+    const currentPlan = (profile?.pro_credits ?? 0) > 0 ? 'Pro (Credit)' : (profile?.subscription_plan ?? 'Basic');
 
     return {
         documents: documentsCount ?? 0,

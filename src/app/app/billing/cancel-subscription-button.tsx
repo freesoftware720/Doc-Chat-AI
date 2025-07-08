@@ -53,7 +53,7 @@ export function CancelSubscriptionButton() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action will immediately downgrade your account to the Free plan. 
+              This action will immediately downgrade your account to the Basic plan. 
               You will lose access to Pro features. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

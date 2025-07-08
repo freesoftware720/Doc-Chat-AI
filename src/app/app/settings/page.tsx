@@ -12,7 +12,7 @@ export default async function SettingsPage() {
     const profile = await getProfile();
     const settings = await getAppSettings();
 
-    const isFreeUser = profile?.subscription_plan === 'Free';
+    const isBasicUser = profile?.subscription_plan === 'Basic';
     const rewardEnabled = settings.feature_daily_reward_enabled;
 
     return (
@@ -44,7 +44,7 @@ export default async function SettingsPage() {
                             <div>
                                 <p className="font-semibold">Current Plan</p>
                                 <p className="text-muted-foreground text-sm">
-                                    {(profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Free')}
+                                    {(profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic')}
                                 </p>
                             </div>
                             {profile?.subscription_plan !== 'Pro' ? (
@@ -63,7 +63,7 @@ export default async function SettingsPage() {
                     </CardContent>
                 </Card>
                 
-                {isFreeUser && rewardEnabled && (
+                {isBasicUser && rewardEnabled && (
                     <DailyRewardCard settings={settings} profile={profile} />
                 )}
 

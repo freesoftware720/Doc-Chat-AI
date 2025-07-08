@@ -30,7 +30,7 @@ function PlanCard({ plan }: { plan: Plan }) {
             </CardContent>
             <CardFooter className="p-8 pt-0">
                 <Button size="lg" className="w-full text-lg h-12" variant={plan.is_popular ? "default" : "outline"} asChild>
-                    <Link href="/auth/register">{plan.name === 'Free' ? 'Start for Free' : 'Get Started'}</Link>
+                    <Link href="/auth/register">{plan.name === 'Basic' ? 'Start for Free' : 'Get Started'}</Link>
                 </Button>
             </CardFooter>
         </Card>

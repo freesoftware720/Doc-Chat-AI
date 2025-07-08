@@ -63,8 +63,8 @@ export default async function BillingPage() {
     const plans = await getActivePlans();
     const paidPlans = plans.filter(p => p.price > 0);
 
-    const currentPlanName = (profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Free');
-    const isPaidSubscriber = !!(profile?.subscription_plan && profile.subscription_plan !== 'Free');
+    const currentPlanName = (profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic');
+    const isPaidSubscriber = !!(profile?.subscription_plan && profile.subscription_plan !== 'Basic');
 
     return (
         <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
@@ -86,7 +86,7 @@ export default async function BillingPage() {
                             )}
                         </div>
                         <Badge variant={isPaidSubscriber ? 'default' : 'secondary'} className="text-lg px-4 py-1">
-                            {isPaidSubscriber ? 'Active' : 'Free Tier'}
+                            {isPaidSubscriber ? 'Active' : 'Basic Tier'}
                         </Badge>
                     </div>
                 </CardContent>
@@ -99,7 +99,7 @@ export default async function BillingPage() {
                         <CardDescription>You can cancel your subscription at any time.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Downgrade to the Free plan. This action is effective immediately.</p>
+                        <p className="text-sm text-muted-foreground">Downgrade to the Basic plan. This action is effective immediately.</p>
                         <CancelSubscriptionButton />
                     </CardContent>
                 </Card>

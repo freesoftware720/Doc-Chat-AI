@@ -103,10 +103,10 @@ export async function cancelSubscription(prevState: any, formData: FormData) {
         return { error: 'You must be logged in to cancel your subscription.' };
     }
 
-    // Downgrade to Free plan and reset any referral credits.
+    // Downgrade to Basic plan and reset any referral credits.
     const { error } = await supabase
         .from('profiles')
-        .update({ subscription_plan: 'Free', pro_credits: 0 })
+        .update({ subscription_plan: 'Basic', pro_credits: 0 })
         .eq('id', user.id);
 
     if (error) {
@@ -118,7 +118,7 @@ export async function cancelSubscription(prevState: any, formData: FormData) {
     revalidatePath('/app/settings', 'page');
     revalidatePath('/app', 'layout');
     
-    return { success: 'Your subscription has been successfully canceled. You are now on the Free plan.' };
+    return { success: 'Your subscription has been successfully canceled. You are now on the Basic plan.' };
 
   } catch (e: any) {
     console.error('Cancel subscription action failed:', e);

@@ -23,8 +23,8 @@ export async function claimDailyReward() {
         return { error: 'Profile not found.' };
     }
 
-    if (profile.subscription_plan !== 'Free') {
-        return { error: 'This reward is only available to users on the Free plan.' };
+    if (profile.subscription_plan !== 'Basic') {
+        return { error: 'This reward is only available to users on the Basic plan.' };
     }
 
     const lastClaimed = profile.last_daily_reward_claimed_at ? new Date(profile.last_daily_reward_claimed_at) : null;

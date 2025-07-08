@@ -57,7 +57,7 @@ function PlanManagementDialog({ user, plans, open, onOpenChange }: { user: User,
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                         <Select name="plan" defaultValue={user.subscription_plan || 'Free'}>
+                         <Select name="plan" defaultValue={user.subscription_plan || 'Basic'}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a plan" />
                             </SelectTrigger>
@@ -165,7 +165,7 @@ export function UsersTable({ users, plans }: { users: User[], plans: Plan[] }) {
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={user.subscription_plan === 'Pro' ? 'default' : 'secondary'}>
-                                        {user.subscription_plan || 'Free'}
+                                        {user.subscription_plan || 'Basic'}
                                     </Badge>
                                 </TableCell>
                                  <TableCell>

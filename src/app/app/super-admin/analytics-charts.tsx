@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 // --- Plan Distribution Chart ---
 const planChartConfig = {
     value: { label: "Users" },
-    Free: { label: "Free", color: "hsl(var(--chart-1))" },
+    Basic: { label: "Basic", color: "hsl(var(--chart-1))" },
     Pro: { label: "Pro", color: "hsl(var(--chart-2))" },
 } satisfies ChartConfig;
 

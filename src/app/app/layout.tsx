@@ -49,9 +49,9 @@ export default async function AppLayout({
   const creditLimit = appSettings.chat_limit_free_user;
   
   let creditsUsed = 0;
-  const plan = profile?.subscription_plan ?? 'Free';
+  const plan = profile?.subscription_plan ?? 'Basic';
 
-  if (plan === 'Free') {
+  if (plan === 'Basic') {
     const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
     const now = new Date();
     const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
@@ -62,7 +62,7 @@ export default async function AppLayout({
     // If it's been more than 24 hours, creditsUsed remains 0, effectively resetting it for display.
   }
 
-  const isFreeUser = !profile?.subscription_plan || profile.subscription_plan === 'Free';
+  const isBasicUser = !profile?.subscription_plan || profile.subscription_plan === 'Basic';
   const adSettings = {
     videoAdCode: appSettings.video_ad_code,
     videoAdSkipTimer: appSettings.video_ad_skip_timer,
@@ -70,7 +70,7 @@ export default async function AppLayout({
   };
   
   return (
-    <AdProviderWrapper settings={adSettings} isFreeUser={isFreeUser}>
+    <AdProviderWrapper settings={adSettings} isFreeUser={isBasicUser}>
       <SidebarProvider>
         <AppSidebar 
           user={user} 
