@@ -40,14 +40,35 @@
     --chart-4: 40 90% 70%;
     --chart-5: 280 75% 75%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
+    /* Custom scrollbar for Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.7) transparent;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Custom scrollbar for Webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.5);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary) / 0.7);
   }
 }
 
