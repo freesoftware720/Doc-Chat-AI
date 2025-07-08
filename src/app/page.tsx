@@ -11,6 +11,7 @@ import { getActivePlans } from './actions/billing';
 import { LandingAnimations } from '@/components/landing/landing-animations';
 import { ReviewsSection } from '@/components/landing/reviews-section';
 import { getTopReviews } from './actions/reviews';
+import { AnnouncementBanner } from '@/components/announcement-banner';
 
 export default async function LandingPage() {
   const supabase = createClient();
@@ -23,6 +24,7 @@ export default async function LandingPage() {
 
   return (
     <>
+      <AnnouncementBanner message={settings.homepage_announcement_message} />
       <LandingAnimations />
       <Header user={user} />
       <div className="flex-1 relative">

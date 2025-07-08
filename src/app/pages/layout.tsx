@@ -2,6 +2,8 @@
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
+import { getAppSettings } from '../actions/settings';
+import { AnnouncementBanner } from '@/components/announcement-banner';
 
 export default async function PagesLayout({
   children,
@@ -10,9 +12,11 @@ export default async function PagesLayout({
 }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const settings = await getAppSettings();
 
   return (
     <>
+      <AnnouncementBanner message={settings.homepage_announcement_message} />
       <Header user={user} />
       <div className="flex-1 relative">
         <div className="absolute inset-0 -z-10 h-full w-full bg-background">

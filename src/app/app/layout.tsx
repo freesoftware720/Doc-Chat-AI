@@ -10,6 +10,7 @@ import { BannedUserPage } from "@/components/banned-user-page";
 import { getAppSettings } from "../actions/settings";
 import { AdProviderWrapper } from "@/components/ad-provider-wrapper";
 import { AdRenderer } from "@/components/ad-renderer";
+import { AnnouncementBanner } from "@/components/announcement-banner";
 
 export default async function AppLayout({
   children,
@@ -86,6 +87,7 @@ export default async function AppLayout({
               <div className="absolute -bottom-40 -right-40 h-[40rem] w-[40rem] animate-gradient-move-2 animate-color-change-2 rounded-full blur-3xl" />
             </div>
           </div>
+          <AnnouncementBanner message={appSettings.homepage_announcement_message} />
           <AppHeader />
           <div className="relative flex-1 overflow-y-auto pb-20 md:pb-0">
              {showBannerAd && (
