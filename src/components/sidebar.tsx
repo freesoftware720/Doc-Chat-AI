@@ -1,3 +1,4 @@
+
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,6 +10,8 @@ import {
   LogOut,
   ShieldCheck,
   Star,
+  Zap,
+  Gift,
 } from "lucide-react";
 import {
   Sidebar,
@@ -105,6 +108,32 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
             </div>
         )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              href="/app/billing"
+              asChild
+              tooltip="Upgrade"
+              isActive={pathname === "/app/billing"}
+            >
+              <Link href="/app/billing">
+                <Zap />
+                <span>Upgrade</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              href="/app/affiliate"
+              asChild
+              tooltip="Affiliate"
+              isActive={pathname === "/app/affiliate"}
+            >
+              <Link href="/app/affiliate">
+                <Gift />
+                <span>Affiliate</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
              <SidebarMenuButton 
                 href="/app/review" 
