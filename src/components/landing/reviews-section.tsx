@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -50,7 +49,7 @@ export function ReviewsSection({ reviews, content = defaultContent }: { reviews:
                         <div 
                             className={cn(
                                 "embla__slide transition-all duration-300 ease-in-out",
-                                hoveredIndex !== null && hoveredIndex !== index ? "blur-[3px] opacity-60" : "",
+                                hoveredIndex !== null && hoveredIndex !== index ? "blur-[2px] opacity-60" : "",
                                 hoveredIndex === index ? "scale-105 z-10" : ""
                             )} 
                             key={`${review.id}-${index}`}
