@@ -4,7 +4,7 @@ import { Logo } from "@/components/icons";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/40 bg-background/80 backdrop-blur-lg">
+    <footer className="relative mt-20 rounded-t-[3rem] border-t border-primary/20 bg-background/80 backdrop-blur-lg shadow-[0_-15px_40px_-15px_hsl(var(--primary)/0.25)]">
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
