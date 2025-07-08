@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -12,6 +11,8 @@ import {
   Star,
   Zap,
   Gift,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,6 +23,7 @@ import {
   SidebarFooter,
   SidebarContent,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -30,6 +32,7 @@ import { logout } from "@/app/actions/auth";
 import { useEffect, useState } from "react";
 import { isSuperAdmin } from "@/app/actions/super-admin";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "./ui/button";
 
 
 export function AppSidebar({ user, plan, creditsUsed, creditLimit }: { 
@@ -40,6 +43,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
 }) {
   const pathname = usePathname();
   const [showSuperAdmin, setShowSuperAdmin] = useState(false);
+  const { toggleSidebar, state } = useSidebar();
 
   useEffect(() => {
     isSuperAdmin().then(setShowSuperAdmin);
@@ -60,7 +64,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
         <SidebarHeader>
           <Link href="/" className="flex items-center gap-2">
             <Logo className="w-7 h-7" />
-            <span className="font-bold font-headline text-xl">Doc-Chat AI</span>
+            <span className="font-bold font-headline text-xl group-data-[state=collapsed]:hidden">Doc-Chat AI</span>
           </Link>
         </SidebarHeader>
         <SidebarMenu>
@@ -99,7 +103,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
       </SidebarContent>
       <SidebarFooter>
          {plan === 'Free' && creditLimit > 0 && (
-            <div className="p-2 group-data-[collapsible=icon]:hidden">
+            <div className="p-2 group-data-[state=collapsed]:hidden">
                 <div className="p-3 rounded-lg bg-muted/50 text-center">
                     <p className="text-xs font-medium text-muted-foreground">Messages Used Today</p>
                     <p className="text-lg font-bold text-foreground mt-1">{creditsUsed} / {creditLimit}</p>
@@ -107,6 +111,18 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
                 </div>
             </div>
         )}
+        <div className="flex items-center justify-between gap-2 p-2 border-t border-border/40">
+           <div className="flex-1 overflow-hidden group-data-[state=collapsed]:hidden">
+             <p className="text-sm font-semibold truncate">{user?.user_metadata.full_name || user?.email}</p>
+             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+           </div>
+           <Avatar className="h-9 w-9">
+            <AvatarImage src={user?.user_metadata.avatar_url} alt={user?.user_metadata.full_name || 'User avatar'}/>
+            <AvatarFallback>
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+        </div>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -176,17 +192,14 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
              </form>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex items-center justify-between gap-2 p-2 border-t border-border/40">
-           <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
-             <p className="text-sm font-semibold truncate">{user?.user_metadata.full_name || user?.email}</p>
-             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-           </div>
-           <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.user_metadata.avatar_url} alt={user?.user_metadata.full_name || 'User avatar'}/>
-            <AvatarFallback>
-              <User className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
+        <div className="p-2 border-t border-border/40">
+          <Button variant="ghost" className="w-full justify-center group-data-[state=expanded]:justify-start" onClick={toggleSidebar}>
+            <ChevronsLeft className="h-5 w-5 group-data-[state=collapsed]:hidden" />
+            <ChevronsRight className="h-5 w-5 hidden group-data-[state=collapsed]:block" />
+            <span className="sr-only group-data-[state=expanded]:not-sr-only group-data-[state=expanded]:ml-2">
+              {state === 'expanded' ? 'Collapse' : 'Expand'}
+            </span>
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
