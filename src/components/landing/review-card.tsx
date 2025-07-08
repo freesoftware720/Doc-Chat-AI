@@ -1,4 +1,3 @@
-
 'use client';
 
 import { motion } from 'framer-motion';
@@ -17,10 +16,10 @@ export function ReviewCard({ review }: { review: ReviewWithProfile }) {
             <Card className="relative h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10 overflow-hidden">
                 
                 {/* Animated Border Spans */}
-                <span className="absolute top-0 left-1/2 block h-[1px] w-0 -translate-x-1/2 bg-primary transition-all duration-300 ease-out group-hover:w-full group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
-                <span className="absolute bottom-0 left-1/2 block h-[1px] w-0 -translate-x-1/2 bg-primary transition-all duration-300 ease-out group-hover:w-full group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
-                <span className="absolute left-0 top-1/2 block h-0 w-[1px] -translate-y-1/2 bg-primary transition-all duration-300 ease-out group-hover:h-full group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
-                <span className="absolute right-0 top-1/2 block h-0 w-[1px] -translate-y-1/2 bg-primary transition-all duration-300 ease-out group-hover:h-full group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
+                <span className="absolute top-0 left-1/2 block h-[1px] w-0 -translate-x-1/2 bg-primary transition-all duration-300 ease-out group-hover:w-[calc(100%+2px)] group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
+                <span className="absolute bottom-0 left-1/2 block h-[1px] w-0 -translate-x-1/2 bg-primary transition-all duration-300 ease-out group-hover:w-[calc(100%+2px)] group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
+                <span className="absolute left-0 top-1/2 block h-0 w-[1px] -translate-y-1/2 bg-primary transition-all duration-300 ease-out group-hover:h-[calc(100%+2px)] group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
+                <span className="absolute right-0 top-1/2 block h-0 w-[1px] -translate-y-1/2 bg-primary transition-all duration-300 ease-out group-hover:h-[calc(100%+2px)] group-hover:shadow-[0_0_6px_hsl(var(--primary))]"></span>
 
                 <CardContent className="p-6 md:p-8 flex flex-col h-full">
                     <div className="flex items-center gap-4 mb-4">
