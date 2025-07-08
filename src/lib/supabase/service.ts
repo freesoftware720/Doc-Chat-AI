@@ -10,9 +10,8 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || supabaseUrl === 'YOUR_SUPABASE_URL' || !serviceRoleKey || serviceRoleKey === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
     const warningMessage = "Supabase service client not initialized due to missing or placeholder credentials. Super admin features that require database modification will not work. Please check your .env.local file.";
-    if (process.env.NODE_ENV === 'production') {
-        throw new Error(warningMessage);
-    }
+    // Don't throw an error in production, as it can crash the app if env vars are not set.
+    // Instead, log a warning and allow the app to continue running without admin features.
     console.warn(warningMessage);
 }
 
