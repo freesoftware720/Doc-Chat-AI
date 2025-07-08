@@ -86,6 +86,9 @@ export async function getAppSettings(): Promise<AppSettings> {
         multiplex_ad_code: null,
         feature_in_feed_ads_enabled: false,
         in_feed_ad_code: null,
+        feature_daily_reward_enabled: false,
+        daily_reward_link: "https://google.com",
+        daily_reward_clicks_required: 10,
     };
 
     // If no settings row is found (e.g., on first run), create it.
@@ -177,6 +180,9 @@ export async function updateAppSettings(prevState: any, data: any) {
             multiplex_ad_code: data.multiplex_ad_code || null,
             feature_in_feed_ads_enabled: data.feature_in_feed_ads_enabled,
             in_feed_ad_code: data.in_feed_ad_code || null,
+            feature_daily_reward_enabled: data.feature_daily_reward_enabled,
+            daily_reward_link: data.daily_reward_link || null,
+            daily_reward_clicks_required: data.daily_reward_clicks_required,
             updated_at: new Date().toISOString(),
         };
 

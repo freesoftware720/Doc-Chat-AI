@@ -14,8 +14,11 @@ export type Database = {
         Row: {
           banner_ad_code: string | null
           chat_limit_free_user: number
+          daily_reward_clicks_required: number
+          daily_reward_link: string | null
           feature_banner_ads_enabled: boolean
           feature_chat_templates_enabled: boolean
+          feature_daily_reward_enabled: boolean
           feature_in_feed_ads_enabled: boolean
           feature_multi_pdf_enabled: boolean
           feature_multiplex_ads_enabled: boolean
@@ -35,8 +38,11 @@ export type Database = {
         Insert: {
           banner_ad_code?: string | null
           chat_limit_free_user?: number
+          daily_reward_clicks_required?: number
+          daily_reward_link?: string | null
           feature_banner_ads_enabled?: boolean
           feature_chat_templates_enabled?: boolean
+          feature_daily_reward_enabled?: boolean
           feature_in_feed_ads_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
           feature_multiplex_ads_enabled?: boolean
@@ -56,8 +62,11 @@ export type Database = {
         Update: {
           banner_ad_code?: string | null
           chat_limit_free_user?: number
+          daily_reward_clicks_required?: number
+          daily_reward_link?: string | null
           feature_banner_ads_enabled?: boolean
           feature_chat_templates_enabled?: boolean
+          feature_daily_reward_enabled?: boolean
           feature_in_feed_ads_enabled?: boolean
           feature_multi_pdf_enabled?: boolean
           feature_multiplex_ads_enabled?: boolean
@@ -237,6 +246,7 @@ export type Database = {
           chat_credits_used: number
           full_name: string | null
           id: string
+          last_daily_reward_claimed_at: string | null
           pro_credits: number | null
           referral_code: string | null
           referred_by: string | null
@@ -251,6 +261,7 @@ export type Database = {
           chat_credits_used?: number
           full_name?: string | null
           id: string
+          last_daily_reward_claimed_at?: string | null
           pro_credits?: number | null
           referral_code?: string | null
           referred_by?: string | null
@@ -265,6 +276,7 @@ export type Database = {
           chat_credits_used?: number
           full_name?: string | null
           id?: string
+          last_daily_reward_claimed_at?: string | null
           pro_credits?: number | null
           referral_code?: string | null
           referred_by?: string | null

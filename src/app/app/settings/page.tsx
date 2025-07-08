@@ -1,13 +1,19 @@
 
 import Link from 'next/link';
 import { getProfile } from '@/app/actions/profile';
+import { getAppSettings } from '@/app/actions/settings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SettingsForm } from './settings-form';
 import { ReferralCard } from './referral-card';
 import { Button } from '@/components/ui/button';
+import { DailyRewardCard } from './daily-reward-card';
 
 export default async function SettingsPage() {
     const profile = await getProfile();
+    const settings = await getAppSettings();
+
+    const isFreeUser = profile?.subscription_plan === 'Free';
+    const rewardEnabled = settings.feature_daily_reward_enabled;
 
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -57,11 +63,13 @@ export default async function SettingsPage() {
                     </CardContent>
                 </Card>
                 
+                {isFreeUser && rewardEnabled && (
+                    <DailyRewardCard settings={settings} profile={profile} />
+                )}
+
                 <ReferralCard profile={profile} />
             </div>
         </div>
       </div>
     );
 }
-
-    

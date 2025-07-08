@@ -86,6 +86,9 @@ const formSchema = z.object({
   multiplex_ad_code: z.string().nullable(),
   feature_in_feed_ads_enabled: z.boolean().default(false),
   in_feed_ad_code: z.string().nullable(),
+  feature_daily_reward_enabled: z.boolean().default(false),
+  daily_reward_link: z.string().url({ message: "Please enter a valid URL." }).or(z.literal("")).nullable(),
+  daily_reward_clicks_required: z.coerce.number().min(1, "Clicks must be at least 1."),
 });
 
 
@@ -122,6 +125,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
       banner_ad_code: settings.banner_ad_code || "",
       multiplex_ad_code: settings.multiplex_ad_code || "",
       in_feed_ad_code: settings.in_feed_ad_code || "",
+      daily_reward_link: settings.daily_reward_link || "",
     },
   });
   
@@ -164,6 +168,25 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                         <FormField control={form.control} name="upload_limit_mb_pro" render={({ field }) => (<FormItem><FormLabel>Upload Limit for Pro Users (MB)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max file size for Pro users.</FormDescription><FormMessage /></FormItem>)}/>
                     </div>
                 </AccordionContent>
+            </AccordionItem>
+             {/* Daily Rewards */}
+            <AccordionItem value="daily-rewards">
+                <AccordionTrigger className="text-xl font-headline">Daily Rewards & Gamification</AccordionTrigger>
+                 <AccordionContent className="pt-6 space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Daily Reward Settings</CardTitle>
+                             <FormDescription>Configure a daily reward for free users to reset their chat limit.</FormDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <FormField control={form.control} name="feature_daily_reward_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Daily Rewards for Free Users</FormLabel><FormDescription>Allow users to earn a daily message limit reset.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl></FormItem>)}/>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <FormField control={form.control} name="daily_reward_link" render={({ field }) => (<FormItem><FormLabel>Reward URL</FormLabel><FormControl><Input placeholder="https://example.com" {...field} value={field.value ?? ''} /></FormControl><FormDescription>The link users must click to earn the reward.</FormDescription><FormMessage /></FormItem>)}/>
+                                <FormField control={form.control} name="daily_reward_clicks_required" render={({ field }) => (<FormItem><FormLabel>Required Clicks</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>How many times a user must click the link.</FormDescription><FormMessage /></FormItem>)}/>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </AccordionContent>
             </AccordionItem>
             {/* Monetization */}
             <AccordionItem value="monetization">
