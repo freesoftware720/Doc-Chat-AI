@@ -35,19 +35,23 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          className="relative bg-primary text-primary-foreground overflow-hidden"
+          className="overflow-hidden"
           role="alert"
         >
-          <div className="container mx-auto px-4 py-2.5 text-center text-sm font-medium flex items-center justify-center gap-2">
-            <Megaphone className="h-5 w-5 flex-shrink-0" />
-            <span className="flex-grow">{message}</span>
-            <button
-              onClick={handleDismiss}
-              className="p-1 rounded-full hover:bg-black/10 flex-shrink-0"
-              aria-label="Dismiss announcement"
+          <div className="p-2">
+            <div
+              className="w-full max-w-3xl mx-auto bg-primary/90 backdrop-blur-lg border border-white/10 text-primary-foreground rounded-2xl shadow-2xl shadow-primary/20 flex items-center gap-4 pl-5 pr-3 py-3"
             >
-              <X className="h-5 w-5" />
-            </button>
+              <Megaphone className="h-6 w-6 flex-shrink-0" />
+              <span className="flex-grow text-sm font-medium">{message}</span>
+              <button
+                onClick={handleDismiss}
+                className="p-1.5 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
+                aria-label="Dismiss announcement"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}
