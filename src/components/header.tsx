@@ -20,8 +20,8 @@ export function Header({ user }: { user: User | null }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-lg">
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
+    <div className="sticky top-0 z-50 w-full px-2 py-2 md:px-4 md:py-4">
+      <header className="flex h-16 max-w-screen-2xl mx-auto items-center justify-between rounded-2xl border border-primary/20 bg-background/80 backdrop-blur-lg shadow-2xl shadow-primary/20 px-4 md:px-6">
         <Link href="/" className="flex items-center space-x-2">
           <Logo className="h-8 w-8 drop-shadow-[0_0_5px_hsl(var(--primary)/0.7)]" />
           <span className="font-bold font-headline text-2xl tracking-tight">Doc-Chat AI</span>
@@ -114,7 +114,7 @@ export function Header({ user }: { user: User | null }) {
               </SheetContent>
             </Sheet>
           </div>
-      </div>
-    </header>
+      </header>
+    </div>
   )
 }
