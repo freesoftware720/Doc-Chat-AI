@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { formatBytes } from "@/lib/utils";
@@ -115,6 +115,7 @@ function TransferDocumentDialog({ document, open, onOpenChange }: { document: Do
 export function DocumentsTable({ documents }: { documents: Document[] }) {
     const [filter, setFilter] = useState("");
     const [dialogState, setDialogState] = useState<{ type: 'delete' | 'transfer' | null; doc: Document | null }>({ type: null, doc: null });
+    const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
     const filteredDocuments = useMemo(() => {
         if (!filter) return documents;
@@ -171,40 +172,27 @@ export function DocumentsTable({ documents }: { documents: Document[] }) {
                                 </TableCell>
                                 <TableCell>{formatBytes(doc.file_size || 0)}</TableCell>
                                 <TableCell className="text-right">
-                                     <Sheet>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Toggle menu</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <SheetTrigger asChild>
-                                                    <DropdownMenuItem><Eye className="mr-2 h-4 w-4" />Preview Text</DropdownMenuItem>
-                                                </SheetTrigger>
-                                                <DropdownMenuItem onSelect={() => setDialogState({ type: 'transfer', doc })}>
-                                                    <ArrowRightLeft className="mr-2 h-4 w-4" />Transfer
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem onSelect={() => setDialogState({ type: 'delete', doc })} className="text-destructive focus:text-destructive">
-                                                    <Trash2 className="mr-2 h-4 w-4" />Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                         <SheetContent>
-                                            <SheetHeader>
-                                                <SheetTitle>Preview: {doc.name}</SheetTitle>
-                                                <SheetDescription>Showing the first 500 characters of extracted text.</SheetDescription>
-                                            </SheetHeader>
-                                            <div className="mt-4 text-sm bg-muted p-4 rounded-lg max-h-[80vh] overflow-y-auto">
-                                                <pre className="whitespace-pre-wrap font-mono text-xs">
-                                                    <code>{doc.content ? doc.content.substring(0, 500) + '...' : 'No text content available.'}</code>
-                                                </pre>
-                                            </div>
-                                        </SheetContent>
-                                    </Sheet>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem onSelect={() => setPreviewDoc(doc)}>
+                                                <Eye className="mr-2 h-4 w-4" />Preview Text
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => setDialogState({ type: 'transfer', doc })}>
+                                                <ArrowRightLeft className="mr-2 h-4 w-4" />Transfer
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onSelect={() => setDialogState({ type: 'delete', doc })} className="text-destructive focus:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -218,6 +206,21 @@ export function DocumentsTable({ documents }: { documents: Document[] }) {
                     </TableBody>
                 </Table>
             </div>
+            
+            <Sheet open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
+                <SheetContent>
+                    <SheetHeader>
+                        <SheetTitle>Preview: {previewDoc?.name}</SheetTitle>
+                        <SheetDescription>Showing the first 500 characters of extracted text.</SheetDescription>
+                    </SheetHeader>
+                    <div className="mt-4 text-sm bg-muted p-4 rounded-lg max-h-[80vh] overflow-y-auto">
+                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                            <code>{previewDoc?.content ? previewDoc.content.substring(0, 500) + '...' : 'No text content available.'}</code>
+                        </pre>
+                    </div>
+                </SheetContent>
+            </Sheet>
+
             {dialogState.type === 'delete' && dialogState.doc && <DeleteDocumentDialog document={dialogState.doc} open={true} onOpenChange={handleCloseDialog} />}
             {dialogState.type === 'transfer' && dialogState.doc && <TransferDocumentDialog document={dialogState.doc} open={true} onOpenChange={handleCloseDialog} />}
         </>
