@@ -64,7 +64,7 @@ export async function processDocument(
     user_id: user.id,
     storage_path: storagePath,
     content: content,
-    file_size: fileSize,
+    // file_size: fileSize, // Temporarily removed to avoid schema cache issues
   };
   
   if (!serviceSupabase) {
