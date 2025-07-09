@@ -37,34 +37,33 @@ export function VideoAdModal({ adCode, skipTimer, onAdCompleted }: VideoAdModalP
   return (
     <Dialog open={true} modal={true}>
       <DialogContent 
-        className="sm:max-w-4xl p-0 overflow-hidden" 
+        className="sm:max-w-4xl p-0 overflow-hidden border-none bg-transparent shadow-2xl shadow-primary/20" 
         onPointerDownOutside={(e) => e.preventDefault()}
         hideCloseButton={true}
       >
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle>Advertisement</DialogTitle>
-          <DialogDescription className="sr-only">
-            A video ad is displayed. You can skip it after the timer ends.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="aspect-video bg-black flex items-center justify-center">
-            <AdRenderer 
-              adCode={adCode} 
-              className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
-            />
+        <div className="bg-card/80 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/10">
+          <DialogHeader className="p-4 text-center">
+            <DialogTitle className="text-xl font-bold font-headline">Advertisement</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video bg-black flex items-center justify-center">
+              <AdRenderer 
+                adCode={adCode} 
+                className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full"
+              />
+          </div>
+          <DialogFooter className="p-4 justify-center">
+            <Button onClick={onAdCompleted} disabled={countdown > 0} size="lg" className="h-14 text-lg">
+              {countdown > 0 ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Skip in {countdown}s
+                </>
+              ) : (
+                'Continue to App'
+              )}
+            </Button>
+          </DialogFooter>
         </div>
-        <DialogFooter className="p-4 border-t">
-          <Button onClick={onAdCompleted} disabled={countdown > 0}>
-            {countdown > 0 ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Skip in {countdown}s
-              </>
-            ) : (
-              'Skip Ad'
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
