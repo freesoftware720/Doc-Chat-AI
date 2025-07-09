@@ -7,6 +7,7 @@ import { SettingsForm } from './settings-form';
 import { ReferralCard } from './referral-card';
 import { Button } from '@/components/ui/button';
 import { DailyRewardCard } from './daily-reward-card';
+import { ThemeSwitcher } from './theme-switcher';
 
 export default async function SettingsPage() {
     const profile = await getProfile();
@@ -34,6 +35,16 @@ export default async function SettingsPage() {
             </Card>
 
             <div className="space-y-6">
+                <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Theme</CardTitle>
+                        <CardDescription>Customize the look and feel of the application.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <ThemeSwitcher />
+                    </CardContent>
+                </Card>
+
                 <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
                     <CardHeader>
                         <CardTitle>Subscription</CardTitle>
