@@ -10,24 +10,31 @@ const ANNOUNCEMENT_STORAGE_KEY = 'announcement_dismissed_message';
 export function AnnouncementBanner({ message }: { message: string | null }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
     if (message) {
       const dismissedMessage = sessionStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
       if (dismissedMessage !== message) {
         setIsVisible(true);
-        // Start expanded when a new message appears, with a delay
         const openTimeout = setTimeout(() => setIsExpanded(true), 1000);
         return () => clearTimeout(openTimeout);
       } else {
-        // If it's been dismissed, show the icon but keep it collapsed.
         setIsVisible(true);
         setIsExpanded(false);
       }
     } else {
       setIsVisible(false);
     }
-  }, [message]);
+  }, [message, isMounted]);
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the click from re-opening the banner
@@ -62,6 +69,10 @@ export function AnnouncementBanner({ message }: { message: string | null }) {
       collapsed: { opacity: 0, y: 10, transition: { duration: 0.2 } },
       expanded: { opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.1 } }, // Slight delay for content
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <AnimatePresence>
