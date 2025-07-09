@@ -82,7 +82,13 @@ export async function processDocument(
     // If insert fails, clean up the stored file
     await supabase.storage.from('documents').remove([storagePath]);
     console.error("Error saving document metadata:", insertError.message);
-    throw new Error(`Failed to save document metadata to database. ${insertError.message}`);
+    
+    let friendlyError = `Failed to save document metadata to database. ${insertError.message}`;
+    if (insertError.message.includes("schema cache")) {
+        friendlyError += "\n\nHINT: This is often due to an out-of-date database schema cache. Please go to the API Docs section of your Supabase dashboard and click 'Reload' to refresh the schema, then try again.";
+    }
+
+    throw new Error(friendlyError);
   }
 
   revalidatePath('/app');
