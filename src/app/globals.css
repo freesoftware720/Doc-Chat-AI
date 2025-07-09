@@ -97,7 +97,7 @@
 .embla__slide {
   flex: 0 0 30%;
   min-width: 0;
-  padding-left: 1rem;
+  padding: 0 1rem; /* Use horizontal padding */
 }
 
 @media (max-width: 1024px) {
@@ -109,5 +109,29 @@
 @media (max-width: 768px) {
   .embla__slide {
     flex: 0 0 80%;
+  }
+}
+
+/* Sweeping Glare Effect */
+@layer utilities {
+  .interactive-glare {
+    @apply relative overflow-hidden;
+  }
+
+  .interactive-glare::after {
+    content: '';
+    @apply absolute top-0 left-0 w-1/2 h-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.05),
+      transparent
+    );
+    transform: translateX(-150%) skewX(-25deg);
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .interactive-glare:hover::after {
+    transform: translateX(250%) skewX(-25deg);
   }
 }

@@ -10,7 +10,7 @@ export function AuthCard({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md bg-card/60 backdrop-blur-lg border border-border/20 shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden"
+      className="w-full max-w-md bg-card/60 backdrop-blur-lg border border-border/20 shadow-2xl shadow-primary/10 rounded-2xl overflow-hidden interactive-glare"
     >
       {children}
     </motion.div>
