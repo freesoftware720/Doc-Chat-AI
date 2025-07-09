@@ -9,7 +9,9 @@ interface AdProviderWrapperProps {
   settings: {
     videoAdCode: string | null;
     videoAdSkipTimer: number;
-    adsEnabled: boolean;
+    videoAdsEnabled: boolean;
+    multiplexAdCode: string | null;
+    multiplexAdsEnabled: boolean;
   };
   isFreeUser: boolean;
 }

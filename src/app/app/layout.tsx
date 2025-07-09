@@ -66,7 +66,9 @@ export default async function AppLayout({
   const adSettings = {
     videoAdCode: appSettings.video_ad_code,
     videoAdSkipTimer: appSettings.video_ad_skip_timer,
-    adsEnabled: appSettings.feature_video_ads_enabled,
+    videoAdsEnabled: appSettings.feature_video_ads_enabled,
+    multiplexAdCode: appSettings.multiplex_ad_code,
+    multiplexAdsEnabled: appSettings.feature_multiplex_ads_enabled,
   };
   
   return (
