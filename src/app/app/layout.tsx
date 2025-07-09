@@ -11,6 +11,7 @@ import { getAppSettings } from "../actions/settings";
 import { AdProviderWrapper } from "@/components/ad-provider-wrapper";
 import { AdRenderer } from "@/components/ad-renderer";
 import { AnnouncementBanner } from "@/components/announcement-banner";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function AppLayout({
   children,
@@ -70,6 +71,8 @@ export default async function AppLayout({
     multiplexAdCode: appSettings.multiplex_ad_code,
     multiplexAdsEnabled: appSettings.feature_multiplex_ads_enabled,
   };
+
+  const showInFeedAdBanner = isBasicUser && appSettings.feature_in_feed_ads_enabled && !!appSettings.in_feed_ad_code;
   
   return (
     <AdProviderWrapper settings={adSettings} isFreeUser={isBasicUser}>
@@ -90,6 +93,15 @@ export default async function AppLayout({
           </div>
           <AnnouncementBanner message={appSettings.homepage_announcement_message} />
           <AppHeader />
+          {showInFeedAdBanner && (
+            <div className="p-2 border-b border-border bg-background/95 backdrop-blur-lg">
+                <Card className="bg-transparent border-none shadow-none">
+                    <CardContent className="p-0">
+                        <AdRenderer adCode={appSettings.in_feed_ad_code} />
+                    </CardContent>
+                </Card>
+            </div>
+          )}
           <div className="relative flex-1 overflow-y-auto pb-20 md:pb-0">
             {children}
           </div>

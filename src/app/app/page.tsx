@@ -29,8 +29,7 @@ export default async function AppPage() {
   
   const showBannerAd = !isPro && settings.feature_banner_ads_enabled && !!settings.banner_ad_code;
   const showMultiplexAd = !isPro && settings.feature_multiplex_ads_enabled && !!settings.multiplex_ad_code;
-  const showInFeedAd = !isPro && settings.feature_in_feed_ads_enabled && !!settings.in_feed_ad_code;
-  const shouldShowAds = showBannerAd || showMultiplexAd || showInFeedAd;
+  const shouldShowAds = showBannerAd || showMultiplexAd;
 
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
 
@@ -66,13 +65,6 @@ export default async function AppPage() {
             <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
                 <CardContent className="p-4">
                     <AdRenderer adCode={settings.multiplex_ad_code} />
-                </CardContent>
-            </Card>
-          )}
-          {showInFeedAd && (
-            <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
-                <CardContent className="p-2">
-                    <AdRenderer adCode={settings.in_feed_ad_code} />
                 </CardContent>
             </Card>
           )}
