@@ -12,8 +12,12 @@ export function ReviewCard({ review }: { review: ReviewWithProfile }) {
 
     return (
         <div className="gsap-review-card p-2 h-full">
-            <Card className="marble-surface relative h-full rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border-white/10">
-                <CardContent className="p-6 md:p-8 flex flex-col h-full">
+            <Card className="relative h-full overflow-hidden rounded-3xl shadow-2xl shadow-primary/10 bg-gradient-to-br from-card/60 to-card/20 border border-transparent transition-all duration-500 group-hover:border-primary/50 group-hover:shadow-primary/20">
+                
+                {/* Upward moving gradient shade */}
+                <div className="absolute inset-x-0 bottom-0 h-full w-full translate-y-full bg-gradient-to-t from-primary/20 to-transparent opacity-0 transition-all duration-500 ease-in-out group-hover:translate-y-0 group-hover:opacity-100" />
+
+                <CardContent className="relative z-10 p-6 md:p-8 flex flex-col h-full">
                     <div className="flex items-center gap-4 mb-4">
                         <Avatar>
                             <AvatarImage src={avatarUrl ?? undefined} alt={name} />

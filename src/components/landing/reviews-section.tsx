@@ -48,7 +48,7 @@ export function ReviewsSection({ reviews, content = defaultContent }: { reviews:
                     {extendedReviews.map((review, index) => (
                         <div 
                             className={cn(
-                                "embla__slide transition-all duration-300 ease-in-out",
+                                "group embla__slide transition-all duration-300 ease-in-out",
                                 hoveredIndex !== null && hoveredIndex !== index ? "blur-[2px] opacity-60" : "",
                                 hoveredIndex === index ? "scale-105 z-10" : ""
                             )} 
