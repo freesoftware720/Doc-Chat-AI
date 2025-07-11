@@ -14,6 +14,7 @@ import {
   Gift,
   ChevronsLeft,
   ChevronsRight,
+  LifeBuoy,
 } from "lucide-react";
 import {
   Sidebar,
@@ -101,7 +102,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-         {plan === 'Free' && creditLimit > 0 && (
+         {plan === 'Basic' && creditLimit > 0 && (
             <div className="p-2 group-data-[state=collapsed]:hidden">
                 <div className="p-3 rounded-lg bg-muted/50 text-center">
                     <p className="text-xs font-medium text-muted-foreground">Messages Used Today</p>
@@ -156,6 +157,18 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
               <Link href="/app/review">
                 <Star />
                 <span>Leave a Review</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+             <SidebarMenuButton 
+                href="/app/support" 
+                asChild 
+                isActive={pathname.startsWith("/app/support")}
+            >
+              <Link href="/app/support">
+                <LifeBuoy />
+                <span>Support</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

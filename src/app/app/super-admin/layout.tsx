@@ -18,6 +18,7 @@ const superAdminNavItems = [
   { href: '/app/super-admin/documents', label: 'Documents' },
   { href: '/app/super-admin/plans', label: 'Plans' },
   { href: '/app/super-admin/subscriptions', label: 'Subscriptions' },
+  { href: '/app/super-admin/support', label: 'Support' },
   { href: '/app/super-admin/referrals', label: 'Referrals' },
   { href: '/app/super-admin/settings', label: 'App Settings' },
   { href: '/app/super-admin/payments', label: 'Payments' },
