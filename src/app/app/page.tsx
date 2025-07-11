@@ -25,10 +25,11 @@ export default async function AppPage() {
   const profile = profileResult.data;
   
   const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
+  const isBasicUser = !isPro;
   const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
   
-  const showBannerAd = !isPro && settings.feature_banner_ads_enabled && !!settings.banner_ad_code;
-  const showMultiplexAd = !isPro && settings.feature_multiplex_ads_enabled && !!settings.multiplex_ad_code;
+  const showBannerAd = isBasicUser && settings.feature_banner_ads_enabled && !!settings.banner_ad_code;
+  const showMultiplexAd = isBasicUser && settings.feature_multiplex_ads_enabled && !!settings.multiplex_ad_code;
   const shouldShowAds = showBannerAd || showMultiplexAd;
 
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';

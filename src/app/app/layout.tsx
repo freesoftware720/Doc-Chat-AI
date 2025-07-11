@@ -29,7 +29,7 @@ export default async function AppLayout({
   const settingsPromise = getAppSettings();
   const profilePromise = supabase
     .from('profiles')
-    .select('status, ban_reason, subscription_plan, chat_credits_used, chat_credits_last_reset')
+    .select('status, ban_reason, subscription_plan, chat_credits_used, chat_credits_last_reset, pro_credits')
     .eq('id', user.id)
     .single();
 
@@ -50,7 +50,13 @@ export default async function AppLayout({
   const creditLimit = appSettings.chat_limit_free_user;
   
   let creditsUsed = 0;
-  const plan = profile?.subscription_plan ?? 'Basic';
+  const isProByPlan = profile?.subscription_plan === 'Pro';
+  const hasProCredits = (profile?.pro_credits ?? 0) > 0;
+  const isPro = isProByPlan || hasProCredits;
+  
+  const plan = isProByPlan ? 'Pro' : (hasProCredits ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic'));
+  const isBasicUser = !isPro;
+
 
   if (plan === 'Basic') {
     const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
@@ -63,7 +69,6 @@ export default async function AppLayout({
     // If it's been more than 24 hours, creditsUsed remains 0, effectively resetting it for display.
   }
 
-  const isBasicUser = !profile?.subscription_plan || profile.subscription_plan === 'Basic';
   const adSettings = {
     videoAdCode: appSettings.video_ad_code,
     videoAdSkipTimer: appSettings.video_ad_skip_timer,
