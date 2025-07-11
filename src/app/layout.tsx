@@ -14,6 +14,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Doc-Chat AI',
   description: 'Chat with your documents using AI.',
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
