@@ -8,14 +8,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChatPageClientProps {
     documentId: string;
     documentName: string;
+    documentContent: string;
     initialMessages: Message[];
 }
 
-export function ChatPageClient({ documentId, documentName, initialMessages }: ChatPageClientProps) {
+export function ChatPageClient({ documentId, documentName, documentContent, initialMessages }: ChatPageClientProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [isLoading, setIsLoading] = useState(false);
     const [isLimitReached, setIsLimitReached] = useState(false);
@@ -106,8 +108,12 @@ export function ChatPageClient({ documentId, documentName, initialMessages }: Ch
                         {documentName}
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 text-center text-muted-foreground">
-                    <p>File content is processed on the server.</p>
+                <CardContent className="flex-1 overflow-hidden">
+                    <ScrollArea className="h-full">
+                        <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-sans p-2">
+                           {documentContent}
+                        </pre>
+                    </ScrollArea>
                 </CardContent>
             </Card>
             <div className="h-full lg:col-span-1">

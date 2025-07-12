@@ -17,7 +17,7 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
 
     const { data: document, error: docError } = await supabase
         .from('documents')
-        .select('id, name')
+        .select('id, name, content')
         .eq('id', params.documentId)
         .eq('user_id', user.id)
         .single();
@@ -67,6 +67,7 @@ export default async function ChatWithDocumentPage({ params }: { params: { docum
         <ChatPageClient
             documentId={document.id}
             documentName={document.name}
+            documentContent={document.content || 'No content available for this document.'}
             initialMessages={formattedMessages}
         />
     );
