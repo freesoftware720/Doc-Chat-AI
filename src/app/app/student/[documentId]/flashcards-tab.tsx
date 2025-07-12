@@ -135,4 +135,3 @@ export function FlashcardsTab({ documentContent }: { documentContent: string }) 
         </div>
     );
 }
-

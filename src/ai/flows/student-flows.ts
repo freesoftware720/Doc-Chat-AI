@@ -8,18 +8,28 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/googleai';
 import wav from 'wav';
+import {
+    DocumentContentInputSchema,
+    StudyGuideOutputSchema,
+    QuizInputSchema,
+    QuizOutputSchema,
+    FlashcardsInputSchema,
+    FlashcardsOutputSchema,
+    DictationOutputSchema,
+    type StudyGuideOutput,
+    type QuizOutput,
+    type FlashcardsOutput,
+    type QuizInput,
+    type FlashcardsInput,
+    type DocumentContentInput,
+    type DictationOutput,
+} from './student-flows-config';
 
-// Common input schema for document-based generation
-const DocumentContentInputSchema = z.object({
-  documentContent: z.string().describe('The full text content of the document.'),
-});
+// Re-export types for convenience in components
+export type { StudyGuideOutput, QuizOutput, FlashcardsOutput, QuizQuestion, Flashcard, DictationOutput } from './student-flows-config';
+
 
 // --- Study Guide ---
-
-const StudyGuideOutputSchema = z.object({
-  studyGuide: z.string().describe('A comprehensive study guide in Markdown format, including a summary and key points.'),
-});
-export type StudyGuideOutput = z.infer<typeof StudyGuideOutputSchema>;
 
 const studyGuidePrompt = ai.definePrompt({
     name: 'studyGuidePrompt',
@@ -41,7 +51,7 @@ Document Content:
 });
 
 export async function generateStudyGuide(
-  input: z.infer<typeof DocumentContentInputSchema>
+  input: DocumentContentInput
 ): Promise<StudyGuideOutput> {
   const { output } = await studyGuidePrompt(input);
   return output!;
@@ -49,22 +59,6 @@ export async function generateStudyGuide(
 
 
 // --- Quiz ---
-
-export const QuizQuestionSchema = z.object({
-    question: z.string().describe("The quiz question."),
-    options: z.array(z.string()).length(4).describe("An array of 4 possible answers."),
-    correctAnswer: z.string().describe("The correct answer from the options."),
-});
-export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
-
-const QuizOutputSchema = z.object({
-  questions: z.array(QuizQuestionSchema),
-});
-export type QuizOutput = z.infer<typeof QuizOutputSchema>;
-
-const QuizInputSchema = DocumentContentInputSchema.extend({
-    questionCount: z.number().int().positive().describe("The number of questions to generate.")
-});
 
 const quizPrompt = ai.definePrompt({
     name: 'quizPrompt',
@@ -85,7 +79,7 @@ Document Content:
 });
 
 export async function generateQuiz(
-  input: z.infer<typeof QuizInputSchema>
+  input: QuizInput
 ): Promise<QuizOutput> {
   const { output } = await quizPrompt(input);
   return output!;
@@ -93,21 +87,6 @@ export async function generateQuiz(
 
 
 // --- Flashcards ---
-
-export const FlashcardSchema = z.object({
-    term: z.string().describe("The key term or concept."),
-    definition: z.string().describe("A concise definition of the term."),
-});
-export type Flashcard = z.infer<typeof FlashcardSchema>;
-
-const FlashcardsOutputSchema = z.object({
-  flashcards: z.array(FlashcardSchema),
-});
-export type FlashcardsOutput = z.infer<typeof FlashcardsOutputSchema>;
-
-const FlashcardsInputSchema = DocumentContentInputSchema.extend({
-    cardCount: z.number().int().positive().describe("The number of flashcards to generate.")
-});
 
 const flashcardsPrompt = ai.definePrompt({
     name: 'flashcardsPrompt',
@@ -123,7 +102,7 @@ Document Content:
 });
 
 export async function generateFlashcards(
-  input: z.infer<typeof FlashcardsInputSchema>
+  input: FlashcardsInput
 ): Promise<FlashcardsOutput> {
   const { output } = await flashcardsPrompt(input);
   return output!;
@@ -131,11 +110,6 @@ export async function generateFlashcards(
 
 
 // --- Dictation ---
-
-const DictationOutputSchema = z.object({
-    media: z.string().describe("A data URI of the generated audio."),
-    text: z.string().describe("The text that was converted to speech.")
-});
 
 const dictationPrompt = ai.definePrompt({
     name: 'dictationPrompt',
@@ -177,13 +151,9 @@ async function toWav(
   });
 }
 
-export const generateDictation = ai.defineFlow(
-  {
-    name: 'generateDictationFlow',
-    inputSchema: DocumentContentInputSchema,
-    outputSchema: DictationOutputSchema,
-  },
-  async (input) => {
+export async function generateDictation(
+    input: DocumentContentInput
+): Promise<DictationOutput> {
     // 1. Generate a text summary first
     const { output: textOutput } = await dictationPrompt(input);
     const summaryText = textOutput!.summary;
@@ -217,5 +187,4 @@ export const generateDictation = ai.defineFlow(
       media: 'data:audio/wav;base64,' + wavBase64,
       text: summaryText
     };
-  }
-);
+}
