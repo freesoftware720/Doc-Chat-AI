@@ -89,6 +89,7 @@ export async function getAppSettings(): Promise<AppSettings> {
         feature_daily_reward_enabled: false,
         daily_reward_link: "https://google.com",
         daily_reward_clicks_required: 10,
+        subscription_review_hours: 24,
     };
 
     // If no settings row is found (e.g., on first run), create it.
@@ -183,6 +184,7 @@ export async function updateAppSettings(prevState: any, data: any) {
             feature_daily_reward_enabled: data.feature_daily_reward_enabled,
             daily_reward_link: data.daily_reward_link || null,
             daily_reward_clicks_required: data.daily_reward_clicks_required,
+            subscription_review_hours: data.subscription_review_hours,
             updated_at: new Date().toISOString(),
         };
 

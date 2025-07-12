@@ -1,5 +1,6 @@
 
 import { getActivePaymentGateways, getActivePlans } from "@/app/actions/billing";
+import { getAppSettings } from "@/app/actions/settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,15 +9,10 @@ import { getUserSubscriptionStatus } from "@/app/actions/subscriptions";
 import { format } from "date-fns";
 import { PaymentSubmissionDialog } from "./payment-submission-dialog";
 import { CancelSubscriptionButton } from "./cancel-subscription-button";
+import { CountdownTimer } from "./countdown-timer";
 
-function StatusCard({ request }: { request: any }) {
+function StatusCard({ request, reviewHours }: { request: any, reviewHours: number }) {
     if (!request) return null;
-
-    const variant = {
-        pending: "default",
-        approved: "default",
-        rejected: "destructive",
-    }[request.status];
 
     const icon = {
         pending: <Clock className="h-4 w-4" />,
@@ -29,6 +25,8 @@ function StatusCard({ request }: { request: any }) {
         approved: "Subscription Activated",
         rejected: "Request Rejected",
     }[request.status];
+    
+    const expiryTimestamp = new Date(request.created_at).getTime() + reviewHours * 60 * 60 * 1000;
 
     return (
         <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
@@ -42,7 +40,15 @@ function StatusCard({ request }: { request: any }) {
             </CardHeader>
             <CardContent>
                 <p>You submitted a request to upgrade to the <strong>{request.plans.name}</strong> plan.</p>
-                {request.status === 'pending' && <p className="text-muted-foreground mt-2 text-sm">We are currently reviewing your payment. This usually takes up to 24 hours. Your account will be upgraded automatically upon approval.</p>}
+                {request.status === 'pending' && (
+                    <div className="mt-4 text-center space-y-4">
+                         <p className="text-muted-foreground text-sm">We are currently reviewing your payment. This usually takes up to {reviewHours} hours. Your account will be upgraded automatically upon approval.</p>
+                         <div className="p-4 bg-muted/50 rounded-lg">
+                            <h4 className="text-sm font-semibold mb-2 text-foreground">Time Remaining for Review</h4>
+                            <CountdownTimer expiryTimestamp={expiryTimestamp} />
+                         </div>
+                    </div>
+                )}
                 {request.status === 'approved' && <p className="text-muted-foreground mt-2 text-sm">Your request was approved on {format(new Date(request.reviewed_at), "PPP")}. You are now on the {request.plans.name} plan.</p>}
                 {request.status === 'rejected' && (
                     <div className="mt-2 text-destructive-foreground/80">
@@ -61,10 +67,12 @@ export default async function BillingPage() {
     const { profile, latestRequest, hasPendingRequest } = await getUserSubscriptionStatus();
     const gateways = await getActivePaymentGateways();
     const plans = await getActivePlans();
+    const appSettings = await getAppSettings();
     const paidPlans = plans.filter(p => p.price > 0);
 
     const currentPlanName = (profile?.pro_credits ?? 0) > 0 ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic');
     const isPaidSubscriber = typeof profile?.subscription_plan === 'string' && profile.subscription_plan !== 'Basic';
+    const reviewHours = appSettings.subscription_review_hours;
 
     return (
         <div className="p-4 md:p-6 space-y-6 max-w-4xl mx-auto">
@@ -106,10 +114,10 @@ export default async function BillingPage() {
             )}
             
             {hasPendingRequest ? (
-                <StatusCard request={latestRequest} />
+                <StatusCard request={latestRequest} reviewHours={reviewHours} />
             ) : (
                 <>
-                {latestRequest?.status === 'rejected' && <StatusCard request={latestRequest} />}
+                {latestRequest?.status === 'rejected' && <StatusCard request={latestRequest} reviewHours={reviewHours} />}
 
                 <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
                     <CardHeader>

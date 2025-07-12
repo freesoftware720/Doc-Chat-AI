@@ -89,6 +89,7 @@ const formSchema = z.object({
   feature_daily_reward_enabled: z.boolean().default(false),
   daily_reward_link: z.string().url({ message: "Please enter a valid URL." }).or(z.literal("")).nullable(),
   daily_reward_clicks_required: z.coerce.number().min(1, "Clicks must be at least 1."),
+  subscription_review_hours: z.coerce.number().min(1, "Review time must be at least 1 hour."),
 });
 
 
@@ -123,6 +124,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
       upload_limit_mb_pro: settings.upload_limit_mb_pro || 100,
       video_ad_skip_timer: settings.video_ad_skip_timer || 5,
       daily_reward_clicks_required: settings.daily_reward_clicks_required || 10,
+      subscription_review_hours: settings.subscription_review_hours || 24,
       homepage_announcement_message: settings.homepage_announcement_message || "",
       logo_url: settings.logo_url || "",
       landing_page_content: preparedLpContent,
@@ -167,10 +169,11 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
                         <FormField control={form.control} name="feature_multi_pdf_enabled" render={({ field }) => (<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4"><div className="space-y-0.5"><FormLabel>Enable Multi-PDF Chat</FormLabel><FormDescription>Allow users to chat with multiple documents at once.</FormDescription></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>)}/>
                     </div>
                     <div className="space-y-6">
-                        <h3 className="text-lg font-medium">Usage Quotas</h3>
+                        <h3 className="text-lg font-medium">Usage Quotas & Subscriptions</h3>
                         <FormField control={form.control} name="chat_limit_free_user" render={({ field }) => (<FormItem><FormLabel>Chat Limit for Free Users</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max number of messages a free user can send daily.</FormDescription><FormMessage /></FormItem>)}/>
                         <FormField control={form.control} name="upload_limit_mb_free" render={({ field }) => (<FormItem><FormLabel>Upload Limit for Free Users (MB)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max file size for free users.</FormDescription><FormMessage /></FormItem>)}/>
                         <FormField control={form.control} name="upload_limit_mb_pro" render={({ field }) => (<FormItem><FormLabel>Upload Limit for Pro Users (MB)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Max file size for Pro users.</FormDescription><FormMessage /></FormItem>)}/>
+                        <FormField control={form.control} name="subscription_review_hours" render={({ field }) => (<FormItem><FormLabel>Subscription Review Time (hours)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Time limit for manual subscription review.</FormDescription><FormMessage /></FormItem>)}/>
                     </div>
                 </AccordionContent>
             </AccordionItem>

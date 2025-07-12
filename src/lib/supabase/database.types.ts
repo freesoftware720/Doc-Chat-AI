@@ -29,6 +29,7 @@ export type Database = {
           landing_page_content: Json | null
           logo_url: string | null
           multiplex_ad_code: string | null
+          subscription_review_hours: number
           updated_at: string | null
           upload_limit_mb_free: number
           upload_limit_mb_pro: number
@@ -53,6 +54,7 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           multiplex_ad_code?: string | null
+          subscription_review_hours?: number
           updated_at?: string | null
           upload_limit_mb_free?: number
           upload_limit_mb_pro?: number
@@ -77,6 +79,7 @@ export type Database = {
           landing_page_content?: Json | null
           logo_url?: string | null
           multiplex_ad_code?: string | null
+          subscription_review_hours?: number
           updated_at?: string | null
           upload_limit_mb_free?: number
           upload_limit_mb_pro?: number
@@ -439,6 +442,83 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sender_id: string | null
+          sender_role: string
+          ticket_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+          ticket_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -463,6 +543,10 @@ export type Database = {
       is_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      update_ticket_updated_at: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
       }
     }
     Enums: {
