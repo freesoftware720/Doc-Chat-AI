@@ -200,7 +200,7 @@ export function AppSidebar({ user, plan, creditsUsed, creditLimit }: {
           </SidebarMenuItem>
         </SidebarMenu>
         <div className="p-2 border-t border-border/40">
-          <Button variant="ghost" className="w-full justify-center group-data-[state=expanded]:justify-start" onClick={toggleSidebar}>
+          <Button variant="ghost" className="w-full justify-start group-data-[state=collapsed]:justify-center" onClick={toggleSidebar}>
             <ChevronsLeft className="h-5 w-5 group-data-[state=collapsed]:hidden" />
             <ChevronsRight className="h-5 w-5 hidden group-data-[state=collapsed]:block" />
             <span className="sr-only group-data-[state=expanded]:not-sr-only group-data-[state=expanded]:ml-2">
