@@ -4,12 +4,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Headphones, Play, Pause, Wand2 } from 'lucide-react';
+import { Loader2, Headphones, Wand2 } from 'lucide-react';
 import { generateDictation } from '@/ai/flows/student-flows';
 import { useToast } from '@/hooks/use-toast';
-import { Slider } from '@/components/ui/slider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { WaveformPlayer } from './waveform-player';
 
 export function DictationTab({ documentContent }: { documentContent: string }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -56,9 +56,7 @@ export function DictationTab({ documentContent }: { documentContent: string }) {
                         </>
                     ) : audioDataUri ? (
                         <div className="w-full space-y-4">
-                            <audio controls src={audioDataUri} className="w-full">
-                                Your browser does not support the audio element.
-                            </audio>
+                            <WaveformPlayer audioUrl={audioDataUri} />
                              <div className="w-full h-80 overflow-y-auto text-left border rounded-lg p-6 bg-background/50">
                                  <article className="prose dark:prose-invert max-w-none">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
