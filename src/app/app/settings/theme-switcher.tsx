@@ -10,13 +10,14 @@ const themes = [
   { name: 'Green', value: 'green', colors: ['#4ade80', '#171717'] },
   { name: 'Orange', value: 'orange', colors: ['#f97316', '#171717'] },
   { name: 'Luxury', value: 'luxury', colors: ['#D4AF37', '#1C1C1E'] },
+  { name: 'Velvet', value: 'velvet', colors: ['#d92e2e', '#161718'] },
 ];
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {themes.map((t) => (
         <button
           key={t.value}
