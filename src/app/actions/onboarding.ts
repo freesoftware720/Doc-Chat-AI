@@ -28,7 +28,28 @@ export async function selectInitialPlan(prevState: any, formData: FormData) {
         console.error("Error updating initial plan:", error.message);
         return { error: 'Could not update your plan. Please try again.' };
     }
-
+    
+    // Invalidate the cache for the layout to ensure profile updates are reflected
     revalidatePath('/app', 'layout');
-    redirect('/app');
+
+    // After plan selection, redirect to the correct starting point
+    if (planName === 'Student') {
+        const { data: documents } = await supabase
+            .from('documents')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (documents && documents.length > 0) {
+            // If they have documents, go to the hub for the most recent one
+            redirect(`/app/student/${documents[0].id}`);
+        } else {
+            // If no documents, go to the uploads page
+            redirect('/app/uploads');
+        }
+    } else {
+        // For all other plans, go to the main dashboard
+        redirect('/app');
+    }
 }

@@ -624,11 +624,23 @@ export async function deletePlan(prevState: any, formData: FormData) {
         if (isNaN(id)) {
             throw new Error('Invalid Plan ID.');
         }
+        
+        // Robustness: First delete any pending subscription requests associated with this plan.
+        const { error: requestError } = await serviceSupabase
+            .from('subscription_requests')
+            .delete()
+            .eq('plan_id', id);
+
+        if (requestError) {
+             throw new Error(`Failed to remove associated subscription requests: ${requestError.message}`);
+        }
 
         const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
 
         if (error) {
-            throw new Error(`Failed to delete plan: ${error.message}`);
+            // This might happen if a user is still subscribed to the plan.
+            // The error message from Supabase will be informative (e.g., foreign key violation).
+            throw new Error(`Failed to delete plan: ${error.message}. Ensure no users are currently subscribed to this plan.`);
         }
 
         revalidatePath('/app/super-admin/plans');

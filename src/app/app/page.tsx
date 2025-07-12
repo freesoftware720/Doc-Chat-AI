@@ -23,12 +23,21 @@ export default async function AppPage() {
   ]);
 
   const profile = profileResult.data;
-  
-  const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
   const isStudent = profile?.subscription_plan === 'Student';
+  
+  // If user is a student, redirect to the student hub or uploads page
+  if (isStudent) {
+      if (recentDocuments.length > 0) {
+          redirect(`/app/student/${recentDocuments[0].id}`);
+      } else {
+          redirect('/app/uploads');
+      }
+  }
+
+  const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
   const isBasicUser = profile?.subscription_plan === 'Basic' || !profile?.subscription_plan; // Default to basic if no plan
   
-  const uploadLimitMb = isPro || isStudent ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
+  const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
   
   const showBannerAd = isBasicUser && settings.feature_banner_ads_enabled && !!settings.banner_ad_code;
   const showMultiplexAd = isBasicUser && settings.feature_multiplex_ads_enabled && !!settings.multiplex_ad_code;
