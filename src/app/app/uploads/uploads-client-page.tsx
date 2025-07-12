@@ -7,7 +7,7 @@ import { useAdModal } from '@/hooks/use-ad-modal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileText, MessageSquare, Star, Sparkles } from 'lucide-react';
+import { FileText, MessageSquare, Star, Sparkles, Brain } from 'lucide-react';
 import { format } from 'date-fns';
 import { UploadHandler } from './upload-handler';
 import { DeleteDocumentButton } from './delete-document-button';
@@ -21,10 +21,11 @@ interface UploadsClientPageProps {
   documents: Document[];
   uploadLimitMb: number;
   isPro: boolean;
+  isStudent: boolean;
   multiDocEnabled: boolean;
 }
 
-export function UploadsClientPage({ documents, uploadLimitMb, isPro, multiDocEnabled }: UploadsClientPageProps) {
+export function UploadsClientPage({ documents, uploadLimitMb, isPro, isStudent, multiDocEnabled }: UploadsClientPageProps) {
     const { showAd } = useAdModal();
     const router = useRouter();
     const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
@@ -47,7 +48,8 @@ export function UploadsClientPage({ documents, uploadLimitMb, isPro, multiDocEna
 
     const handleChatClick = (docId: string) => {
         showAd(() => {
-            router.push(`/app/chat/${docId}`);
+            const path = isStudent ? `/app/student/${docId}` : `/app/chat/${docId}`;
+            router.push(path);
         });
     };
 
@@ -62,7 +64,7 @@ export function UploadsClientPage({ documents, uploadLimitMb, isPro, multiDocEna
     const tableRows = documents.map((doc) => (
         <TableRow key={doc.id} data-state={selectedDocs.includes(doc.id) ? "selected" : ""}>
             <TableCell className="w-12">
-                    <Checkbox
+                <Checkbox
                     checked={selectedDocs.includes(doc.id)}
                     onCheckedChange={() => handleSelectDoc(doc.id)}
                     aria-label={`Select document ${doc.name}`}
@@ -80,8 +82,17 @@ export function UploadsClientPage({ documents, uploadLimitMb, isPro, multiDocEna
             <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => handleChatClick(doc.id)}>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Chat
+                        {isStudent ? (
+                            <>
+                                <Brain className="h-4 w-4 mr-2" />
+                                Study
+                            </>
+                        ) : (
+                            <>
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                Chat
+                            </>
+                        )}
                     </Button>
                     <DeleteDocumentButton documentId={doc.id} />
                 </div>

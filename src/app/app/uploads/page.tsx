@@ -13,8 +13,9 @@ export default async function UploadsPage() {
     const settings = await getAppSettings();
 
     const isPro = profile?.subscription_plan === 'Pro' || (profile?.pro_credits ?? 0) > 0;
-    const uploadLimitMb = isPro ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
+    const isStudent = profile?.subscription_plan === 'Student';
+    const uploadLimitMb = isPro || isStudent ? settings.upload_limit_mb_pro : settings.upload_limit_mb_free;
     const multiDocEnabled = settings.feature_multi_pdf_enabled;
 
-    return <UploadsClientPage documents={documents} uploadLimitMb={uploadLimitMb} isPro={isPro} multiDocEnabled={multiDocEnabled} />;
+    return <UploadsClientPage documents={documents} uploadLimitMb={uploadLimitMb} isPro={isPro} isStudent={isStudent} multiDocEnabled={multiDocEnabled} />;
   }
