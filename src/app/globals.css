@@ -95,6 +95,37 @@
     --sidebar-accent: 20 10% 18%;
   }
 
+  [data-theme="luxury"] {
+    --background: 240 2% 11%;      /* #1C1C1E */
+    --foreground: 40 33% 88%;      /* #E5DED1 - Tertiary as Foreground */
+    --card: 40 33% 88%;             /* #E5DED1 - Tertiary */
+    --card-foreground: 240 2% 11%; /* #1C1C1E */
+    --popover: 240 2% 8%;
+    --popover-foreground: 40 33% 88%;
+    --primary: 45 66% 52%;         /* #D4AF37 - Secondary as Primary */
+    --primary-foreground: 240 2% 11%;
+    --secondary: 0 0% 75%;          /* #C0C0C0 - Support as Secondary */
+    --secondary-foreground: 240 2% 11%;
+    --muted: 240 2% 15%;
+    --muted-foreground: 0 0% 75%;   /* #C0C0C0 */
+    --accent: 213 49% 34%;         /* #2B4F81 - Highlight as Accent */
+    --accent-foreground: 40 33% 88%;
+    --destructive: 6 78% 92%;       /* #FADCD9 */
+    --destructive-foreground: 240 2% 11%;
+    --border: 0 0% 75%;             /* #C0C0C0 */
+    --input: 240 2% 15%;
+    --ring: 213 49% 34%;            /* #2B4F81 */
+    
+    --sidebar-background: 240 2% 11%;
+    --sidebar-foreground: 40 33% 88%;
+    --sidebar-border: 0 0% 75%;
+    --sidebar-primary: 45 66% 52%;
+    --sidebar-primary-foreground: 240 2% 11%;
+    --sidebar-accent: 240 2% 15%;
+    --sidebar-accent-foreground: 40 33% 88%;
+    --sidebar-ring: 213 49% 34%;
+  }
+
 
   * {
     @apply border-border;

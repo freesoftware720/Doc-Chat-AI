@@ -10,7 +10,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // On mount, read the theme from localStorage or default to 'default'
     const storedTheme = localStorage.getItem('app-theme') as Theme | null;
-    if (storedTheme && ['default', 'green', 'orange'].includes(storedTheme)) {
+    if (storedTheme && ['default', 'green', 'orange', 'luxury'].includes(storedTheme)) {
       setTheme(storedTheme);
     }
   }, []);
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // When the theme changes, update the data attribute and localStorage
     const root = window.document.documentElement;
-    root.classList.remove('default', 'green', 'orange'); // clean up previous themes
+    root.classList.remove('default', 'green', 'orange', 'luxury'); // clean up previous themes
     if (theme !== 'default') {
       root.setAttribute('data-theme', theme);
     } else {
