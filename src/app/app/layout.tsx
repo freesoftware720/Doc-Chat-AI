@@ -52,13 +52,12 @@ export default async function AppLayout({
   let creditsUsed = 0;
   const isProByPlan = profile?.subscription_plan === 'Pro';
   const hasProCredits = (profile?.pro_credits ?? 0) > 0;
-  const isPro = isProByPlan || hasProCredits;
   
   const plan = isProByPlan ? 'Pro' : (hasProCredits ? `Pro (Credit)` : (profile?.subscription_plan ?? 'Basic'));
-  const isBasicUser = !isPro;
+  const isBasicUser = plan === 'Basic';
 
 
-  if (plan === 'Basic') {
+  if (isBasicUser) {
     const lastReset = profile?.chat_credits_last_reset ? new Date(profile.chat_credits_last_reset) : new Date(0);
     const now = new Date();
     const hoursSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60);
