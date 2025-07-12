@@ -1,16 +1,17 @@
+
 {
-  "name": "Doc-Chat AI",
-  "short_name": "Doc-Chat",
-  "description": "Chat with your documents using AI.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#222831",
-  "theme_color": "#0EA5E9",
-  "icons": [
-    {
-      "src": "/logo-pwa.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ]
+    "name": "Doc-Chat AI",
+    "short_name": "Doc-Chat",
+    "description": "Chat with your documents using AI.",
+    "start_url": "/splash",
+    "display": "standalone",
+    "background_color": "#222831",
+    "theme_color": "#0EA5E9",
+    "icons": [
+        {
+            "src": "/logo-pwa.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
 }

@@ -60,6 +60,11 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+  
+  // Allow access to the splash screen regardless of auth state
+  if (pathname === '/splash') {
+      return response;
+  }
 
   const isAuthPage = pathname.startsWith('/auth')
   const isSelectPlanPage = pathname === '/auth/select-plan'
