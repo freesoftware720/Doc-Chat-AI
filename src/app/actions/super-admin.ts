@@ -93,7 +93,7 @@ export async function getAnalyticsData() {
 
     return { 
         planChartData, 
-        messageChartData: messageChartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        messageChartData: messageChartData.sort((a, b) => new Date(a.date).getTime() - new Date(a.date).getTime())
     };
 }
 
@@ -620,7 +620,10 @@ export async function deletePlan(prevState: any, formData: FormData) {
         if (!serviceSupabase) throw new Error("Service client not initialized.");
         if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-        const id = formData.get('id') as string;
+        const id = parseInt(formData.get('id') as string, 10);
+        if (isNaN(id)) {
+            throw new Error('Invalid Plan ID.');
+        }
 
         const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
 
