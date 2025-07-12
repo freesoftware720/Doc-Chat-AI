@@ -57,7 +57,7 @@ export function SettingsForm({ profile }: { profile: ProfileWithEmail | null }) 
 
   return (
     <Form {...form}>
-      <form action={formAction} className="space-y-6 max-w-lg">
+      <form action={formAction} className="space-y-6">
         <FormField
           control={form.control}
           name="fullName"

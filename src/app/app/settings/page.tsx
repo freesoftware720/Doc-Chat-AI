@@ -8,13 +8,19 @@ import { ReferralCard } from './referral-card';
 import { Button } from '@/components/ui/button';
 import { DailyRewardCard } from './daily-reward-card';
 import { ThemeSwitcher } from './theme-switcher';
+import { AvatarUploader } from './avatar-uploader';
+import { ChangePasswordForm } from './change-password-form';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function SettingsPage() {
+    const supabase = createClient();
     const profile = await getProfile();
     const settings = await getAppSettings();
 
     const isBasicUser = profile?.subscription_plan === 'Basic';
     const rewardEnabled = settings.feature_daily_reward_enabled;
+    
+    const { data: { publicUrl: avatarPublicUrl } } = supabase.storage.from('avatars').getPublicUrl(profile?.avatar_url || '');
 
     return (
       <div className="p-4 md:p-6 space-y-6">
@@ -23,18 +29,34 @@ export default async function SettingsPage() {
             <p className="text-muted-foreground mt-1">Manage your account and preferences here.</p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
-                <CardHeader>
-                    <CardTitle>Profile</CardTitle>
-                    <CardDescription>Update your personal information.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <SettingsForm profile={profile} />
-                </CardContent>
-            </Card>
+        <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+                <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Profile Information</CardTitle>
+                        <CardDescription>Update your personal information.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                            <AvatarUploader profile={profile} publicUrl={avatarPublicUrl} />
+                        </div>
+                        <div className="md:col-span-2">
+                           <SettingsForm profile={profile} />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Change Password</CardTitle>
+                        <CardDescription>Update your account password.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChangePasswordForm />
+                    </CardContent>
+                </Card>
+            </div>
 
-            <div className="space-y-6">
+            <div className="lg:col-span-1 space-y-6">
                 <Card className="bg-card/60 backdrop-blur-md border-white/10 shadow-lg">
                     <CardHeader>
                         <CardTitle>Theme</CardTitle>

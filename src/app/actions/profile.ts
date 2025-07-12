@@ -99,3 +99,49 @@ export async function updateProfile(prevState: any, formData: FormData) {
     return { error: `An unexpected error occurred: ${e.message}` };
   }
 }
+
+export async function updatePassword(prevState: any, formData: FormData) {
+    try {
+        const supabase = createClient();
+        const password = formData.get('password') as string;
+
+        const { error } = await supabase.auth.updateUser({ password });
+
+        if (error) {
+            return { error: `Could not update password: ${error.message}` };
+        }
+
+        revalidatePath('/app/settings');
+        return { success: 'Password updated successfully.' };
+    } catch (e: any) {
+        console.error('Update password action failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
+    }
+}
+
+export async function updateAvatarUrl(prevState: any, formData: FormData) {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { error: 'You must be logged in.' };
+        }
+
+        const avatarUrl = formData.get('avatarUrl') as string;
+        
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: avatarUrl })
+            .eq('id', user.id);
+
+        if (profileError) {
+            return { error: 'Could not update avatar. Please try again.' };
+        }
+
+        revalidatePath('/app', 'layout'); // Revalidate layout to update avatar in sidebar
+        return { success: 'Avatar updated successfully.' };
+    } catch (e: any) {
+        console.error('Update avatar URL action failed:', e);
+        return { error: `An unexpected error occurred: ${e.message}` };
+    }
+}
