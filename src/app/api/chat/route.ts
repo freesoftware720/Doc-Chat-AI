@@ -124,17 +124,18 @@ export async function POST(req: Request) {
         );
         const relevantChunks = relevanceChecks.filter(check => check.isRelevant).map(check => check.chunk);
         
-        if (relevantChunks.length === 0) {
-            const noInfoMessage = 'I could not find any relevant information in the document to answer your question.';
-             if (!isMultiDoc) {
-                await addMessage(documentId, user.id, 'assistant', noInfoMessage);
-            }
-            return new NextResponse(noInfoMessage, { status: 200 });
-        }
+        let finalPrompt: string;
+        let systemPrompt: string;
 
-        const context = relevantChunks.join('\n---\n');
-        const systemPrompt = defaultSystemPrompt;
-        const finalPrompt = `Context:\n---\n${context}\n---\n\nUser Question: ${query}\n\nAnswer:`;
+        if (relevantChunks.length > 0) {
+            const context = relevantChunks.join('\n---\n');
+            systemPrompt = defaultSystemPrompt;
+            finalPrompt = `Context:\n---\n${context}\n---\n\nUser Question: ${query}\n\nAnswer:`;
+        } else {
+            // No relevant context found, so let the AI answer from its general knowledge.
+            systemPrompt = 'You are a helpful AI assistant. Answer the user\'s question.';
+            finalPrompt = query;
+        }
 
         const { stream, response } = ai.generateStream({
             model: ai.model,
