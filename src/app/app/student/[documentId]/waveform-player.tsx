@@ -50,7 +50,10 @@ export function WaveformPlayer({ audioUrl }: { audioUrl: string }) {
       ws.un('play', onPlay);
       ws.un('pause', onPause);
       ws.un('finish', onFinish);
-      ws.destroy();
+      if (wavesurfer.current) {
+        wavesurfer.current.destroy();
+        wavesurfer.current = null;
+      }
     };
   }, [audioUrl]);
 
