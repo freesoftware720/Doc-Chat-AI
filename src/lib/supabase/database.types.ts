@@ -301,6 +301,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_subscription_plan_fkey"
+            columns: ["subscription_plan"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["name"]
+          },
         ]
       }
       referrals: {
@@ -380,6 +387,7 @@ export type Database = {
           id: number
           payment_gateway_id: number
           plan_id: number
+          receipt_url: string | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -392,6 +400,7 @@ export type Database = {
           id?: number
           payment_gateway_id: number
           plan_id: number
+          receipt_url?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -404,6 +413,7 @@ export type Database = {
           id?: number
           payment_gateway_id?: number
           plan_id?: number
+          receipt_url?: string | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null

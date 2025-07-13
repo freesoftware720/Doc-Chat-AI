@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import {
   Dialog,
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Upload } from "lucide-react";
 import type { Plan, PaymentGateway } from "@/app/actions/super-admin";
 import { createSubscriptionRequest } from "@/app/actions/subscriptions";
 import ReactMarkdown from "react-markdown";
@@ -44,6 +44,8 @@ export function PaymentSubmissionDialog({
   const [isSuccess, setIsSuccess] = useState(false);
   const [state, formAction] = useActionState(createSubscriptionRequest, null);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   useEffect(() => {
     if (state?.success) {
@@ -65,6 +67,8 @@ export function PaymentSubmissionDialog({
     if (!isOpen) {
         setTimeout(() => {
             setIsSuccess(false);
+            formRef.current?.reset();
+            setFileName(null);
         }, 200); // delay to allow for fade-out animation
     }
   };
@@ -90,7 +94,7 @@ export function PaymentSubmissionDialog({
             </DialogFooter>
           </>
         ) : (
-          <form action={formAction}>
+          <form ref={formRef} action={formAction}>
             <input type="hidden" name="planId" value={plan.id} />
             <input type="hidden" name="gatewayId" value={gateway.id} />
             <DialogHeader>
@@ -115,6 +119,22 @@ export function PaymentSubmissionDialog({
                       required
                   />
                   <p className="text-xs text-muted-foreground mt-1">This is required to verify your payment.</p>
+              </div>
+               <div>
+                  <Label htmlFor="receipt">Upload Receipt (Optional)</Label>
+                  <Input
+                      id="receipt"
+                      name="receipt"
+                      type="file"
+                      accept="image/png, image/jpeg, image/gif"
+                      className="hidden"
+                      onChange={(e) => setFileName(e.target.files?.[0]?.name || null)}
+                  />
+                  <Button type="button" variant="outline" className="w-full mt-1" onClick={() => document.getElementById('receipt')?.click()}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        {fileName ? <span className="truncate">{fileName}</span> : 'Choose Image'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">Upload a screenshot of your payment confirmation.</p>
               </div>
             </div>
             <DialogFooter className="sm:justify-between sm:gap-4">

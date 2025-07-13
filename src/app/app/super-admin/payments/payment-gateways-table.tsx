@@ -1,8 +1,9 @@
+
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { useFormStatus } from "react-dom";
-import { MoreHorizontal, Trash2, Edit, PlusCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit, PlusCircle, Loader2, Upload } from "lucide-react";
 import { createPaymentGateway, updatePaymentGateway, deletePaymentGateway, type PaymentGateway } from "@/app/actions/super-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,8 @@ function GatewayForm({ gateway, onOpenChange }: { gateway?: Gateway | null, onOp
     const formAction = isEditing ? updatePaymentGateway : createPaymentGateway;
     const [state, action] = useActionState(formAction, null);
     const { toast } = useToast();
+    const formRef = useRef<HTMLFormElement>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
 
     function SubmitButton() {
         const { pending } = useFormStatus();
@@ -41,22 +44,41 @@ function GatewayForm({ gateway, onOpenChange }: { gateway?: Gateway | null, onOp
             toast({ variant: "destructive", title: "Error", description: state.error });
         }
     }, [state, toast, onOpenChange]);
+    
+    useEffect(() => {
+        if (!gateway) {
+            formRef.current?.reset();
+            setFileName(null);
+        }
+    }, [gateway]);
 
     return (
-        <form action={action} className="space-y-4">
+        <form ref={formRef} action={action} className="space-y-4">
             {isEditing && <input type="hidden" name="id" value={gateway.id} />}
+            {isEditing && <input type="hidden" name="current_icon_url" value={gateway.icon_url || ''} />}
             <div>
                 <Label htmlFor="name">Gateway Name</Label>
                 <Input id="name" name="name" defaultValue={gateway?.name || ""} required />
             </div>
              <div>
-                <Label htmlFor="icon_url">Icon URL (Optional)</Label>
-                <Input id="icon_url" name="icon_url" placeholder="https://example.com/icon.png" defaultValue={gateway?.icon_url || ""} />
+                <Label htmlFor="icon">Gateway Icon</Label>
+                <Input 
+                  id="icon" 
+                  name="icon" 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/png, image/jpeg, image/gif, image/svg+xml"
+                  onChange={(e) => setFileName(e.target.files?.[0]?.name || null)}
+                />
+                 <Button type="button" variant="outline" className="w-full mt-1" onClick={() => document.getElementById('icon')?.click()}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {fileName || (gateway?.icon_url ? "Change Icon" : "Upload Icon")}
+                </Button>
             </div>
             <div>
                 <Label htmlFor="instructions">Payment Instructions</Label>
                 <Textarea id="instructions" name="instructions" defaultValue={gateway?.instructions || ""} required rows={5} />
-                 <p className="text-xs text-muted-foreground mt-1">Provide clear instructions for the user (e.g., account number, reference info).</p>
+                 <p className="text-xs text-muted-foreground mt-1">Provide clear instructions for the user (e.g., account number, reference info). Markdown is supported.</p>
             </div>
             <div className="flex items-center space-x-2">
                 <Switch id="is_active" name="is_active" defaultChecked={gateway ? gateway.is_active : true} />
@@ -132,7 +154,7 @@ export function PaymentGatewaysTable({ gateways }: { gateways: Gateway[] }) {
                             <TableRow key={gateway.id}>
                                 <TableCell className="font-medium">
                                     <div className="flex items-center gap-3">
-                                        {gateway.icon_url && <img src={gateway.icon_url} alt={gateway.name} className="h-6 w-6 rounded-full object-contain" />}
+                                        {gateway.icon_url ? <img src={gateway.icon_url} alt={gateway.name} className="h-6 w-6 rounded-full object-contain" /> : <div className="h-6 w-6 rounded-full bg-muted" />}
                                         <span>{gateway.name}</span>
                                     </div>
                                 </TableCell>

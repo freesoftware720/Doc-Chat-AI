@@ -4,7 +4,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { format, formatDistanceToNow } from "date-fns";
-import { MoreHorizontal, Loader2, Check, X, Clock, HelpCircle, Eye, CheckCircle } from "lucide-react";
+import { MoreHorizontal, Loader2, Check, X, Clock, HelpCircle, Eye, CheckCircle, Paperclip } from "lucide-react";
 import { approveSubscriptionRequest, rejectSubscriptionRequest, type SubscriptionRequestWithDetails } from "@/app/actions/super-admin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +132,7 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                             <TableHead>User</TableHead>
                             <TableHead>Plan</TableHead>
                             <TableHead>Submitted</TableHead>
+                            <TableHead>Receipt</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead><span className="sr-only">Actions</span></TableHead>
                         </TableRow>
@@ -147,6 +148,15 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                                     </TableCell>
                                     <TableCell>{request.plan_name}</TableCell>
                                     <TableCell>{formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}</TableCell>
+                                    <TableCell>
+                                        {request.receipt_url ? (
+                                            <a href={request.receipt_url} target="_blank" rel="noopener noreferrer">
+                                                <Paperclip className="h-4 w-4 hover:text-primary"/>
+                                            </a>
+                                        ) : (
+                                            <span className="text-muted-foreground">-</span>
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={status.variant} className="gap-1 capitalize">
                                             {status.icon} {request.status}
@@ -171,7 +181,7 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                          })}
                           {filteredRequests.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     No {filter === 'all' ? '' : filter} requests found.
                                 </TableCell>
                             </TableRow>
@@ -192,15 +202,25 @@ export function SubscriptionsTable({ requests }: { requests: Request[] }) {
                                 This dialog shows the complete details for the selected subscription request.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-2 text-sm">
-                            <p><strong>User:</strong> {dialogState.request.user_name} ({dialogState.request.user_email})</p>
-                            <p><strong>Plan:</strong> {dialogState.request.plan_name}</p>
-                            <p><strong>Gateway:</strong> {dialogState.request.gateway_name}</p>
-                            <p><strong>Transaction ID:</strong> <span className="font-mono bg-muted px-2 py-1 rounded">{dialogState.request.transaction_id}</span></p>
-                            <p><strong>Submitted:</strong> {format(new Date(dialogState.request.created_at), 'Pp')}</p>
-                            <p><strong>Status:</strong> <span className="capitalize font-medium">{dialogState.request.status}</span></p>
-                            {dialogState.request.reviewed_at && <p><strong>Reviewed:</strong> {format(new Date(dialogState.request.reviewed_at), 'Pp')}</p>}
-                            {dialogState.request.status === 'rejected' && <p><strong>Rejection Reason:</strong> {dialogState.request.rejection_reason || 'N/A'}</p>}
+                        <div className="space-y-4 text-sm">
+                            <div className="space-y-1">
+                               <p><strong>User:</strong> {dialogState.request.user_name} ({dialogState.request.user_email})</p>
+                                <p><strong>Plan:</strong> {dialogState.request.plan_name}</p>
+                                <p><strong>Gateway:</strong> {dialogState.request.gateway_name}</p>
+                                <p><strong>Transaction ID:</strong> <span className="font-mono bg-muted px-2 py-1 rounded">{dialogState.request.transaction_id}</span></p>
+                                <p><strong>Submitted:</strong> {format(new Date(dialogState.request.created_at), 'Pp')}</p>
+                                <p><strong>Status:</strong> <span className="capitalize font-medium">{dialogState.request.status}</span></p>
+                                {dialogState.request.reviewed_at && <p><strong>Reviewed:</strong> {format(new Date(dialogState.request.reviewed_at), 'Pp')}</p>}
+                                {dialogState.request.status === 'rejected' && <p><strong>Rejection Reason:</strong> {dialogState.request.rejection_reason || 'N/A'}</p>}
+                            </div>
+                            {dialogState.request.receipt_url && (
+                                <div>
+                                    <Label>Payment Receipt</Label>
+                                    <a href={dialogState.request.receipt_url} target="_blank" rel="noopener noreferrer" className="block mt-1">
+                                        <img src={dialogState.request.receipt_url} alt="Payment Receipt" className="max-w-full h-auto rounded-md border" />
+                                    </a>
+                                </div>
+                            )}
                         </div>
                          <DialogFooter>
                              <Button type="button" variant="outline" onClick={handleCloseDialog}>Close</Button>

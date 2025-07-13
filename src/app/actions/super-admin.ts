@@ -446,11 +446,30 @@ export async function createPaymentGateway(prevState: any, formData: FormData) {
         if (!serviceSupabase) throw new Error("Service client not initialized.");
         if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-        const rawData = {
+        const iconFile = formData.get('icon') as File;
+        let iconUrl: string | null = null;
+        
+        if (iconFile && iconFile.size > 0) {
+            const fileExt = iconFile.name.split('.').pop();
+            const filePath = `public/${Date.now()}.${fileExt}`;
+
+            const { error: uploadError } = await serviceSupabase.storage
+                .from('gateway-icons')
+                .upload(filePath, iconFile);
+
+            if (uploadError) {
+                throw new Error(`Icon upload failed: ${uploadError.message}`);
+            }
+
+            const { data: urlData } = serviceSupabase.storage.from('gateway-icons').getPublicUrl(filePath);
+            iconUrl = urlData.publicUrl;
+        }
+
+        const rawData: TablesInsert<'payment_gateways'> = {
             name: formData.get('name') as string,
             instructions: formData.get('instructions') as string,
-            icon_url: formData.get('icon_url') as string || null,
             is_active: formData.get('is_active') === 'on',
+            icon_url: iconUrl,
         };
         
         if (!rawData.name || !rawData.instructions) {
@@ -477,14 +496,33 @@ export async function updatePaymentGateway(prevState: any, formData: FormData) {
         if (!(await isSuperAdmin())) throw new Error("Permission denied.");
         
         const id = formData.get('id') as string;
-        const rawData = {
+        if (!id) throw new Error('Missing gateway ID.');
+        
+        const iconFile = formData.get('icon') as File;
+        let iconUrl: string | null = formData.get('current_icon_url') as string || null;
+
+        if (iconFile && iconFile.size > 0) {
+            const fileExt = iconFile.name.split('.').pop();
+            const filePath = `public/${Date.now()}.${fileExt}`;
+
+             const { error: uploadError } = await serviceSupabase.storage
+                .from('gateway-icons')
+                .upload(filePath, iconFile);
+
+            if (uploadError) {
+                throw new Error(`Icon upload failed: ${uploadError.message}`);
+            }
+            
+            const { data: urlData } = serviceSupabase.storage.from('gateway-icons').getPublicUrl(filePath);
+            iconUrl = urlData.publicUrl;
+        }
+        
+        const rawData: TablesUpdate<'payment_gateways'> = {
             name: formData.get('name') as string,
             instructions: formData.get('instructions') as string,
-            icon_url: formData.get('icon_url') as string || null,
             is_active: formData.get('is_active') === 'on',
+            icon_url: iconUrl,
         };
-
-        if (!id) throw new Error('Missing gateway ID.');
 
         const { error } = await serviceSupabase
             .from('payment_gateways')
@@ -620,38 +658,50 @@ export async function deletePlan(prevState: any, formData: FormData) {
         if (!serviceSupabase) throw new Error("Service client not initialized.");
         if (!(await isSuperAdmin())) throw new Error("Permission denied.");
 
-        const id = parseInt(formData.get('id') as string, 10);
-        if (isNaN(id)) {
-            throw new Error('Invalid Plan ID.');
+        const planId = parseInt(formData.get('id') as string, 10);
+        const planName = formData.get('name') as string;
+
+        if (isNaN(planId) || !planName) {
+            throw new Error('Invalid Plan ID or Name.');
         }
         
-        // Robustness: First delete any pending subscription requests associated with this plan.
+        // 1. First, downgrade any users on this plan to 'Basic'
+        const { error: updateUserError } = await serviceSupabase
+            .from('profiles')
+            .update({ subscription_plan: 'Basic' })
+            .eq('subscription_plan', planName);
+
+        if (updateUserError) {
+            throw new Error(`Failed to downgrade subscribed users: ${updateUserError.message}`);
+        }
+        
+        // 2. Then, delete any pending subscription requests for this plan.
         const { error: requestError } = await serviceSupabase
             .from('subscription_requests')
             .delete()
-            .eq('plan_id', id);
+            .eq('plan_id', planId);
 
         if (requestError) {
              throw new Error(`Failed to remove associated subscription requests: ${requestError.message}`);
         }
 
-        const { error } = await serviceSupabase.from('plans').delete().eq('id', id);
+        // 3. Finally, delete the plan itself.
+        const { error: planError } = await serviceSupabase.from('plans').delete().eq('id', planId);
 
-        if (error) {
-            // This might happen if a user is still subscribed to the plan.
-            // The error message from Supabase will be informative (e.g., foreign key violation).
-            throw new Error(`Failed to delete plan: ${error.message}. Ensure no users are currently subscribed to this plan.`);
+        if (planError) {
+            throw new Error(`Failed to delete plan: ${planError.message}.`);
         }
 
         revalidatePath('/app/super-admin/plans');
         revalidatePath('/');
         revalidatePath('/app/billing');
-        return { success: 'Plan deleted successfully.' };
+        return { success: `Plan "${planName}" and all associated user subscriptions have been deleted.` };
     } catch (e: any) {
         console.error('Delete plan failed:', e);
         return { error: `An unexpected error occurred: ${e.message}` };
     }
 }
+
 
 // --- Subscription Request Management Actions ---
 

@@ -18,6 +18,7 @@ export async function createSubscriptionRequest(prevState: any, formData: FormDa
         plan_id: parseInt(formData.get('planId') as string, 10),
         payment_gateway_id: parseInt(formData.get('gatewayId') as string, 10),
         transaction_id: formData.get('transactionId') as string,
+        receipt: formData.get('receipt') as File,
     };
     
     if (!rawData.plan_id || !rawData.payment_gateway_id || !rawData.transaction_id) {
@@ -25,7 +26,7 @@ export async function createSubscriptionRequest(prevState: any, formData: FormDa
     }
     
     // Check if there is already a pending request
-    const { data: existingRequest, error: existingError } = await supabase
+    const { data: existingRequest } = await supabase
         .from('subscription_requests')
         .select('id')
         .eq('user_id', user.id)
@@ -36,11 +37,31 @@ export async function createSubscriptionRequest(prevState: any, formData: FormDa
         return { error: 'You already have a pending subscription request. Please wait for it to be reviewed.' };
     }
 
+    let receiptUrl: string | null = null;
+    if (rawData.receipt && rawData.receipt.size > 0) {
+        const fileExt = rawData.receipt.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('receipts')
+            .upload(filePath, rawData.receipt);
+
+        if (uploadError) {
+            console.error("Error uploading receipt:", uploadError.message);
+            return { error: `Failed to upload receipt: ${uploadError.message}` };
+        }
+        
+        const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(filePath);
+        receiptUrl = urlData.publicUrl;
+    }
+
+
     const requestToInsert: TablesInsert<'subscription_requests'> = {
         user_id: user.id,
         plan_id: rawData.plan_id,
         payment_gateway_id: rawData.payment_gateway_id,
         transaction_id: rawData.transaction_id,
+        receipt_url: receiptUrl,
     };
 
     const { error } = await supabase.from('subscription_requests').insert(requestToInsert);
