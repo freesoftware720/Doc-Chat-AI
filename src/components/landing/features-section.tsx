@@ -2,7 +2,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { icons, Sparkles } from "lucide-react";
+import { UploadCloud, Sparkles, ShieldCheck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const defaultContent = {
     headline: "A Smarter Way to Work With Documents",
@@ -13,6 +14,14 @@ const defaultContent = {
         { icon: "ShieldCheck", title: "Secure & Private by Design", description: "Your data is encrypted and confidential. Chat with your documents with complete peace of mind." },
     ]
 };
+
+// Map icon names to actual imported components
+const iconMap: { [key: string]: LucideIcon } = {
+  UploadCloud: UploadCloud,
+  Sparkles: Sparkles,
+  ShieldCheck: ShieldCheck,
+};
+
 
 type Feature = {
   icon: string;
@@ -33,7 +42,7 @@ export function FeaturesSection({ content = defaultContent }: { content?: typeof
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {content.items.map((feature: Feature, index: number) => {
-            const IconComponent = icons[feature.icon as keyof typeof icons] || Sparkles;
+            const IconComponent = iconMap[feature.icon] || Sparkles;
             return (
                 <div
                 key={index}
