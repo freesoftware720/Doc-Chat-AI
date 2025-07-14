@@ -17,12 +17,12 @@ export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="flex flex-wrap gap-4">
       {themes.map((t) => (
         <button
           key={t.value}
           className={cn(
-            'p-4 rounded-lg border-2 transition-all relative flex flex-col items-center justify-center gap-2',
+            'flex-grow sm:flex-grow-0 p-4 rounded-lg border-2 transition-all relative flex flex-col items-center justify-center gap-2 min-w-[120px]',
             theme === t.value ? 'border-primary shadow-lg shadow-primary/20' : 'border-border hover:border-primary/50'
           )}
           onClick={() => setTheme(t.value)}
