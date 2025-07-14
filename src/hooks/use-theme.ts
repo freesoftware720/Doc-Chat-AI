@@ -3,7 +3,7 @@
 
 import { createContext, useContext } from 'react';
 
-export type Theme = 'default' | 'green' | 'orange' | 'luxury' | 'velvet';
+export type Theme = 'default' | 'green' | 'orange' | 'luxury' | 'velvet' | 'blueberry';
 
 interface ThemeContextType {
   theme: Theme;

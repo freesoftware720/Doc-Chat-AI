@@ -11,6 +11,7 @@ const themes = [
   { name: 'Orange', value: 'orange', colors: ['#f97316', '#171717'] },
   { name: 'Luxury', value: 'luxury', colors: ['#D4AF37', '#1C1C1E'] },
   { name: 'Velvet', value: 'velvet', colors: ['#d92e2e', '#161718'] },
+  { name: 'Blueberry', value: 'blueberry', colors: ['#4A90E2', '#1A1D24'] },
 ];
 
 export function ThemeSwitcher() {
