@@ -30,7 +30,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     }
 
     return (
-        <article className="prose dark:prose-invert max-w-4xl mx-auto bg-card/60 p-8 md:p-12 rounded-2xl border border-white/10 shadow-lg prose-p:text-white">
+        <article className="prose dark:prose-invert max-w-4xl mx-auto bg-card/60 p-8 md:p-12 rounded-2xl border border-white/10 shadow-lg prose-p:text-white prose-a:text-primary">
             <h1 className="text-primary">{pageContent.title}</h1>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {pageContent.content}
