@@ -6,95 +6,73 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export function LandingAnimations() {
   useLayoutEffect(() => {
-    // Register the plugin inside the effect to ensure it only runs on the client
     gsap.registerPlugin(ScrollTrigger);
+
+    const mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: '#interactive-demo',
+                start: 'top top',
+                end: '+=4000',
+                scrub: 1.5,
+                pin: true,
+            },
+        });
+
+        // Initial fade-in
+        tl.from('#demo-browser-frame', { opacity: 0, scale: 0.9, duration: 1, ease: 'power2.out' });
+        tl.from('#demo-cursor', { opacity: 0, scale: 0, duration: 0.5 }, "-=0.5");
+        
+        // --- 1. Move to Documents ---
+        tl.to('#demo-cursor', { left: '80px', top: '130px', duration: 1, ease: 'power1.inOut' });
+        tl.to('#demo-cursor', { scale: 0.8, duration: 0.2, yoyo: true, repeat: 1 }); // Simulate click
+        tl.set('#sidebar-btn-dashboard', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare' });
+        tl.set('#sidebar-btn-docs', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare font-medium border-primary/40 bg-primary/20 text-primary dark:text-white [text-shadow:0_0_8px_hsl(var(--primary))] dark:[text-shadow:0_0_8px_white]' });
+        tl.to('#view-dashboard', { opacity: 0, x: -50, duration: 0.5, ease: 'power2.in' });
+        tl.fromTo('#view-docs', { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }, "-=0.3");
+
+        tl.addPause("+=1");
+
+        // --- 2. Move to Chat History ---
+        tl.to('#demo-cursor', { left: '80px', top: '170px', duration: 1, ease: 'power1.inOut' });
+        tl.to('#demo-cursor', { scale: 0.8, duration: 0.2, yoyo: true, repeat: 1 });
+        tl.set('#sidebar-btn-docs', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare' });
+        tl.set('#sidebar-btn-history', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare font-medium border-primary/40 bg-primary/20 text-primary dark:text-white [text-shadow:0_0_8px_hsl(var(--primary))] dark:[text-shadow:0_0_8px_white]' });
+        tl.to('#view-docs', { opacity: 0, x: -50, duration: 0.5, ease: 'power2.in' });
+        tl.fromTo('#view-history', { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }, "-=0.3");
+
+        tl.addPause("+=1");
+
+        // --- 3. Move to Settings ---
+        tl.to('#demo-cursor', { left: '80px', top: '210px', duration: 1, ease: 'power1.inOut' });
+        tl.to('#demo-cursor', { scale: 0.8, duration: 0.2, yoyo: true, repeat: 1 });
+        tl.set('#sidebar-btn-history', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare' });
+        tl.set('#sidebar-btn-settings', { className: 'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-all border border-transparent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:[&>span]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 interactive-glare font-medium border-primary/40 bg-primary/20 text-primary dark:text-white [text-shadow:0_0_8px_hsl(var(--primary))] dark:[text-shadow:0_0_8px_white]' });
+        tl.to('#view-history', { opacity: 0, x: -50, duration: 0.5, ease: 'power2.in' });
+        tl.fromTo('#view-settings', { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }, "-=0.3");
+
+        // --- Fade out cursor at the end ---
+        tl.to('#demo-cursor', { opacity: 0, scale: 0, duration: 0.5 }, "+=1");
+    });
     
-    const ctx = gsap.context(() => {
-      // Hero section load-in animation
-      gsap.timeline()
-        .from('.gsap-hero-el', {
-          opacity: 0,
-          y: 20,
-          duration: 0.8,
-          ease: 'power3.out',
-          stagger: 0.2,
+    // Fallback for smaller screens, simple fade-in
+    mm.add("(max-width: 767px)", () => {
+        gsap.from('#interactive-demo', {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '#interactive-demo',
+                start: 'top 85%',
+                toggleActions: 'play none none none',
+            },
         });
-
-      // General fade-in for section headers
-      gsap.utils.toArray<HTMLElement>('.gsap-fade-in').forEach((el) => {
-        gsap.from(el, {
-          opacity: 0,
-          y: 30,
-          duration: 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
-        });
-      });
-
-      // Staggered fade-in for feature cards
-      gsap.from('.gsap-feature-card', {
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        ease: 'power3.out',
-        stagger: 0.2,
-        scrollTrigger: {
-          trigger: '.gsap-feature-card',
-          start: 'top 80%',
-          toggleActions: 'play none none none',
-        },
-      });
-      
-       // Staggered fade-in for pricing cards
-      gsap.from('.gsap-pricing-card', {
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        ease: 'power3.out',
-        stagger: 0.2,
-        scrollTrigger: {
-          trigger: '.gsap-pricing-card',
-          start: 'top 80%',
-          toggleActions: 'play none none none',
-        },
-      });
-      
-      // Staggered fade-in for review cards
-      gsap.from('.gsap-review-card', {
-        scrollTrigger: {
-          trigger: '.gsap-review-card',
-          start: 'top 85%',
-          toggleActions: 'play none none none',
-        },
-        opacity: 0,
-        y: 60,
-        ease: 'power3.out',
-        duration: 1,
-        stagger: 0.1
-      });
-
-
-      // Staggered fade-in for FAQ items
-      gsap.from('.gsap-faq-item', {
-        opacity: 0,
-        x: -30,
-        duration: 0.7,
-        ease: 'power3.out',
-        stagger: 0.15,
-        scrollTrigger: {
-          trigger: '.gsap-faq-item',
-          start: 'top 85%',
-          toggleActions: 'play none none none',
-        },
-      });
     });
 
-    // Cleanup
-    return () => ctx.revert();
+    return () => mm.revert();
   }, []);
 
   return null;

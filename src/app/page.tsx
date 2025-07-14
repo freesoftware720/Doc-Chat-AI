@@ -3,7 +3,7 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/server';
 import { HeroSection } from '@/components/landing/hero-section';
-import { FeaturesSection } from '@/components/landing/features-section';
+import { InteractiveDemoSection } from '@/components/landing/interactive-demo-section';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FaqSection } from '@/components/landing/faq-section';
 import { getAppSettings } from './actions/settings';
@@ -37,7 +37,7 @@ export default async function LandingPage() {
         </div>
         <main>
           <HeroSection content={content?.hero} />
-          <FeaturesSection content={content?.features} />
+          <InteractiveDemoSection />
           <PricingSection plans={plans} />
           <ReviewsSection reviews={reviews} />
           <FaqSection content={content?.faq} />
