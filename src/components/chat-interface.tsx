@@ -104,7 +104,7 @@ export default function ChatInterface({
                     "max-w-2xl rounded-2xl px-5 py-3 shadow-lg",
                     {
                       "bg-primary text-primary-foreground rounded-br-lg": message.role === "user",
-                      "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg": message.role === "assistant",
+                      "bg-card/60 backdrop-blur-md border border-white/10 rounded-bl-lg text-foreground": message.role === "assistant",
                     },
                     "prose dark:prose-invert prose-p:my-2 prose-headings:my-3 max-w-none"
                   )}
